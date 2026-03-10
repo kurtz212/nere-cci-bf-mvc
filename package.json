@@ -1,0 +1,12 @@
+{
+  "name": "nere-cci-bf",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\" \"npm run api-nere\"",
+    "server": "cd server && npm run dev",
+    "client": "cd client && npm start",
+    "api-nere": "cd api-nere && npm run dev",
+    "install:all": "npm i && cd client && npm i && cd ../server && npm i && cd ../api-nere && npm i"
+  },
+  "devDependencies": { "concurrently": "^8.2.0" }
+}

@@ -1,0 +1,9 @@
+{
+  "short_name": "NERE CCI-BF",
+  "name": "Registre National des Entreprises — CCI-BF",
+  "icons": [{ "src": "favicon.ico", "sizes": "64x64", "type": "image/x-icon" }],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#0A3D1F",
+  "background_color": "#F5FAF7"
+}
