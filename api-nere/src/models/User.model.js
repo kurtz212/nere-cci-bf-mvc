@@ -11,8 +11,7 @@ const userSchema = new mongoose.Schema({
   typeCompte: {
     type: String,
     enum: ['etudiant', 'entreprise', 'administration', 'autre'],
-    required: false,
-    default: 'autre',
+    required: [true, 'Le type de compte est obligatoire'],
   },
 
   // ── Coordonnées ──

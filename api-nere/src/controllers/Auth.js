@@ -6,23 +6,17 @@ const genererToken = (id) =>
   jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE });
 
 const envoyerEmail = async ({ to, subject, html }) => {
-  try {
-    const nodemailer  = require('nodemailer');
-    const transporter = nodemailer.createTransport({
-      host:   process.env.SMTP_HOST,
-      port:   parseInt(process.env.SMTP_PORT),
-      secure: false,
-      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-    });
-    await transporter.sendMail({
-      from: `"NERE CCI-BF" <${process.env.SMTP_USER}>`,
-      to, subject, html,
-    });
-    console.log('📧 Email envoyé à:', to);
-  } catch(e) {
-    console.warn('⚠️  Email non envoyé (SMTP non configuré):', e.message);
-    // Ne pas bloquer l'inscription si email échoue
-  }
+  const nodemailer  = require('nodemailer');
+  const transporter = nodemailer.createTransport({
+    host:   process.env.SMTP_HOST,
+    port:   parseInt(process.env.SMTP_PORT),
+    secure: false,
+    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+  });
+  await transporter.sendMail({
+    from: `"NERE CCI-BF" <${process.env.SMTP_USER}>`,
+    to, subject, html,
+  });
 };
 
 // ══════════════════════════════════════
@@ -45,16 +39,13 @@ exports.inscription = async (req, res, next) => {
     const verifyToken     = crypto.randomBytes(32).toString('hex');
     const verifyTokenHash = crypto.createHash('sha256').update(verifyToken).digest('hex');
 
-    // MODE TEST : emailVerified = true pour tous les comptes
-    const modeTest = true; // Mettre false en production
-
     const user = await User.create({
       typeCompte, nom, prenom, fonction, telephone, siteWeb, password,
       email:             sansEmail ? undefined : email,
-      emailVerified:     modeTest ? true : sansEmail,
-      role:              'subscriber',
-      emailVerifyToken:  (modeTest || sansEmail) ? undefined : verifyTokenHash,
-      emailVerifyExpire: (modeTest || sansEmail) ? undefined : Date.now() + 24 * 60 * 60 * 1000,
+      emailVerified:     sansEmail,
+      role:              sansEmail ? 'subscriber' : 'visitor',
+      emailVerifyToken:  sansEmail ? undefined : verifyTokenHash,
+      emailVerifyExpire: sansEmail ? undefined : Date.now() + 24 * 60 * 60 * 1000,
     });
 
     if (!sansEmail) {

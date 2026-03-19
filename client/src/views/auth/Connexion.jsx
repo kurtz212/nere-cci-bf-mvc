@@ -131,7 +131,7 @@ export default function Connexion() {
               </div>
 
               <button className="btn-auth-outline" onClick={() => navigate("/inscription")}>
-                Créer un compte gratuit
+                Créer un compte 
               </button>
 
               {/* Info packs */}

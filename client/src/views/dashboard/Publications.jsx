@@ -67,19 +67,52 @@ export default function Publications() {
   const [filtre, setFiltre]       = useState("Toutes");
   const [recherche, setRecherche] = useState("");
   const [selected, setSelected]   = useState(null);
+  const [pubs, setPubs]           = useState(PUBLICATIONS_MOCK);
+  const [loading, setLoading]     = useState(true);
 
   useEffect(() => {
     const u = localStorage.getItem("user");
     if (u) setUser(JSON.parse(u));
   }, []);
 
+  // Charger les publications depuis l'API
+  useEffect(() => {
+    const chargerPubs = async () => {
+      try {
+        const res  = await fetch("http://localhost:5000/api/publications");
+        const data = await res.json();
+        if (data.success && data.data.length > 0) {
+          // Adapter le format API au format attendu par le composant
+          const pubsFormatees = data.data.map(p => ({
+            id:        p._id,
+            titre:     p.titre,
+            extrait:   p.extrait || p.contenu?.substring(0, 120) + "..." || "",
+            contenu:   p.contenu || "",
+            categorie: p.categorie || "Rapport",
+            date:      new Date(p.createdAt).toLocaleDateString("fr-FR", {day:"2-digit", month:"long", year:"numeric"}),
+            tags:      [p.categorie || "Rapport"],
+            locked:    (p.accesPack || 1) > 1,
+            vues:      p.vues || 0,
+          }));
+          setPubs(pubsFormatees);
+        }
+      } catch(e) {
+        console.warn("⚠️ API indisponible, utilisation des données mock");
+        // Garder les mock si API indisponible
+      } finally {
+        setLoading(false);
+      }
+    };
+    chargerPubs();
+  }, []);
+
   const isVisiteur = !user;
   const packLevel  = user ? 1 : 0;
 
-  const pubsFiltrees = PUBLICATIONS_MOCK.filter((p) => {
+  const pubsFiltrees = pubs.filter((p) => {
     const matchCat    = filtre === "Toutes" || p.categorie === filtre;
     const matchSearch = p.titre.toLowerCase().includes(recherche.toLowerCase()) ||
-                        p.tags.some(t => t.toLowerCase().includes(recherche.toLowerCase()));
+                        (p.tags || []).some(t => t.toLowerCase().includes(recherche.toLowerCase()));
     return matchCat && matchSearch;
   });
 
@@ -146,7 +179,7 @@ export default function Publications() {
                 cursor: "pointer", fontFamily: "inherit",
                 boxShadow: "0 4px 14px rgba(77,201,122,0.4)",
               }}>
-                Créer un compte gratuit
+                Créer un compte 
               </button>
             </div>
           </div>
@@ -155,7 +188,7 @@ export default function Publications() {
         {/* ── HERO ── */}
         <div className="pub-page-hero">
           <div className="pub-page-tag">Publications CCI-BF</div>
-          <h1 className="pub-page-title">Actualités et Études économiques</h1>
+          <h1 className="pub-page-title">Actualités et  Études économiques</h1>
           <p className="pub-page-desc">
             Rapports, classements et analyses sur l'économie du Burkina Faso
           </p>
@@ -306,7 +339,7 @@ export default function Publications() {
 
         {/* ── FOOTER ── */}
         <footer className="dash-footer">
-          <span>© 2025 CCI-BF — Chambre de Commerce et d'Industrie du Burkina Faso</span>
+          <span>© 2026 CCI-BF — Chambre de Commerce et d'Industrie du Burkina Faso</span>
           <div style={{ display: "flex", gap: "20px" }}>
             <span>CGU</span><span>Contact</span><span>Support</span>
           </div>

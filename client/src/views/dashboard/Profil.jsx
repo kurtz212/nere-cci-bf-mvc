@@ -386,9 +386,9 @@ export default function Profil() {
 
         {/* FOOTER */}
         <footer className="dash-footer">
-          <span>© 2025 CCI-BF — Chambre de Commerce et d'Industrie du Burkina Faso</span>
+          <span>© 2026 CCI-BF — Chambre de Commerce et d'Industrie du Burkina Faso</span>
           <div style={{ display: "flex", gap: "20px" }}>
-            <span>CGU</span><span>Contact</span><span>Support</span>
+           
           </div>
         </footer>
 
