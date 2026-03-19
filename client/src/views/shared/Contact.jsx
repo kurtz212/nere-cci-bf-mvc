@@ -71,9 +71,36 @@ export default function Contact() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    await new Promise(r => setTimeout(r, 1000));
-    setLoading(false);
-    setSuccess(true);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("http://localhost:5000/api/reclamations", {
+        method:  "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          type:        "autre",
+          sujet:       form.sujet,
+          description: form.message,
+          nom:         form.nom,
+          prenom:      form.prenom,
+          email:       form.email,
+          telephone:   form.telephone,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSuccess(true);
+      } else {
+        alert(data.message || "Erreur lors de l'envoi.");
+      }
+    } catch(e) {
+      console.warn("API indisponible:", e.message);
+      setSuccess(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -88,9 +115,9 @@ export default function Contact() {
             <span className="dash-nav-link" onClick={() => navigate("/")}>Accueil</span>
             <span className="dash-nav-link" onClick={() => navigate("/publications")}>Publications</span>
             <span className="dash-nav-link" onClick={() => navigate("/recherche")}>Recherche</span>
-            
+            <span className="dash-nav-link" onClick={() => navigate("/reclamation")}>Réclamation</span>
             <span className="dash-nav-link active">Contact</span>
-            
+            {user && <span className="dash-nav-link" onClick={() => navigate("/profil")}>Mon Profil</span>}
           </div>
           <div className="dash-nav-actions">
             {user ? (

@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import "../../styles/auth.css";
 
 export default function Connexion() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [mode, setMode] = useState("login"); // login | forgot | forgot-sent
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -28,7 +29,18 @@ export default function Connexion() {
       if (data.success) {
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
-        navigate("/dashboard");
+
+        // Redirection selon rôle ou paramètre redirect
+        const params   = new URLSearchParams(location.search);
+        const redirect = params.get("redirect");
+
+        if (redirect) {
+          navigate("/" + redirect);
+        } else if (data.user?.role === "admin") {
+          navigate("/admin");
+        } else {
+          navigate("/");
+        }
       } else {
         setError(data.message || "Email ou mot de passe incorrect.");
       }
@@ -131,7 +143,7 @@ export default function Connexion() {
               </div>
 
               <button className="btn-auth-outline" onClick={() => navigate("/inscription")}>
-                Créer un compte 
+                Créer un compte gratuit
               </button>
 
               {/* Info packs */}

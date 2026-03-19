@@ -4,12 +4,16 @@ const { proteger }  = require('../middlewares/auth.middleware');
 const { autoriser } = require('../middlewares/role.middleware');
 const Publication   = require('../models/Publication.model');
 
-// GET /api/publications  — publiques (liste)
+// GET /api/publications — toutes les publiées (public)
+// GET /api/publications?all=true — toutes (admin)
 router.get('/', async (req, res) => {
   try {
-    const { categorie, page=1, limit=10 } = req.query;
-    const filtre = { statut:'publié' };
+    const { categorie, page=1, limit=10, all } = req.query;
+
+    // Si admin demande tout
+   const filtre = all === 'true' ? {} : { statut: { $in: ['publie', 'published'] } };
     if (categorie) filtre.categorie = categorie;
+
     const pubs = await Publication.find(filtre)
       .sort('-createdAt')
       .skip((page-1)*limit)
@@ -24,14 +28,13 @@ router.get('/:id', async (req, res) => {
   try {
     const pub = await Publication.findById(req.params.id);
     if (!pub) return res.status(404).json({ success:false, message:'Publication introuvable' });
-    // Incrémenter les vues
     pub.vues = (pub.vues || 0) + 1;
     await pub.save();
     res.json({ success:true, data:pub });
   } catch(err) { res.status(500).json({ success:false, message:err.message }); }
 });
 
-// POST /api/publications  (admin)
+// POST /api/publications (admin)
 router.post('/', proteger, autoriser('admin'), async (req, res) => {
   try {
     const pub = await Publication.create({ ...req.body, auteur: req.user.id });
@@ -39,7 +42,7 @@ router.post('/', proteger, autoriser('admin'), async (req, res) => {
   } catch(err) { res.status(400).json({ success:false, message:err.message }); }
 });
 
-// PUT /api/publications/:id  (admin)
+// PUT /api/publications/:id (admin)
 router.put('/:id', proteger, autoriser('admin'), async (req, res) => {
   try {
     const pub = await Publication.findByIdAndUpdate(req.params.id, req.body, { new:true });
@@ -48,7 +51,7 @@ router.put('/:id', proteger, autoriser('admin'), async (req, res) => {
   } catch(err) { res.status(400).json({ success:false, message:err.message }); }
 });
 
-// DELETE /api/publications/:id  (admin)
+// DELETE /api/publications/:id (admin)
 router.delete('/:id', proteger, autoriser('admin'), async (req, res) => {
   try {
     await Publication.findByIdAndDelete(req.params.id);

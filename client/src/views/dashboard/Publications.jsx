@@ -4,44 +4,44 @@ import "../../styles/dashboard.css";
 
 const PUBLICATIONS_MOCK = [
   {
-    id: 1, categorie: "RAPPORT", date: "28 Fév. 2025", accessLevel: 0,
+    id: 1, categorie: "Rapport", date: "28 Fév. 2025", accessLevel: 0,
     titre: "Enquête sur le commerce de détail au Burkina Faso",
     extrait: "Analyse des tendances du commerce informel et formel dans les principales villes. Cette étude couvre les régions du Centre, des Hauts-Bassins et du Nord.",
     tags: ["Commerce", "Ouagadougou", "2025"],
   },
   {
-    id: 2, categorie: "ÉTUDE", date: "15 Fév. 2025", accessLevel: 0,
+    id: 2, categorie: "Étude", date: "15 Fév. 2025", accessLevel: 0,
     titre: "Indice PME – T4 2024 : Reprise prudente",
     extrait: "Les petites et moyennes entreprises montrent des signes de stabilisation. L'indice global remonte de 2,3 points par rapport au trimestre précédent.",
     tags: ["PME", "Économie", "T4 2024"],
   },
   {
-    id: 3, categorie: "CLASSEMENT", date: "10 Fév. 2025", accessLevel: 1,
+    id: 3, categorie: "Classement", date: "10 Fév. 2025", accessLevel: 1,
     titre: "Top 100 entreprises BTP – Burkina Faso 2024",
     extrait: "Classement exclusif des entreprises du secteur BTP par chiffre d'affaires déclaré au NERE. Méthodologie et données complètes incluses.",
     tags: ["BTP", "Classement", "2024"],
   },
   {
-    id: 4, categorie: "ACTUALITÉ", date: "5 Fév. 2025", accessLevel: 0,
+    id: 4, categorie: "Communiqué", date: "5 Fév. 2025", accessLevel: 0,
     titre: "CCI-BF : Lancement du Programme d'Appui aux Exportateurs",
     extrait: "La Chambre de Commerce annonce un nouveau programme destiné à accompagner les entreprises burkinabè dans leurs démarches d'exportation vers la sous-région.",
     tags: ["Export", "CCI-BF", "Programme"],
   },
   {
-    id: 5, categorie: "ENQUÊTE", date: "1 Fév. 2025", accessLevel: 2,
+    id: 5, categorie: "Note technique", date: "1 Fév. 2025", accessLevel: 2,
     titre: "Données financières secteur Agriculture 2024",
     extrait: "Analyse détaillée des chiffres d'affaires et des effectifs des entreprises agricoles enregistrées au NERE sur l'ensemble du territoire national.",
     tags: ["Agriculture", "Finance", "Pro+"],
   },
   {
-    id: 6, categorie: "RAPPORT", date: "20 Jan. 2025", accessLevel: 0,
+    id: 6, categorie: "Rapport", date: "20 Jan. 2025", accessLevel: 0,
     titre: "Bilan économique 2024 – CCI-BF",
     extrait: "Rétrospective complète de l'activité économique du Burkina Faso en 2024. Chiffres clés, tendances et perspectives pour 2025.",
     tags: ["Bilan", "2024", "Économie"],
   },
 ];
 
-const CATEGORIES = ["Toutes", "RAPPORT", "ÉTUDE", "CLASSEMENT", "ACTUALITÉ", "ENQUÊTE"];
+const CATEGORIES = ["Toutes", "Rapport", "Étude", "Classement", "Note technique", "Communiqué"];
 
 const ACCESS_LABELS = {
   0: { label: "Public",  color: "#22A052", bg: "rgba(34,160,82,0.1)"  },
@@ -84,15 +84,15 @@ export default function Publications() {
         if (data.success && data.data.length > 0) {
           // Adapter le format API au format attendu par le composant
           const pubsFormatees = data.data.map(p => ({
-            id:        p._id,
-            titre:     p.titre,
-            extrait:   p.extrait || p.contenu?.substring(0, 120) + "..." || "",
-            contenu:   p.contenu || "",
-            categorie: p.categorie || "Rapport",
-            date:      new Date(p.createdAt).toLocaleDateString("fr-FR", {day:"2-digit", month:"long", year:"numeric"}),
-            tags:      [p.categorie || "Rapport"],
-            locked:    (p.accesPack || 1) > 1,
-            vues:      p.vues || 0,
+            id:          p._id,
+            titre:       p.titre,
+            extrait:     p.extrait || (p.contenu ? p.contenu.substring(0, 150) + "..." : ""),
+            contenu:     p.contenu || "",
+            categorie:   p.categorie || "Rapport",
+            date:        new Date(p.createdAt).toLocaleDateString("fr-FR", {day:"2-digit", month:"long", year:"numeric"}),
+            tags:        [p.categorie || "Rapport"],
+            accessLevel: (p.accesPack || 1) - 1,
+            vues:        p.vues || 0,
           }));
           setPubs(pubsFormatees);
         }
@@ -110,7 +110,7 @@ export default function Publications() {
   const packLevel  = user ? 1 : 0;
 
   const pubsFiltrees = pubs.filter((p) => {
-    const matchCat    = filtre === "Toutes" || p.categorie === filtre;
+    const matchCat = filtre === "Toutes" || p.categorie === filtre;
     const matchSearch = p.titre.toLowerCase().includes(recherche.toLowerCase()) ||
                         (p.tags || []).some(t => t.toLowerCase().includes(recherche.toLowerCase()));
     return matchCat && matchSearch;
@@ -179,7 +179,7 @@ export default function Publications() {
                 cursor: "pointer", fontFamily: "inherit",
                 boxShadow: "0 4px 14px rgba(77,201,122,0.4)",
               }}>
-                Créer un compte 
+                Créer un compte gratuit
               </button>
             </div>
           </div>
@@ -188,7 +188,7 @@ export default function Publications() {
         {/* ── HERO ── */}
         <div className="pub-page-hero">
           <div className="pub-page-tag">Publications CCI-BF</div>
-          <h1 className="pub-page-title">Actualités et  Études économiques</h1>
+          <h1 className="pub-page-title">Actualités et Études économiques</h1>
           <p className="pub-page-desc">
             Rapports, classements et analyses sur l'économie du Burkina Faso
           </p>
@@ -339,7 +339,7 @@ export default function Publications() {
 
         {/* ── FOOTER ── */}
         <footer className="dash-footer">
-          <span>© 2026 CCI-BF — Chambre de Commerce et d'Industrie du Burkina Faso</span>
+          <span>© 2025 CCI-BF — Chambre de Commerce et d'Industrie du Burkina Faso</span>
           <div style={{ display: "flex", gap: "20px" }}>
             <span>CGU</span><span>Contact</span><span>Support</span>
           </div>

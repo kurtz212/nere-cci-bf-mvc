@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../styles/dashboard.css";
 
+const API = "http://localhost:5000/api";
+
 // ═══════════════════════════════════════
 // DONNÉES MOCK
 // ═══════════════════════════════════════
@@ -41,17 +43,144 @@ const MOCK_PUBS = [
 // ═══════════════════════════════════════
 // COMPOSANT PRINCIPAL
 // ═══════════════════════════════════════
-const API = "http://localhost:5000/api";
 
 const getToken = () => localStorage.getItem("token");
 
+// ── Écran de login admin ──
+function AdminLogin({ onSuccess }) {
+  const [form, setForm]     = useState({ email:"", password:"" });
+  const [error, setError]   = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true); setError("");
+    try {
+      const res  = await fetch(`${API}/auth/connexion`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (data.success && data.user?.role === "admin") {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        onSuccess(data.user);
+      } else if (data.success && data.user?.role !== "admin") {
+        setError("Accès refusé. Compte administrateur requis.");
+      } else {
+        setError(data.message || "Identifiants incorrects.");
+      }
+    } catch(e) {
+      setError("Impossible de contacter le serveur.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={{ minHeight:"100vh", background:"#0A3D1F", display:"flex",
+      alignItems:"center", justifyContent:"center",
+      fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
+      <div style={{ background:"rgba(255,255,255,0.05)", borderRadius:"20px",
+        border:"1px solid rgba(77,201,122,0.15)", padding:"48px 40px",
+        width:"100%", maxWidth:"400px" }}>
+        <div style={{ textAlign:"center", marginBottom:"32px" }}>
+          <div style={{ fontSize:"40px", marginBottom:"12px" }}>🔐</div>
+          <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:"24px",
+            fontWeight:900, color:"#fff", margin:0 }}>
+            Administration NERE
+          </h2>
+          <p style={{ color:"rgba(255,255,255,0.4)", fontSize:"13px",
+            marginTop:"8px" }}>
+            Accès réservé aux administrateurs
+          </p>
+        </div>
+
+        <form onSubmit={handleLogin}>
+          <div style={{ marginBottom:"14px" }}>
+            <label style={{ display:"block", fontSize:"11px", fontWeight:700,
+              color:"rgba(255,255,255,0.4)", textTransform:"uppercase",
+              letterSpacing:"0.08em", marginBottom:"7px" }}>Email</label>
+            <input type="email" value={form.email} required
+              onChange={e=>setForm(f=>({...f,email:e.target.value}))}
+              placeholder="admin@nere.bf"
+              style={{ width:"100%", padding:"12px 14px", borderRadius:"10px",
+                border:"1.5px solid rgba(255,255,255,0.12)",
+                background:"rgba(255,255,255,0.07)", color:"#fff",
+                fontSize:"14px", fontFamily:"inherit", outline:"none",
+                boxSizing:"border-box" }}/>
+          </div>
+          <div style={{ marginBottom:"20px" }}>
+            <label style={{ display:"block", fontSize:"11px", fontWeight:700,
+              color:"rgba(255,255,255,0.4)", textTransform:"uppercase",
+              letterSpacing:"0.08em", marginBottom:"7px" }}>Mot de passe</label>
+            <input type="password" value={form.password} required
+              onChange={e=>setForm(f=>({...f,password:e.target.value}))}
+              placeholder="••••••••"
+              style={{ width:"100%", padding:"12px 14px", borderRadius:"10px",
+                border:"1.5px solid rgba(255,255,255,0.12)",
+                background:"rgba(255,255,255,0.07)", color:"#fff",
+                fontSize:"14px", fontFamily:"inherit", outline:"none",
+                boxSizing:"border-box" }}/>
+          </div>
+
+          {error && (
+            <div style={{ background:"rgba(232,85,85,0.1)", border:"1px solid rgba(232,85,85,0.3)",
+              borderRadius:"8px", padding:"10px 14px", color:"#FF8080",
+              fontSize:"13px", marginBottom:"16px" }}>
+              ❌ {error}
+            </div>
+          )}
+
+          <button type="submit" disabled={loading}
+            style={{ width:"100%", padding:"13px", borderRadius:"12px",
+              background:"linear-gradient(135deg,#4DC97A,#1A7A40)",
+              border:"none", color:"#0A3D1F", fontWeight:800,
+              fontSize:"15px", cursor:"pointer", fontFamily:"inherit" }}>
+            {loading ? "Connexion..." : "🔐 Accéder au panneau admin"}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export default function Admin() {
   const navigate = useNavigate();
+  // Toujours demander l'authentification à l'ouverture
+  const [adminUser, setAdminUser] = useState(null);
+
+  // Charger les pubs quand admin connecté et section publications
+  const chargerPubs = async () => {
+    try {
+      const res  = await fetch(`${API}/publications?all=true&limit=100`, {
+        headers: { "Authorization": `Bearer ${getToken()}` }
+      });
+      const data = await res.json();
+      if (data.success) {
+        const formatted = data.data.map(p => ({
+          id:     p._id,
+          titre:  p.titre,
+          cat:    p.categorie || "Rapport",
+          date:   new Date(p.createdAt).toLocaleDateString("fr-FR", {day:"2-digit",month:"short",year:"numeric"}),
+          statut: p.statut,
+          vues:   p.vues || 0,
+        }));
+        setPubs(formatted);
+      }
+    } catch(e) {
+      console.warn("⚠️ Impossible de charger les publications:", e.message);
+      setPubs(MOCK_PUBS);
+    }
+    setPubsChargees(true);
+  };
   const [section, setSection]       = useState("dashboard");
   const [sidebarOpen, setSidebar]   = useState(true);
 
   // Publications
-  const [pubs, setPubs]             = useState(MOCK_PUBS);
+  const [pubs, setPubs]             = useState([]);
+  const [pubsChargees, setPubsChargees] = useState(false);
   const [showForm, setShowForm]     = useState(false);
   const [editPub, setEditPub]       = useState(null);
   const [formPub, setFormPub]       = useState({ titre:"", cat:"Rapport", contenu:"", statut:"brouillon" });
@@ -59,13 +188,85 @@ export default function Admin() {
   const [pubError, setPubError]     = useState("");
 
   // Utilisateurs
-  const [users]                     = useState(MOCK_USERS);
-  const [searchUser, setSearchUser] = useState("");
+  const [users, setUsers]               = useState([]);
+  const [usersCharges, setUsersCharges] = useState(false);
+  const [searchUser, setSearchUser]     = useState("");
 
   // Réclamations
-  const [reclamations, setReclamations] = useState(MOCK_RECLAMATIONS);
-  const [reponse, setReponse]           = useState({});
-  const [recOuverte, setRecOuverte]     = useState(null);
+  const [reclamations, setReclamations]     = useState([]);
+  const [reclaCharges, setReclaCharges]     = useState(false);
+  const [reponse, setReponse]               = useState({});
+  const [recOuverte, setRecOuverte]         = useState(null);
+
+  // ── Charger les utilisateurs ──
+  const chargerUsers = async () => {
+    try {
+      const res  = await fetch(`${API}/users`, {
+        headers: { "Authorization": `Bearer ${getToken()}` }
+      });
+      const data = await res.json();
+      if (data.success) {
+        const formatted = data.data.map(u => ({
+          id:     u._id,
+          nom:    u.nom,
+          prenom: u.prenom,
+          email:  u.email || "—",
+          type:   u.typeCompte || "autre",
+          role:   u.role,
+          pack:   u.pack || "—",
+          statut: u.isActive ? "actif" : "suspendu",
+          date:   new Date(u.createdAt).toLocaleDateString("fr-FR", {day:"2-digit",month:"short",year:"numeric"}),
+        }));
+        setUsers(formatted);
+      }
+    } catch(e) {
+      console.warn("⚠️ Impossible de charger les utilisateurs:", e.message);
+      setUsers(MOCK_USERS);
+    }
+    setUsersCharges(true);
+  };
+
+  // ── Charger les réclamations ──
+  const chargerReclamations = async () => {
+    try {
+      const res  = await fetch(`${API}/reclamations/admin/toutes`, {
+        headers: { "Authorization": `Bearer ${getToken()}` }
+      });
+      const data = await res.json();
+      if (data.success) {
+        const formatted = data.data.map(r => ({
+          id:     r._id,
+          auteur: r.auteur ? `${r.auteur.prenom || ""} ${r.auteur.nom || ""}`.trim() : `${r.prenom} ${r.nom}`,
+          type:   r.type || "autre",
+          sujet:  r.sujet,
+          statut: r.statut,
+          date:   new Date(r.createdAt).toLocaleDateString("fr-FR", {day:"2-digit",month:"short",year:"numeric"}),
+        }));
+        setReclamations(formatted);
+      }
+    } catch(e) {
+      console.warn("⚠️ Impossible de charger les réclamations:", e.message);
+      setReclamations(MOCK_RECLAMATIONS);
+    }
+    setReclaCharges(true);
+  };
+
+  // ── Changer statut réclamation (API) ──
+  const changerStatutAPI = async (id, statut, reponseTexte) => {
+    try {
+      await fetch(`${API}/reclamations/admin/${id}/statut`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${getToken()}`,
+        },
+        body: JSON.stringify({ statut, reponse: reponseTexte || "" }),
+      });
+    } catch(e) {
+      console.warn("⚠️ Erreur mise à jour statut:", e.message);
+    }
+    setReclamations(rs => rs.map(r => r.id===id ? {...r, statut} : r));
+  };
 
   // ── Handlers publications ──
   const ouvrirForm = (pub = null) => {
@@ -155,15 +356,14 @@ export default function Admin() {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${getToken()}`,
         },
-        body: JSON.stringify({ statut: "publié" }),
+        body: JSON.stringify({ statut: "publie" }),
       });
     } catch(e) {}
     setPubs(ps => ps.map(p => p.id===id ? {...p, statut:"publié"} : p));
   };
 
   // ── Handlers réclamations ──
-  const changerStatut = (id, statut) =>
-    setReclamations(rs => rs.map(r => r.id===id ? {...r, statut} : r));
+  const changerStatut = (id, statut) => changerStatutAPI(id, statut, reponse[id]);
 
   // ── Filtres ──
   const usersFiltres = users.filter(u =>
@@ -171,10 +371,10 @@ export default function Admin() {
   );
 
   const kpis = [
-    { icone:"👥", label:"Utilisateurs",    val: users.length,                          couleur:"#4DC97A" },
-    { icone:"💳", label:"Abonnés actifs",  val: users.filter(u=>u.role==="subscriber").length, couleur:"#D4A830" },
-    { icone:"📰", label:"Publications",    val: pubs.length,                           couleur:"#4A9EFF" },
-    { icone:"📋", label:"Réclamations",    val: reclamations.filter(r=>r.statut==="nouveau").length+" nouvelles", couleur:"#FF6B6B" },
+    { icone:"👥", label:"Utilisateurs",   val: usersCharges ? users.length : "...",                                          couleur:"#4DC97A" },
+    { icone:"💳", label:"Abonnés actifs", val: usersCharges ? users.filter(u=>u.role==="subscriber").length : "...",          couleur:"#D4A830" },
+    { icone:"📰", label:"Publications",   val: pubsChargees ? pubs.length : "...",                                            couleur:"#4A9EFF" },
+    { icone:"📋", label:"Réclamations",   val: reclaCharges ? reclamations.filter(r=>r.statut==="nouveau").length+" nouvelles" : "...", couleur:"#FF6B6B" },
   ];
 
   // ═══════════════════════════════════════
@@ -311,7 +511,10 @@ export default function Admin() {
     </div>
   );
 
-  const renderPublications = () => (
+  const renderPublications = () => {
+    // Charger les pubs si pas encore fait
+    if (!pubsChargees) chargerPubs();
+    return (
     <div>
       <div style={{ display:"flex", justifyContent:"space-between",
         alignItems:"center", marginBottom:"24px" }}>
@@ -362,7 +565,7 @@ export default function Admin() {
                 <select style={S.input} value={formPub.statut}
                   onChange={e => setFormPub(f=>({...f, statut:e.target.value}))}>
                   <option value="brouillon">Brouillon</option>
-                  <option value="publié">Publié</option>
+                  <option value="publie">Publié</option>
                 </select>
               </div>
             </div>
@@ -385,6 +588,12 @@ export default function Admin() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {!pubsChargees && (
+        <div style={{ textAlign:"center", padding:"40px", color:"#6B9A7A" }}>
+          ⏳ Chargement des publications...
         </div>
       )}
 
@@ -451,8 +660,11 @@ export default function Admin() {
       </div>
     </div>
   );
+  }; // fin renderPublications
 
-  const renderUtilisateurs = () => (
+  const renderUtilisateurs = () => {
+    if (!usersCharges) chargerUsers();
+    return (
     <div>
       <div style={{ display:"flex", justifyContent:"space-between",
         alignItems:"center", marginBottom:"24px" }}>
@@ -524,8 +736,11 @@ export default function Admin() {
       </div>
     </div>
   );
+  }; // fin renderUtilisateurs
 
-  const renderReclamations = () => (
+  const renderReclamations = () => {
+    if (!reclaCharges) chargerReclamations();
+    return (
     <div>
       <div style={{ marginBottom:"24px" }}>
         <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:"22px",
@@ -617,6 +832,7 @@ export default function Admin() {
       </div>
     </div>
   );
+  }; // fin renderReclamations
 
   const renderActivites = () => (
     <div>
@@ -658,6 +874,11 @@ export default function Admin() {
   // ═══════════════════════════════════════
   // JSX PRINCIPAL
   // ═══════════════════════════════════════
+  // Afficher l'écran de login si pas authentifié comme admin
+  if (!adminUser) {
+    return <AdminLogin onSuccess={(u) => setAdminUser(u)} />;
+  }
+
   return (
     <div style={S.wrap}>
 
@@ -750,11 +971,23 @@ export default function Admin() {
           <div style={{ display:"flex", alignItems:"center", gap:"12px" }}>
             <div style={{ width:"8px", height:"8px", borderRadius:"50%",
               background:"#4DC97A" }}/>
-            <span style={{ fontSize:"13px", color:"#6B9A7A" }}>Admin connecté</span>
+            <span style={{ fontSize:"13px", color:"#6B9A7A" }}>
+              {adminUser?.prenom} {adminUser?.nom}
+            </span>
             <div style={{ width:"34px", height:"34px", borderRadius:"10px",
               background:"#0A3D1F", display:"flex", alignItems:"center",
               justifyContent:"center", color:"#4DC97A",
-              fontWeight:800, fontSize:"13px" }}>A</div>
+              fontWeight:800, fontSize:"13px" }}>
+              {adminUser?.prenom?.[0]}{adminUser?.nom?.[0]}
+            </div>
+            <button
+              onClick={() => setAdminUser(null)}
+              style={{ padding:"7px 14px", borderRadius:"8px",
+                background:"#FFF0F0", border:"1px solid #FFD0D0",
+                color:"#CC3333", fontWeight:700, fontSize:"12px",
+                cursor:"pointer", fontFamily:"inherit" }}>
+              🚪 Déconnexion
+            </button>
           </div>
         </div>
 

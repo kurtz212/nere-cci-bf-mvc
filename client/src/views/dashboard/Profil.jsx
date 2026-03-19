@@ -13,28 +13,74 @@ export default function Profil() {
 
   useEffect(() => {
     const u = localStorage.getItem("user");
+    const token = localStorage.getItem("token");
     if (!u) { navigate("/connexion"); return; }
     const parsed = JSON.parse(u);
     setUser(parsed);
     setForm({
-      nom: parsed.nom || "",
-      prenom: parsed.prenom || "",
-      email: parsed.email || "",
-      telephone: parsed.telephone || "",
-      ville: parsed.ville || "",
-      organisation: parsed.organisation || "",
+      nom:          parsed.nom          || "",
+      prenom:       parsed.prenom       || "",
+      email:        parsed.email        || "",
+      telephone:    parsed.telephone    || "",
+      fonction:     parsed.fonction     || "",
+      siteWeb:      parsed.siteWeb      || "",
     });
+
+    // Charger les données fraîches depuis l'API
+    if (token) {
+      fetch("http://localhost:5000/api/users/profil", {
+        headers: { "Authorization": `Bearer ${token}` }
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          const u = data.data;
+          setUser(u);
+          localStorage.setItem("user", JSON.stringify(u));
+          setForm({
+            nom:       u.nom       || "",
+            prenom:    u.prenom    || "",
+            email:     u.email     || "",
+            telephone: u.telephone || "",
+            fonction:  u.fonction  || "",
+            siteWeb:   u.siteWeb   || "",
+          });
+        }
+      })
+      .catch(() => {});
+    }
   }, [navigate]);
 
   const handleChange = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }));
 
   const handleSave = async () => {
     setSaving(true);
-    // Simule un appel API
-    await new Promise(r => setTimeout(r, 1000));
-    const updated = { ...user, ...form };
-    localStorage.setItem("user", JSON.stringify(updated));
-    setUser(updated);
+    const token = localStorage.getItem("token");
+    try {
+      const res = await fetch("http://localhost:5000/api/users/profil", {
+        method:  "PUT",
+        headers: {
+          "Content-Type":  "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (data.success) {
+        const updated = { ...user, ...data.data };
+        localStorage.setItem("user", JSON.stringify(updated));
+        setUser(updated);
+      } else {
+        // Fallback local
+        const updated = { ...user, ...form };
+        localStorage.setItem("user", JSON.stringify(updated));
+        setUser(updated);
+      }
+    } catch(e) {
+      const updated = { ...user, ...form };
+      localStorage.setItem("user", JSON.stringify(updated));
+      setUser(updated);
+    }
     setEditing(false);
     setSaving(false);
     setSaved(true);
@@ -186,10 +232,10 @@ export default function Profil() {
                   <div className="profil-field full">
                     <label className="profil-label">Organisation / Entreprise</label>
                     {editing ? (
-                      <input className="profil-input" name="organisation" value={form.organisation}
+                      <input className="profil-input" name="fonction" value={form.fonction}
                         onChange={handleChange} placeholder="Nom de votre société" />
                     ) : (
-                      <div className="profil-value">{user.organisation || <span className="empty">Non renseigné</span>}</div>
+                      <div className="profil-value">{user.fonction || <span className="empty">Non renseigné</span>}</div>
                     )}
                   </div>
 
@@ -208,14 +254,14 @@ export default function Profil() {
                   <div className="profil-field">
                     <label className="profil-label">Ville</label>
                     {editing ? (
-                      <select className="profil-input" name="ville" value={form.ville} onChange={handleChange}>
+                      <select className="profil-input" name="siteWeb" value={form.siteWeb} onChange={handleChange}>
                         <option value="">Sélectionner...</option>
                         {["Ouagadougou","Bobo-Dioulasso","Koudougou","Ouahigouya","Banfora","Fada N'Gourma"].map(v =>
                           <option key={v}>{v}</option>
                         )}
                       </select>
                     ) : (
-                      <div className="profil-value">{user.ville || <span className="empty">Non renseigné</span>}</div>
+                      <div className="profil-value">{user.siteWeb || <span className="empty">Non renseigné</span>}</div>
                     )}
                   </div>
 
@@ -386,9 +432,9 @@ export default function Profil() {
 
         {/* FOOTER */}
         <footer className="dash-footer">
-          <span>© 2026 CCI-BF — Chambre de Commerce et d'Industrie du Burkina Faso</span>
+          <span>© 2025 CCI-BF — Chambre de Commerce et d'Industrie du Burkina Faso</span>
           <div style={{ display: "flex", gap: "20px" }}>
-           
+            <span>CGU</span><span>Contact</span><span>Support</span>
           </div>
         </footer>
 

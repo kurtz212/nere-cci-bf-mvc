@@ -13,6 +13,7 @@ import Recherche           from './views/dashboard/Recherche';
 import DemandeDocument     from './views/dashboard/DemandeDocument';
 import Chat                from './views/dashboard/Chat';
 import Admin               from './views/admin/Admin';
+import AdminRoute          from './components/AdminRoute';
 import Reclamation         from './views/shared/Reclamation';
 import RechercheEntreprise from './views/shared/Rechercheentreprise';
 import Contact             from './views/shared/Contact';
@@ -33,7 +34,9 @@ export default function App() {
           <Route path="/chat"                 element={<Chat />} />
           <Route path="/paiement"             element={<Paiement />} />
           <Route path="/dashboard"            element={<Dashboard />} />
-          <Route path="/admin"                element={<Admin />} />
+          <Route path="/admin" element={
+            <AdminRoute><Admin /></AdminRoute>
+          } />
           <Route path="/reclamation"          element={<Reclamation />} />
           <Route path="/recherche-entreprise" element={<RechercheEntreprise />} />
           <Route path="/contact"              element={<Contact />} />

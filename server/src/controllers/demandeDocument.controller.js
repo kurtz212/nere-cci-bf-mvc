@@ -4,18 +4,25 @@ const emailService    = require('../services/email.service');
 // ── POST /api/demandes — Créer une demande ──
 exports.creerDemande = async (req, res, next) => {
   try {
-    const { nomEntreprise, rccm, typeDocument, description, contact, telephone } = req.body;
+    const {
+      typeRequete, sousType, quantite, montantEstime,
+      regions, villes, activites, formesJuridiques, tranches,
+      description, contact, telephone,
+    } = req.body;
 
     const demande = await DemandeDocument.create({
-      userId: req.user.id,
-      nomEntreprise, rccm, typeDocument, description, contact, telephone
+      userId: req.user?.id || null,
+      typeRequete, sousType, quantite, montantEstime,
+      regions, villes, activites, formesJuridiques, tranches,
+      description, contact, telephone,
     });
 
-    // Notifier l'admin par email
-    await emailService.notifierNouvelleDemandeAdmin(demande);
-
-    // Confirmer à l'utilisateur
-    await emailService.confirmerDemandeUtilisateur(req.user, demande);
+    // Email — ignorer si SMTP non configuré
+    try {
+      await emailService.notifierNouvelleDemandeAdmin(demande);
+    } catch(e) {
+      console.warn('⚠️ Email admin non envoyé:', e.message);
+    }
 
     res.status(201).json({ success: true, data: demande });
   } catch (err) { next(err); }
