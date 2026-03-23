@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../styles/home.css";
-import logoCCI from "../../assets/ccibf.jpg";
+import logoCCI     from "../../assets/ccibf.jpg";
+import logoNERE    from "../../assets/nere.jpg";
+import logoDouanes from "../../assets/douanes.png";
+import logoCNSS    from "../../assets/cnss.png";
+import logoJustice from "../../assets/justice.png";
 
 const FLOATING_TEXTS = [
   "RCCM: BF-OUA-2024-A142", "IFU: 000-24856-X", "CA: 2,4 Mrd FCFA",
@@ -13,10 +17,71 @@ const FLOATING_TEXTS = [
   "Secteur: Agriculture", "Région: Nord", "Employés: 210",
 ];
 
-const PUBS_APERCU = [
-  { id:1, meta:"Rapport · 28 Fév. 2025", locked:false, titre:"Enquête sur le commerce de détail au Burkina Faso", extrait:"Analyse des tendances du commerce informel et formel dans les principales villes du pays..." },
-  { id:2, meta:"Étude · 15 Fév. 2025",   locked:false, titre:"Indice PME – T4 2024 : Reprise prudente",           extrait:"Les petites et moyennes entreprises montrent des signes de stabilisation malgré un contexte difficile..." },
-  { id:3, meta:"Classement · 10 Fév. 2025", locked:true, titre:"Top 100 entreprises BTP – Burkina Faso 2024",    extrait:"Classement exclusif des entreprises du secteur BTP par chiffre d'affaires déclaré au NERE..." },
+// ── Partenaires NERE CCI-BF ──
+const PARTENAIRES = [
+  {
+    icone: "🏛️",
+    nom: "Ministère du Commerce",
+    type: "Institution d'État",
+    contribution: "Fournit les données officielles d'immatriculation et de registre du commerce du Burkina Faso.",
+    badge: "Données certifiées",
+  },
+  {
+    icone: "🏦",
+    nom: "DGI — Direction Générale des Impôts",
+    type: "Administration fiscale",
+    contribution: "Certifie les numéros IFU et la régularité fiscale des entreprises enregistrées.",
+    badge: "IFU vérifié",
+  },
+  {
+    icone: "📊",
+    nom: "INSD — Institut National de la Statistique",
+    type: "Organisme statistique",
+    contribution: "Fournit les données statistiques sectorielles et les indicateurs économiques nationaux.",
+    badge: "Statistiques officielles",
+  },
+  {
+    icone: "🌍",
+    nom: "UEMOA",
+    type: "Organisation régionale",
+    contribution: "Harmonise les normes comptables et les données financières des entreprises de l'espace UEMOA.",
+    badge: "Normes UEMOA",
+  },
+  {
+    icone: "🏢",
+    nom: "ANPE Burkina Faso",
+    type: "Agence nationale",
+    contribution: "Certifie les données d'effectifs et d'emploi des entreprises inscrites au registre.",
+    badge: "Emploi certifié",
+  },
+  {
+    icone: "💼",
+    nom: "CCIB — Chambre de Commerce",
+    type: "Institution consulaire",
+    contribution: "Partenaire principal assurant la collecte et la mise à jour des données du fichier NERE.",
+    badge: "Partenaire principal",
+  },
+  {
+    logo: logoDouanes,
+    nom: "Direction Générale des Douanes",
+    type: "Administration douanière",
+    contribution: "Fournit les données d'import/export et certifie les activités commerciales transfrontalières des entreprises.",
+    badge: "Commerce certifié",
+  },
+  {
+    logo: logoCNSS,
+    nom: "CNSS — Caisse Nationale de Sécurité Sociale",
+    type: "Sécurité sociale",
+    contribution: "Certifie les données d'effectifs et la couverture sociale des employés des entreprises enregistrées.",
+    badge: "Emploi vérifié",
+  },
+  {
+    logo: logoJustice,
+    nom: "Ministère de la Justice",
+    type: "Institution judiciaire",
+    contribution: "Valide les statuts juridiques, les actes notariaux et la conformité légale des entreprises du registre.",
+    badge: "Conformité légale",
+  },
 ];
 
 export default function Home() {
@@ -107,30 +172,30 @@ export default function Home() {
 
         {/* ══ NAVBAR ══ */}
         <nav className="navbar" style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
-
-          {/* LOGO GAUCHE */}
-          <div className="logo-zone">
+          <div className="logo-zone" style={{display:"flex", alignItems:"center", gap:"12px"}}>
             <div className="logo-img-box">
-              <img src={logoCCI} alt="Logo CCI-BF" style={{height:"52px", width:"auto"}}/>
+              <img src={logoCCI} alt="Logo CCI-BF" style={{height:"58px", width:"auto"}}/>
             </div>
             <div className="logo-texts">
-              <div className="logo-main">NERE <span>CCI-BF</span></div>
-              <div className="logo-sub">Registre National des Entreprises</div>
+              <div className="logo-main">CCI-BF</div>
+              <div className="logo-sub">Chambre de Commerce et d'Industrie<br/>Du Burkina Faso</div>
+            </div>
+            <div style={{width:"1px", height:"44px", background:"rgba(255,255,255,0.15)", margin:"0 4px"}}/>
+            <div style={{display:"flex", alignItems:"center", gap:"8px"}}>
+              <img src={logoNERE} alt="Logo NERE" style={{height:"42px", width:"auto", borderRadius:"6px"}}/>
+              <div style={{display:"flex", flexDirection:"column"}}>
+                <span style={{fontSize:"11px", fontWeight:800, color:"#fff", letterSpacing:"0.06em", textTransform:"uppercase"}}>Fichier NERE</span>
+                <span style={{fontSize:"10px", color:"rgba(255,255,255,0.45)", lineHeight:1.4}}>Registre national des entreprises<br/>Du Burkina Faso</span>
+              </div>
             </div>
           </div>
 
-          {/* LIENS NAV — CENTRÉS */}
-          <div className="nav-links" style={{
-            position:"absolute", left:"50%", transform:"translateX(-50%)",
-            display:"flex", alignItems:"center", gap:"8px",
-          }}>
+          <div className="nav-links" style={{display:"flex", alignItems:"center", gap:"8px", marginLeft:"40px"}}>
             <span className="nav-link active" onClick={()=>navigate("/")}>Accueil</span>
             <span className="nav-link" onClick={()=>navigate("/publications")}>Publications</span>
             <span className="nav-link" onClick={()=>navigate("/recherche")}>Recherche</span>
-            
           </div>
 
-          {/* ACTIONS DROITE */}
           <div className="nav-actions">
             {user ? (
               <div style={{position:"relative"}}>
@@ -139,7 +204,6 @@ export default function Home() {
                   <span>{user.prenom} {user.nom}</span>
                   <span style={{fontSize:"10px",opacity:0.5,marginLeft:"2px"}}>▾</span>
                 </div>
-
                 {menuOpen && (
                   <>
                     <div style={{position:"fixed",inset:0,zIndex:50}} onClick={()=>setMenuOpen(false)}/>
@@ -177,9 +241,7 @@ export default function Home() {
           <div className="hero-content">
             <div className="hero-badge"><span className="badge-dot"/>Plateforme officielle · CCI-BF</div>
             <h1 className="hero-title">Accédez aux données<br/>économiques du <em>Burkina Faso</em></h1>
-            <p className="hero-desc">
-              Consultez les informations officielles des entreprises enregistrées au NERE — secteur d'activité, chiffre d'affaires, localisation et bien plus, selon votre formule d'abonnement.
-            </p>
+            <p className="hero-desc">Consultez les informations officielles des entreprises enregistrées au NERE — secteur d'activité, chiffre d'affaires, localisation et bien plus, selon votre formule d'abonnement.</p>
             <div className="hero-btns">
               <button className="btn btn-white btn-lg" onClick={()=>navigate("/recherche-entreprise")}>🔍 Rechercher une entreprise</button>
               <button className="btn btn-outline btn-lg" onClick={()=>navigate("/publications")}>Voir les publications →</button>
@@ -200,38 +262,66 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ══ PUBLICATIONS APERÇU ══ */}
+        {/* ══ PARTENAIRES ══ */}
         <section className="publications-section">
           <div className="section-header">
             <div>
-              <div className="section-tag">Publications récentes</div>
-              <div className="section-title">Actualités économiques CCI-BF</div>
+              <div className="section-title">NOS PARTENAIRES OFFICIELS</div>
+              <div className="section-tag">qui assurent la fiabilité des informations que nous fournissons</div>
             </div>
-            {user ? (
-              <button className="btn btn-outline see-all-btn" onClick={()=>navigate("/publications")}>Toutes les publications →</button>
-            ) : (
-              <button className="btn btn-outline see-all-btn" onClick={()=>setShowPubModal(true)}>Toutes les publications →</button>
-            )}
           </div>
 
-          <div className="pub-grid">
-            {PUBS_APERCU.map(pub=>(
-              <div key={pub.id} className={`pub-card ${!user || pub.locked ? "locked" : ""}`} onClick={()=>user && !pub.locked && navigate("/publications")}>
-                <div className="pub-meta" style={!user?{fontFamily:"monospace"}:{}}>{!user ? pub.meta.replace(/[^\s·]/g,"X") : pub.meta}</div>
-                <div className="pub-title" style={!user?{fontFamily:"monospace",letterSpacing:"0.03em"}:{}}>{!user ? pub.titre.split(" ").map((m,i)=>i<2?m:m.replace(/[^\s]/g,"X")).join(" ") : pub.titre}</div>
-                <div className="pub-excerpt" style={!user?{fontFamily:"monospace",letterSpacing:"0.04em",opacity:0.55}:{}}>{!user ? pub.extrait.replace(/[^\s]/g,"X") : pub.extrait}</div>
-                <div className="pub-footer">
-                  {!user ? (
-                    <button className="btn btn-primary" style={{fontSize:"12px",padding:"6px 14px",borderRadius:"8px"}} onClick={e=>{e.stopPropagation();navigate("/inscription");}}>🔓 S'inscrire pour lire</button>
-                  ) : pub.locked ? (
-                    <><span className="lock-badge">🔒 Pro+</span><span className="pub-locked-txt">Abonnement requis</span></>
-                  ) : (
-                    <span className="pub-read-link">Lire l'article →</span>
-                  )}
+          {/* CAROUSEL */}
+          <div style={{position:"relative", overflow:"hidden", borderRadius:"16px", background:"#0A3D1F", padding:"32px 0"}}>
+            {/* Gradient gauche */}
+            <div style={{position:"absolute", left:0, top:0, bottom:0, width:"100px", background:"linear-gradient(90deg,#0A3D1F,transparent)", zIndex:2, pointerEvents:"none"}}/>
+            {/* Gradient droite */}
+            <div style={{position:"absolute", right:0, top:0, bottom:0, width:"100px", background:"linear-gradient(-90deg,#0A3D1F,transparent)", zIndex:2, pointerEvents:"none"}}/>
+
+            {/* Piste animée */}
+            <div style={{display:"flex", gap:"16px", animation:"carousel 40s linear infinite", width:"max-content"}}>
+              {[...PARTENAIRES, ...PARTENAIRES].map((p, i) => (
+                <div key={i} style={{
+                  background:"rgba(255,255,255,0.05)",
+                  border:"1px solid rgba(77,201,122,0.15)",
+                  borderRadius:"14px", padding:"20px 22px",
+                  width:"260px", flexShrink:0,
+                  display:"flex", flexDirection:"column", gap:"12px",
+                }}>
+                  <div style={{display:"flex", alignItems:"center", gap:"12px"}}>
+                    {/* Logo ou icône */}
+                    <div style={{
+                      width:"52px", height:"52px", borderRadius:"10px",
+                      background:"rgba(255,255,255,0.1)",
+                      display:"flex", alignItems:"center", justifyContent:"center",
+                      fontSize:"26px", flexShrink:0, overflow:"hidden",
+                    }}>
+                      {p.logo
+                        ? <img src={p.logo} alt={p.nom} style={{width:"100%", height:"100%", objectFit:"contain", padding:"4px"}}/>
+                        : p.icone
+                      }
+                    </div>
+                    <div>
+                      <div style={{fontWeight:800, fontSize:"13px", color:"#fff", lineHeight:1.3}}>{p.nom}</div>
+                      <div style={{fontSize:"10px", color:"#4DC97A", fontWeight:600, textTransform:"uppercase", letterSpacing:"0.06em", marginTop:"2px"}}>{p.type}</div>
+                    </div>
+                  </div>
+                  <div style={{fontSize:"12px", color:"rgba(255,255,255,0.45)", lineHeight:1.6}}>{p.contribution}</div>
+                  <div style={{display:"inline-flex", alignItems:"center", gap:"5px", background:"rgba(77,201,122,0.1)", borderRadius:"100px", padding:"3px 10px", width:"fit-content"}}>
+                    <span style={{fontSize:"10px"}}>✅</span>
+                    <span style={{fontSize:"11px", fontWeight:600, color:"#4DC97A"}}>{p.badge}</span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
+
+          <style>{`
+            @keyframes carousel {
+              0%   { transform: translateX(0); }
+              100% { transform: translateX(-50%); }
+            }
+          `}</style>
 
           {showPubModal && (
             <div style={{position:"fixed",inset:0,zIndex:1000,background:"rgba(0,0,0,0.55)",backdropFilter:"blur(6px)",display:"flex",alignItems:"center",justifyContent:"center",padding:"20px"}} onClick={()=>setShowPubModal(false)}>
@@ -271,9 +361,9 @@ export default function Home() {
           </div>
           <div className="packs-grid">
             {[
-              {nom:"BASIC",   prix:"15 000", tag:null,           features:["Recherche simple (nom, ville)","20 recherches/mois","Publications publiques","Résultats basiques"],                                                                        disabled:["Recherche avancée","Export PDF/Excel","Données financières"],       btn:"btn-outline-pack"},
-              {nom:"PRO",     prix:"35 000", tag:"⭐ RECOMMANDÉ", features:["Tout le pack Basic","Recherche avancée multi-critères","100 recherches/mois","Export PDF et Excel","Données financières partielles"],                                       disabled:["Recherches illimitées","Données complètes"],                        btn:"btn-primary-pack"},
-              {nom:"PREMIUM", prix:"75 000", tag:null,           features:["Tout le pack Pro","Recherches illimitées","Données financières complètes","Toutes les publications","Support prioritaire"],                                                  disabled:[],                                                                   btn:"btn-outline-pack"},
+              {nom:"BASIC",   prix:"15 000", tag:null,           features:["Recherche simple (nom, ville)","20 recherches/mois","Publications publiques","Résultats basiques"],                                                features2:["Recherche avancée","Export PDF/Excel","Données financières"],       btn:"btn-outline-pack"},
+              {nom:"PRO",     prix:"35 000", tag:"⭐ RECOMMANDÉ", features:["Tout le pack Basic","Recherche avancée multi-critères","100 recherches/mois","Export PDF et Excel","Données financières partielles"],              features2:["Recherches illimitées","Données complètes"],                        btn:"btn-primary-pack"},
+              {nom:"PREMIUM", prix:"75 000", tag:null,           features:["Tout le pack Pro","Recherches illimitées","Données financières complètes","Toutes les publications","Support prioritaire"],                         features2:[],                                                                   btn:"btn-outline-pack"},
             ].map((pack,i)=>(
               <div key={i} className={`pack-card-home ${pack.tag?"featured":""}`}>
                 {pack.tag && <div className="pack-card-tag">{pack.tag}</div>}
@@ -282,7 +372,7 @@ export default function Home() {
                 <div className="pack-divider"/>
                 <ul className="pack-features-list">
                   {pack.features.map((f,j)=>(<li key={j} className="feature-ok">✓ {f}</li>))}
-                  {pack.disabled.map((f,j)=>(<li key={j} className="feature-no">✕ {f}</li>))}
+                  {pack.features2.map((f,j)=>(<li key={j} className="feature-no">✕ {f}</li>))}
                 </ul>
                 <button className={pack.btn} onClick={()=>navigate("/inscription")}>Choisir {pack.nom}</button>
               </div>

@@ -115,9 +115,9 @@ export default function Contact() {
             <span className="dash-nav-link" onClick={() => navigate("/")}>Accueil</span>
             <span className="dash-nav-link" onClick={() => navigate("/publications")}>Publications</span>
             <span className="dash-nav-link" onClick={() => navigate("/recherche")}>Recherche</span>
-            <span className="dash-nav-link" onClick={() => navigate("/reclamation")}>Réclamation</span>
+           
             <span className="dash-nav-link active">Contact</span>
-            {user && <span className="dash-nav-link" onClick={() => navigate("/profil")}>Mon Profil</span>}
+          
           </div>
           <div className="dash-nav-actions">
             {user ? (

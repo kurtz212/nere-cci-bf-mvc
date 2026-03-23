@@ -49,6 +49,8 @@ app.get('/api/health', (req, res) => {
 // ── Routes — chargement sécurisé ──
 const ROUTES = [
   { path:'/api/auth',         file:'./src/routes/auth.routes'        },
+  { path:'/api/packs',        file:'./src/routes/pack.routes'         },
+  { path:'/api/paiements',    file:'./src/routes/payment.routes'      },
   { path:'/api/users',        file:'./src/routes/user.routes'        },
   { path:'/api/publications', file:'./src/routes/publication.routes' },
   { path:'/api/demandes',     file:'./src/routes/demande.routes'     },

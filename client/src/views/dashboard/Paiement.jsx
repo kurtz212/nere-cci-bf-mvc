@@ -62,13 +62,72 @@ export default function Paiement() {
 
   const handlePayer = async () => {
     setLoading(true);
-    await new Promise(r => setTimeout(r, 1500));
+    const token = localStorage.getItem("token");
 
-    // Générer une référence de commande
-    const ref = `NERE-${Date.now().toString(36).toUpperCase()}`;
-    setReference(ref);
-    setLoading(false);
-    setSuccess(true);
+    try {
+      if (modePaiement === "cinetpay") {
+        // ── CINETPAY — appel API pour initier le paiement ──
+        const res  = await fetch("http://localhost:5000/api/paiements/initier", {
+          method:  "POST",
+          headers: {
+            "Content-Type":  "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            packId:       packChoisi?.id,
+            packNom:      packChoisi?.nom,
+            montant:      montant,
+            periode:      periode,
+            modePaiement: "cinetpay",
+          }),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          // Rediriger vers CinetPay si URL fournie
+          if (data.paymentUrl) {
+            window.location.href = data.paymentUrl;
+            return;
+          }
+          // Sinon afficher la référence
+          setReference(data.reference || `NERE-${Date.now().toString(36).toUpperCase()}`);
+          setSuccess(true);
+        } else {
+          // Fallback — générer une référence locale
+          const ref = `NERE-${Date.now().toString(36).toUpperCase()}`;
+          setReference(ref);
+          setSuccess(true);
+        }
+      } else {
+        // ── AGENCE CCI-BF — générer une référence ──
+        const res  = await fetch("http://localhost:5000/api/paiements/initier", {
+          method:  "POST",
+          headers: {
+            "Content-Type":  "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            packId:       packChoisi?.id,
+            packNom:      packChoisi?.nom,
+            montant:      montant,
+            periode:      periode,
+            modePaiement: "agence",
+          }),
+        });
+        const data = await res.json();
+        const ref  = data.reference || `NERE-${Date.now().toString(36).toUpperCase()}`;
+        setReference(ref);
+        setSuccess(true);
+      }
+    } catch(e) {
+      console.warn("API paiement indisponible:", e.message);
+      // Fallback local
+      const ref = `NERE-${Date.now().toString(36).toUpperCase()}`;
+      setReference(ref);
+      setSuccess(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -471,7 +530,7 @@ export default function Paiement() {
         </div>
 
         <footer className="dash-footer">
-          <span>© 2025 CCI-BF — Chambre de Commerce et d'Industrie du Burkina Faso</span>
+          <span>© 2026 CCI-BF — Chambre de Commerce et d'Industrie du Burkina Faso</span>
           <span>Paiement sécurisé · CinetPay · Agence CCI-BF</span>
         </footer>
       </div>

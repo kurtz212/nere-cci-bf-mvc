@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../styles/home.css";
 
@@ -101,8 +101,39 @@ function formaterPrix(prix) {
 export default function Formules() {
   const navigate  = useNavigate();
   const user      = JSON.parse(localStorage.getItem("user") || "null");
-  const [periode, setPeriode] = useState("annuel"); // "mensuel" | "annuel"
-  const [hover, setHover]     = useState(null);
+  const [periode, setPeriode]   = useState("annuel"); // "mensuel" | "annuel"
+  const [hover, setHover]       = useState(null);
+  const [packsAPI, setPacksAPI] = useState([]);
+
+  // Charger les packs depuis l'API
+  useEffect(() => {
+    fetch("http://localhost:5000/api/packs")
+      .then(r => r.json())
+      .then(data => {
+        if (data.success && data.data?.length > 0) {
+          setPacksAPI(data.data);
+        }
+      })
+      .catch(() => {}); // Garder les PACKS locaux si API indisponible
+  }, []);
+
+  // Fusionner les prix API avec les données visuelles locales
+  const packsAffiches = PACKS.map(p => {
+    const apiPack = packsAPI.find(a =>
+      a.nom?.toLowerCase() === p.nom?.toLowerCase() ||
+      a.niveau === p.accessLevel
+    );
+    if (apiPack) {
+      return {
+        ...p,
+        prix: {
+          mensuel: apiPack.prix?.mensuel || p.prix.mensuel,
+          annuel:  apiPack.prix?.annuel  || p.prix.annuel,
+        },
+      };
+    }
+    return p;
+  });
 
   const handleChoisir = (pack) => {
     if (!user) { navigate("/inscription"); return; }
