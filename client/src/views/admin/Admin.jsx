@@ -15,20 +15,13 @@ const MOCK_USERS = [
   { id:5, nom:"Barry",    prenom:"Hamidou",email:"h.barry@sahel-agro.com",type:"entreprise",    role:"visitor",    pack:"–",       statut:"suspendu", date:"28 Fév 2025" },
 ];
 
-const MOCK_RECLAMATIONS = [
-  { id:1, auteur:"Ibrahim Traoré",   type:"Données incorrectes",  sujet:"Erreur sur l'IFU de mon entreprise",      statut:"nouveau",    date:"10 Mar 2025" },
-  { id:2, auteur:"Fatima Compaoré",  type:"Problème de paiement", sujet:"Abonnement débité sans activation",         statut:"en_cours",   date:"08 Mar 2025" },
-  { id:3, auteur:"Moussa Diallo",    type:"Accès refusé",         sujet:"Impossible d'accéder à la recherche avancée",statut:"résolu",     date:"05 Mar 2025" },
-  { id:4, auteur:"Aïcha Nikiéma",    type:"Compte",               sujet:"Compte bloqué sans explication",           statut:"nouveau",    date:"12 Mar 2025" },
-];
-
 const MOCK_ACTIVITES = [
-  { id:1, icone:"👤", texte:"Nouvelle inscription : Salif Sawadogo (Étudiant)",         heure:"Il y a 5 min" },
-  { id:2, icone:"💳", texte:"Paiement reçu : Ibrahim Traoré — Pack PRO — 35 000 FCFA", heure:"Il y a 22 min" },
-  { id:3, icone:"🔍", texte:"Recherche avancée : 48 requêtes cette heure",              heure:"Il y a 1h" },
-  { id:4, icone:"📋", texte:"Nouvelle réclamation : Aïcha Nikiéma",                    heure:"Il y a 2h" },
-  { id:5, icone:"📰", texte:"Publication lue : «Enquête commerce de détail» × 124",    heure:"Il y a 3h" },
-  { id:6, icone:"💬", texte:"Chat ouvert : Fatima Compaoré — Problème paiement",       heure:"Il y a 4h" },
+  { id:1,  texte:"Nouvelle inscription : Salif Sawadogo (Étudiant)",         heure:"Il y a 5 min" },
+  { id:2, texte:"Paiement reçu : Ibrahim Traoré — Pack PRO — 35 000 FCFA", heure:"Il y a 22 min" },
+  { id:3, texte:"Recherche avancée : 48 requêtes cette heure",              heure:"Il y a 1h" },
+  { id:4,  texte:"Nouvelle réclamation : Aïcha Nikiéma",                    heure:"Il y a 2h" },
+  { id:5,  texte:"Publication lue : «Enquête commerce de détail» × 124",    heure:"Il y a 3h" },
+  { id:6,  texte:"Chat ouvert : Fatima Compaoré — Problème paiement",       heure:"Il y a 4h" },
 ];
 
 const CATS_PUB = ["Rapport","Étude","Classement","Note technique","Communiqué"];
@@ -138,7 +131,7 @@ function AdminLogin({ onSuccess }) {
               background:"linear-gradient(135deg,#4DC97A,#1A7A40)",
               border:"none", color:"#0A3D1F", fontWeight:800,
               fontSize:"15px", cursor:"pointer", fontFamily:"inherit" }}>
-            {loading ? "Connexion..." : "🔐 Accéder au panneau admin"}
+            {loading ? "Connexion..." : "Accéder au panneau admin"}
           </button>
         </form>
       </div>
@@ -170,7 +163,7 @@ export default function Admin() {
         setPubs(formatted);
       }
     } catch(e) {
-      console.warn("⚠️ Impossible de charger les publications:", e.message);
+      console.warn(" Impossible de charger les publications:", e.message);
       setPubs(MOCK_PUBS);
     }
     setPubsChargees(true);
@@ -192,11 +185,14 @@ export default function Admin() {
   const [usersCharges, setUsersCharges] = useState(false);
   const [searchUser, setSearchUser]     = useState("");
 
-  // Réclamations
-  const [reclamations, setReclamations]     = useState([]);
-  const [reclaCharges, setReclaCharges]     = useState(false);
-  const [reponse, setReponse]               = useState({});
-  const [recOuverte, setRecOuverte]         = useState(null);
+  // Partenaires
+  const [partenaires, setPartenaires]       = useState([]);
+  const [partCharges, setPartCharges]       = useState(false);
+  const [showFormPart, setShowFormPart]     = useState(false);
+  const [editPart, setEditPart]             = useState(null);
+  const [formPart, setFormPart]             = useState({ nom:"", type:"", contribution:"", badge:"", actif:true });
+  const [partError, setPartError]           = useState("");
+  const [partLoading, setPartLoading]       = useState(false);
 
   // ── Charger les utilisateurs ──
   const chargerUsers = async () => {
@@ -220,52 +216,59 @@ export default function Admin() {
         setUsers(formatted);
       }
     } catch(e) {
-      console.warn("⚠️ Impossible de charger les utilisateurs:", e.message);
+      console.warn("Impossible de charger les utilisateurs:", e.message);
       setUsers(MOCK_USERS);
     }
     setUsersCharges(true);
   };
 
-  // ── Charger les réclamations ──
-  const chargerReclamations = async () => {
+ 
+
+  const sauvegarderPartenaire = async () => {
+    if (!formPart.nom.trim()) { setPartError("Le nom est obligatoire."); return; }
+    setPartLoading(true); setPartError("");
     try {
-      const res  = await fetch(`${API}/reclamations/admin/toutes`, {
-        headers: { "Authorization": `Bearer ${getToken()}` }
+      const url    = editPart ? `${API}/partenaires/${editPart._id}` : `${API}/partenaires`;
+      const method = editPart ? "PUT" : "POST";
+      const res    = await fetch(url, {
+        method,
+        headers: { "Content-Type":"application/json", "Authorization":`Bearer ${getToken()}` },
+        body: JSON.stringify(formPart),
       });
       const data = await res.json();
       if (data.success) {
-        const formatted = data.data.map(r => ({
-          id:     r._id,
-          auteur: r.auteur ? `${r.auteur.prenom || ""} ${r.auteur.nom || ""}`.trim() : `${r.prenom} ${r.nom}`,
-          type:   r.type || "autre",
-          sujet:  r.sujet,
-          statut: r.statut,
-          date:   new Date(r.createdAt).toLocaleDateString("fr-FR", {day:"2-digit",month:"short",year:"numeric"}),
-        }));
-        setReclamations(formatted);
+        await chargerPartenaires();
+        setShowFormPart(false);
+        setEditPart(null);
+        setFormPart({ nom:"", type:"", contribution:"", badge:"", icone:"🏛️", actif:true });
+      } else {
+        setPartError(data.message || "Erreur.");
       }
-    } catch(e) {
-      console.warn("⚠️ Impossible de charger les réclamations:", e.message);
-      setReclamations(MOCK_RECLAMATIONS);
-    }
-    setReclaCharges(true);
+    } catch(e) { setPartError("Serveur indisponible."); }
+    setPartLoading(false);
   };
 
-  // ── Changer statut réclamation (API) ──
-  const changerStatutAPI = async (id, statut, reponseTexte) => {
+  const supprimerPartenaire = async (id) => {
+    if (!window.confirm("Supprimer ce partenaire ?")) return;
     try {
-      await fetch(`${API}/reclamations/admin/${id}/statut`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${getToken()}`,
-        },
-        body: JSON.stringify({ statut, reponse: reponseTexte || "" }),
+      await fetch(`${API}/partenaires/${id}`, {
+        method:"DELETE",
+        headers: { "Authorization":`Bearer ${getToken()}` }
       });
-    } catch(e) {
-      console.warn("⚠️ Erreur mise à jour statut:", e.message);
-    }
-    setReclamations(rs => rs.map(r => r.id===id ? {...r, statut} : r));
+      setPartenaires(ps => ps.filter(p => p._id !== id));
+    } catch(e) {}
+  };
+
+  const toggleActifPartenaire = async (p) => {
+    try {
+      const res  = await fetch(`${API}/partenaires/${p._id}`, {
+        method:"PUT",
+        headers: { "Content-Type":"application/json", "Authorization":`Bearer ${getToken()}` },
+        body: JSON.stringify({ actif: !p.actif }),
+      });
+      const data = await res.json();
+      if (data.success) setPartenaires(ps => ps.map(x => x._id===p._id ? data.data : x));
+    } catch(e) {}
   };
 
   // ── Handlers publications ──
@@ -362,19 +365,15 @@ export default function Admin() {
     setPubs(ps => ps.map(p => p.id===id ? {...p, statut:"publié"} : p));
   };
 
-  // ── Handlers réclamations ──
-  const changerStatut = (id, statut) => changerStatutAPI(id, statut, reponse[id]);
-
   // ── Filtres ──
   const usersFiltres = users.filter(u =>
     `${u.nom} ${u.prenom} ${u.email}`.toLowerCase().includes(searchUser.toLowerCase())
   );
 
   const kpis = [
-    { icone:"👥", label:"Utilisateurs",   val: usersCharges ? users.length : "...",                                          couleur:"#4DC97A" },
-    { icone:"💳", label:"Abonnés actifs", val: usersCharges ? users.filter(u=>u.role==="subscriber").length : "...",          couleur:"#D4A830" },
-    { icone:"📰", label:"Publications",   val: pubsChargees ? pubs.length : "...",                                            couleur:"#4A9EFF" },
-    { icone:"📋", label:"Réclamations",   val: reclaCharges ? reclamations.filter(r=>r.statut==="nouveau").length+" nouvelles" : "...", couleur:"#FF6B6B" },
+    {  label:"Utilisateurs",   val: usersCharges ? users.length : "...",                                          couleur:"#4DC97A" },
+    {  label:"Abonnés actifs", val: usersCharges ? users.filter(u=>u.role==="subscriber").length : "...",          couleur:"#D4A830" },
+    {  label:"Publications",   val: pubsChargees ? pubs.length : "...",                                            couleur:"#4A9EFF" },
   ];
 
   // ═══════════════════════════════════════
@@ -409,12 +408,10 @@ export default function Admin() {
   };
 
   const NAV_ITEMS = [
-    { id:"dashboard",    icone:"📊", label:"Dashboard"      },
-    { id:"publications", icone:"📰", label:"Publications"   },
-    { id:"utilisateurs", icone:"👥", label:"Utilisateurs"   },
-    { id:"reclamations", icone:"📋", label:"Réclamations",
-      badge: reclamations.filter(r=>r.statut==="nouveau").length },
-    { id:"activites",    icone:"⚡", label:"Activités"      },
+    { id:"dashboard",     label:"Dashboard"      },
+    { id:"publications",  label:"Publications"   },
+    { id:"utilisateurs",  label:"Utilisateurs"   },
+    { id:"activites",    label:"Activités"      },
   ];
 
   const statutBadge = (s) => {
@@ -481,32 +478,7 @@ export default function Admin() {
           </div>
         </div>
 
-        {/* Réclamations nouvelles */}
-        <div style={S.card}>
-          <div style={{ fontWeight:700, fontSize:"15px", color:"#0A3D1F",
-            marginBottom:"16px" }}>
-            📋 Réclamations en attente
-            <span style={{ ...S.badge("#FF6B6B"), marginLeft:"8px" }}>
-              {reclamations.filter(r=>r.statut==="nouveau").length}
-            </span>
-          </div>
-          <div style={{ display:"flex", flexDirection:"column", gap:"10px" }}>
-            {reclamations.filter(r=>r.statut==="nouveau").map(r => (
-              <div key={r.id} style={{ padding:"12px", background:"#FFF5F5",
-                borderRadius:"10px", border:"1px solid #FFD0D0", cursor:"pointer" }}
-                onClick={() => { setSection("reclamations"); setRecOuverte(r.id); }}>
-                <div style={{ fontWeight:700, fontSize:"12px", color:"#CC3333",
-                  marginBottom:"4px" }}>{r.type}</div>
-                <div style={{ fontSize:"12px", color:"#1A2E1F" }}>{r.sujet}</div>
-                <div style={{ fontSize:"11px", color:"#999", marginTop:"4px" }}>{r.auteur} · {r.date}</div>
-              </div>
-            ))}
-            {reclamations.filter(r=>r.statut==="nouveau").length === 0 && (
-              <div style={{ textAlign:"center", padding:"20px", color:"#6B9A7A",
-                fontSize:"13px" }}>✅ Aucune réclamation en attente</div>
-            )}
-          </div>
-        </div>
+       
       </div>
     </div>
   );
@@ -536,7 +508,7 @@ export default function Admin() {
           border:"2px solid #4DC97A" }}>
           <div style={{ fontWeight:700, fontSize:"16px", color:"#0A3D1F",
             marginBottom:"18px", fontFamily:"'Playfair Display',serif" }}>
-            {editPub ? "✏️ Modifier la publication" : "✍️ Nouvelle publication"}
+            {editPub ? " Modifier la publication" : " Nouvelle publication"}
           </div>
           <div style={{ display:"grid", gap:"14px" }}>
             <div>
@@ -581,7 +553,7 @@ export default function Admin() {
 
             <div style={{ display:"flex", gap:"10px" }}>
               <button style={S.btn} onClick={sauvegarderPub}>
-                💾 {editPub ? "Enregistrer" : "Créer la publication"}
+                 {editPub ? "Enregistrer" : "Créer la publication"}
               </button>
               <button style={S.btnGhost} onClick={() => setShowForm(false)}>
                 Annuler
@@ -593,7 +565,7 @@ export default function Admin() {
 
       {!pubsChargees && (
         <div style={{ textAlign:"center", padding:"40px", color:"#6B9A7A" }}>
-          ⏳ Chargement des publications...
+           Chargement des publications...
         </div>
       )}
 
@@ -635,7 +607,7 @@ export default function Admin() {
                       style={{ padding:"5px 10px", borderRadius:"7px",
                         background:"#E8F5EE", border:"none", color:"#0A3D1F",
                         fontSize:"12px", fontWeight:600, cursor:"pointer" }}>
-                      ✏️
+                      
                     </button>
                     {p.statut === "brouillon" && (
                       <button onClick={() => publierPub(p.id)}
@@ -649,7 +621,7 @@ export default function Admin() {
                       style={{ padding:"5px 10px", borderRadius:"7px",
                         background:"#FFF0F0", border:"none", color:"#CC3333",
                         fontSize:"12px", fontWeight:600, cursor:"pointer" }}>
-                      🗑️
+                      
                     </button>
                   </div>
                 </td>
@@ -738,101 +710,176 @@ export default function Admin() {
   );
   }; // fin renderUtilisateurs
 
-  const renderReclamations = () => {
-    if (!reclaCharges) chargerReclamations();
+  const renderPartenaires = () => {
+    if (!partCharges) chargerPartenaires();
     return (
     <div>
-      <div style={{ marginBottom:"24px" }}>
-        <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:"22px",
-          color:"#0A3D1F", margin:0 }}>Réclamations</h2>
-        <p style={{ color:"#6B9A7A", fontSize:"13px", marginTop:"4px" }}>
-          {reclamations.length} réclamations · {reclamations.filter(r=>r.statut==="nouveau").length} nouvelles
-        </p>
+      <div style={{ display:"flex", justifyContent:"space-between",
+        alignItems:"center", marginBottom:"24px" }}>
+        <div>
+          <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:"22px",
+            color:"#0A3D1F", margin:0 }}>Partenaires</h2>
+          <p style={{ color:"#6B9A7A", fontSize:"13px", marginTop:"4px" }}>
+            {partenaires.length} partenaire{partenaires.length>1?"s":""} ·{" "}
+            {partenaires.filter(p=>p.actif).length} actif{partenaires.filter(p=>p.actif).length>1?"s":""}
+          </p>
+        </div>
+        <button style={S.btn} onClick={() => {
+          setEditPart(null);
+          setFormPart({ nom:"", type:"", contribution:"", badge:"", icone:"🏛️", actif:true });
+          setShowFormPart(true);
+        }}>+ Ajouter un partenaire</button>
       </div>
 
-      <div style={{ display:"flex", flexDirection:"column", gap:"12px" }}>
-        {reclamations.map(r => (
-          <div key={r.id} style={{ ...S.card,
-            borderLeft: `4px solid ${statutBadge(r.statut)}` }}>
-            <div style={{ display:"flex", justifyContent:"space-between",
-              alignItems:"flex-start" }}>
-              <div style={{ flex:1 }}>
-                <div style={{ display:"flex", alignItems:"center", gap:"10px",
-                  marginBottom:"6px" }}>
-                  <span style={S.badge(statutBadge(r.statut))}>{r.statut}</span>
+      {/* Formulaire */}
+      {showFormPart && (
+        <div style={{ ...S.card, marginBottom:"20px", border:"2px solid #4DC97A" }}>
+          <div style={{ fontWeight:700, fontSize:"16px", color:"#0A3D1F",
+            marginBottom:"18px", fontFamily:"'Playfair Display',serif" }}>
+            {editPart ? "✏️ Modifier le partenaire" : "➕ Nouveau partenaire"}
+          </div>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"14px" }}>
+            <div>
+              <label style={{ display:"block", fontSize:"11px", fontWeight:700,
+                color:"#6B9A7A", textTransform:"uppercase", letterSpacing:"0.08em",
+                marginBottom:"6px" }}>Nom *</label>
+              <input style={S.input} value={formPart.nom}
+                onChange={e => setFormPart(f=>({...f,nom:e.target.value}))}
+                placeholder="Nom de l'institution..."/>
+            </div>
+            <div>
+              <label style={{ display:"block", fontSize:"11px", fontWeight:700,
+                color:"#6B9A7A", textTransform:"uppercase", letterSpacing:"0.08em",
+                marginBottom:"6px" }}>Type</label>
+              <input style={S.input} value={formPart.type}
+                onChange={e => setFormPart(f=>({...f,type:e.target.value}))}
+                placeholder="Ex: Institution d'État, ONG..."/>
+            </div>
+            <div>
+              <label style={{ display:"block", fontSize:"11px", fontWeight:700,
+                color:"#6B9A7A", textTransform:"uppercase", letterSpacing:"0.08em",
+                marginBottom:"6px" }}>Icône (emoji)</label>
+              <input style={S.input} value={formPart.icone}
+                onChange={e => setFormPart(f=>({...f,icone:e.target.value}))}
+                placeholder="🏛️"/>
+            </div>
+            <div>
+              <label style={{ display:"block", fontSize:"11px", fontWeight:700,
+                color:"#6B9A7A", textTransform:"uppercase", letterSpacing:"0.08em",
+                marginBottom:"6px" }}>Badge</label>
+              <input style={S.input} value={formPart.badge}
+                onChange={e => setFormPart(f=>({...f,badge:e.target.value}))}
+                placeholder="Ex: Données certifiées"/>
+            </div>
+            <div style={{ gridColumn:"1/-1" }}>
+              <label style={{ display:"block", fontSize:"11px", fontWeight:700,
+                color:"#6B9A7A", textTransform:"uppercase", letterSpacing:"0.08em",
+                marginBottom:"6px" }}>Contribution</label>
+              <textarea style={{ ...S.textarea, minHeight:"80px" }}
+                value={formPart.contribution}
+                onChange={e => setFormPart(f=>({...f,contribution:e.target.value}))}
+                placeholder="Rôle et apport de ce partenaire..."/>
+            </div>
+            <div style={{ gridColumn:"1/-1", display:"flex", alignItems:"center", gap:"10px" }}>
+              <input type="checkbox" id="actif" checked={formPart.actif}
+                onChange={e => setFormPart(f=>({...f,actif:e.target.checked}))}/>
+              <label htmlFor="actif" style={{ fontSize:"13px", color:"#0A3D1F",
+                fontWeight:600, cursor:"pointer" }}>
+                Afficher dans le carousel
+              </label>
+            </div>
+          </div>
+          {partError && (
+            <div style={{ padding:"10px 14px", background:"#FFF0F0",
+              border:"1px solid #FFD0D0", borderRadius:"8px",
+              color:"#CC3333", fontSize:"13px", marginTop:"14px" }}>
+              ❌ {partError}
+            </div>
+          )}
+          <div style={{ display:"flex", gap:"10px", marginTop:"16px" }}>
+            <button style={S.btn} onClick={sauvegarderPartenaire} disabled={partLoading}>
+              {partLoading ? "⏳ Sauvegarde..." : `💾 ${editPart ? "Enregistrer" : "Ajouter"}`}
+            </button>
+            <button style={S.btnGhost} onClick={() => { setShowFormPart(false); setPartError(""); }}>
+              Annuler
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Tableau */}
+      <div style={S.card}>
+        <table style={{ width:"100%", borderCollapse:"collapse", fontSize:"13px" }}>
+          <thead>
+            <tr style={{ borderBottom:"2px solid #E2EDE6" }}>
+              {["Icône","Nom","Type","Badge","Statut","Actions"].map(h => (
+                <th key={h} style={{ padding:"10px 14px", textAlign:"left",
+                  fontSize:"11px", fontWeight:700, color:"#6B9A7A",
+                  textTransform:"uppercase", letterSpacing:"0.06em" }}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {partenaires.map((p,i) => (
+              <tr key={p._id} style={{ borderBottom:"1px solid #E2EDE6",
+                background: i%2===0 ? "#fff" : "#FAFCFB",
+                opacity: p.actif ? 1 : 0.5 }}>
+                <td style={{ padding:"12px 14px", fontSize:"24px" }}>{p.icone}</td>
+                <td style={{ padding:"12px 14px", fontWeight:700, color:"#0A3D1F" }}>
+                  {p.nom}
+                </td>
+                <td style={{ padding:"12px 14px" }}>
                   <span style={{ background:"#F0F4FF", color:"#3366CC",
                     borderRadius:"100px", padding:"3px 10px",
-                    fontSize:"11px", fontWeight:600 }}>{r.type}</span>
-                  <span style={{ fontSize:"12px", color:"#6B9A7A" }}>{r.date}</span>
-                </div>
-                <div style={{ fontWeight:700, fontSize:"15px", color:"#0A3D1F",
-                  marginBottom:"4px" }}>{r.sujet}</div>
-                <div style={{ fontSize:"13px", color:"#6B9A7A" }}>
-                  👤 {r.auteur}
-                </div>
-              </div>
-              <div style={{ display:"flex", gap:"8px", flexShrink:0, marginLeft:"16px" }}>
-                {r.statut !== "en_cours" && r.statut !== "résolu" && (
-                  <button onClick={() => changerStatut(r.id, "en_cours")}
-                    style={{ padding:"7px 14px", borderRadius:"8px",
-                      background:"#E8F0FF", border:"none", color:"#3366CC",
-                      fontWeight:600, fontSize:"12px", cursor:"pointer" }}>
-                    Prendre en charge
-                  </button>
-                )}
-                {r.statut !== "résolu" && (
-                  <button onClick={() => changerStatut(r.id, "résolu")}
-                    style={{ padding:"7px 14px", borderRadius:"8px",
-                      background:"#E8F5EE", border:"none", color:"#0A7A3F",
-                      fontWeight:600, fontSize:"12px", cursor:"pointer" }}>
-                    ✅ Résoudre
-                  </button>
-                )}
-                <button onClick={() => setRecOuverte(recOuverte===r.id ? null : r.id)}
-                  style={{ padding:"7px 14px", borderRadius:"8px",
-                    background:"#F5FAF7", border:"1px solid #E2EDE6",
-                    color:"#0A3D1F", fontWeight:600, fontSize:"12px",
-                    cursor:"pointer" }}>
-                  {recOuverte===r.id ? "▲ Fermer" : "▼ Répondre"}
-                </button>
-              </div>
-            </div>
-
-            {/* Zone réponse */}
-            {recOuverte === r.id && (
-              <div style={{ marginTop:"16px", paddingTop:"16px",
-                borderTop:"1px solid #E2EDE6" }}>
-                <label style={{ display:"block", fontSize:"11px", fontWeight:700,
-                  color:"#6B9A7A", textTransform:"uppercase",
-                  letterSpacing:"0.08em", marginBottom:"8px" }}>
-                  Réponse à envoyer
-                </label>
-                <textarea
-                  value={reponse[r.id] || ""}
-                  onChange={e => setReponse(rp => ({...rp, [r.id]: e.target.value}))}
-                  placeholder="Écrivez votre réponse à l'utilisateur..."
-                  style={{ ...S.textarea, minHeight:"100px" }}/>
-                <div style={{ display:"flex", gap:"10px", marginTop:"10px" }}>
-                  <button style={S.btn}
-                    onClick={() => {
-                      changerStatut(r.id, "résolu");
-                      setRecOuverte(null);
-                    }}>
-                    📤 Envoyer la réponse
-                  </button>
-                  <button style={S.btnGhost}
-                    onClick={() => setRecOuverte(null)}>
-                    Annuler
-                  </button>
-                </div>
-              </div>
-            )}
+                    fontSize:"11px", fontWeight:600 }}>{p.type}</span>
+                </td>
+                <td style={{ padding:"12px 14px", color:"#6B9A7A",
+                  fontSize:"12px" }}>{p.badge}</td>
+                <td style={{ padding:"12px 14px" }}>
+                  <span style={{ background: p.actif ? "#E8F5EE" : "#F0F0F0",
+                    color: p.actif ? "#0A7A3F" : "#999",
+                    borderRadius:"100px", padding:"3px 10px",
+                    fontSize:"11px", fontWeight:700 }}>
+                    {p.actif ? "● Actif" : "○ Inactif"}
+                  </span>
+                </td>
+                <td style={{ padding:"12px 14px" }}>
+                  <div style={{ display:"flex", gap:"6px" }}>
+                    <button onClick={() => {
+                        setEditPart(p);
+                        setFormPart({ nom:p.nom, type:p.type, contribution:p.contribution,
+                          badge:p.badge, icone:p.icone, actif:p.actif });
+                        setShowFormPart(true);
+                      }}
+                      style={{ padding:"5px 10px", borderRadius:"7px",
+                        background:"#E8F5EE", border:"none", color:"#0A3D1F",
+                        fontSize:"12px", fontWeight:600, cursor:"pointer" }}>✏️</button>
+                    <button onClick={() => toggleActifPartenaire(p)}
+                      style={{ padding:"5px 10px", borderRadius:"7px",
+                        background: p.actif ? "#FFF5E0" : "#E8F5EE",
+                        border:"none", color: p.actif ? "#CC6600" : "#0A7A3F",
+                        fontSize:"12px", fontWeight:600, cursor:"pointer" }}>
+                      {p.actif ? "⏸ Masquer" : "▶ Afficher"}
+                    </button>
+                    <button onClick={() => supprimerPartenaire(p._id)}
+                      style={{ padding:"5px 10px", borderRadius:"7px",
+                        background:"#FFF0F0", border:"none", color:"#CC3333",
+                        fontSize:"12px", fontWeight:600, cursor:"pointer" }}>🗑️</button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {partenaires.length === 0 && (
+          <div style={{ textAlign:"center", padding:"40px", color:"#6B9A7A" }}>
+            Aucun partenaire enregistré
           </div>
-        ))}
+        )}
       </div>
     </div>
-  );
-  }; // fin renderReclamations
+    ); // fin renderPartenaires
+  };
 
   const renderActivites = () => (
     <div>
@@ -867,7 +914,7 @@ export default function Admin() {
     dashboard:    renderDashboard,
     publications: renderPublications,
     utilisateurs: renderUtilisateurs,
-    reclamations: renderReclamations,
+    partenaires:  renderPartenaires,
     activites:    renderActivites,
   };
 

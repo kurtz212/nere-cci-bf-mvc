@@ -2,95 +2,28 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../styles/home.css";
 
-// ── Définition des 3 packs NERE CCI-BF ──
+// ── Packs NERE CCI-BF (basés sur solde FCFA) ──
 const PACKS = [
   {
-    id: "basic",
-    nom: "Basic",
-    icon: "🌱",
-    couleur: "#4DC97A",
-    fondCarte: "rgba(77,201,122,0.06)",
-    bordure: "rgba(77,201,122,0.25)",
-    prix: { mensuel: 5000, annuel: 50000 },
-    reductionAnnuelle: 17,
-    accroche: "Pour démarrer",
-    description: "Idéal pour les petites structures souhaitant accéder aux listes d'entreprises.",
-    accessLevel: 1,
-    fonctionnalites: [
-      { label: "Listes d'entreprises",          ok: true  },
-      { label: "Listes d'associations pro.",     ok: true  },
-      { label: "Fiches entreprises",             ok: false },
-      { label: "Détails entreprises",            ok: false },
-      { label: "Statistiques",                   ok: false },
-      { label: "Recherche multicritères",        ok: true, note: "Basique" },
-      { label: "Chat avec l'administration",     ok: false },
-      { label: "Demandes de données",            ok: true, note: "Listes uniquement" },
-      { label: "Export des résultats",           ok: false },
-    ],
-    quotas: {
-      listes: 500,
-      fiches: 0,
-      stats: 0,
-    },
+    id: "pack1", packId:"pack1",
+    nom: "Pack 1", niveau:1, 
+    couleur:"#4DC97A", fondCarte:"rgba(77,201,122,0.06)", bordure:"rgba(77,201,122,0.25)",
+    prix: { mensuel: 5000, annuel: 50000 }, reductionAnnuelle: 17, 
+    description:"Créditez votre compte avec 5 000 FCFA. Déduction directe à chaque requête.",
   },
   {
-    id: "pro",
-    nom: "Pro",
-    icon: "🚀",
-    couleur: "#22A052",
-    fondCarte: "rgba(34,160,82,0.08)",
-    bordure: "rgba(34,160,82,0.35)",
-    prix: { mensuel: 15000, annuel: 150000 },
-    reductionAnnuelle: 17,
-    accroche: "Le plus populaire",
-    description: "Pour les professionnels ayant besoin de données détaillées sur les entreprises.",
-    accessLevel: 2,
-    populaire: true,
-    fonctionnalites: [
-      { label: "Listes d'entreprises",          ok: true  },
-      { label: "Listes d'associations pro.",     ok: true  },
-      { label: "Fiches entreprises",             ok: true  },
-      { label: "Détails entreprises",            ok: true  },
-      { label: "Statistiques",                   ok: false },
-      { label: "Recherche multicritères",        ok: true, note: "Complète" },
-      { label: "Chat avec l'administration",     ok: true  },
-      { label: "Demandes de données",            ok: true, note: "Listes + Fiches + Détails" },
-      { label: "Export des résultats",           ok: true, note: "CSV" },
-    ],
-    quotas: {
-      listes: 2000,
-      fiches: 50,
-      stats: 0,
-    },
+    id: "pack2", packId:"pack2",
+    nom: "Pack 2", niveau:2, 
+    couleur:"#22A052", fondCarte:"rgba(34,160,82,0.08)", bordure:"rgba(34,160,82,0.35)",
+    prix: { mensuel: 10000, annuel: 100000 }, reductionAnnuelle: 17, 
+    description:"Créditez votre compte avec 10 000 FCFA. Déduction directe à chaque requête.",
   },
   {
-    id: "premium",
-    nom: "Premium",
-    icon: "💎",
-    couleur: "#D4A830",
-    fondCarte: "rgba(212,168,48,0.06)",
-    bordure: "rgba(212,168,48,0.3)",
-    prix: { mensuel: 35000, annuel: 350000 },
-    reductionAnnuelle: 17,
-    accroche: "Accès illimité",
-    description: "Accès complet à toute la base NERE, statistiques et données d'import/export.",
-    accessLevel: 3,
-    fonctionnalites: [
-      { label: "Listes d'entreprises",          ok: true  },
-      { label: "Listes d'associations pro.",     ok: true  },
-      { label: "Fiches entreprises",             ok: true  },
-      { label: "Détails entreprises",            ok: true  },
-      { label: "Statistiques complètes",         ok: true  },
-      { label: "Recherche multicritères",        ok: true, note: "Complète + export" },
-      { label: "Chat prioritaire admin",         ok: true  },
-      { label: "Toutes les demandes de données", ok: true  },
-      { label: "Export PDF & CSV",               ok: true  },
-    ],
-    quotas: {
-      listes: -1,   // -1 = illimité
-      fiches: -1,
-      stats: -1,
-    },
+    id: "pack3", packId:"pack3",
+    nom: "Pack 3", niveau:3, 
+    couleur:"#D4A830", fondCarte:"rgba(212,168,48,0.06)", bordure:"rgba(212,168,48,0.3)",
+    prix: { mensuel: 15000, annuel: 150000 }, reductionAnnuelle: 17, prixMin:15000, flexible:true, 
+    description:"Créditez votre compte avec un montant personnalisé. Déduction directe à chaque requête.",
   },
 ];
 
@@ -101,9 +34,25 @@ function formaterPrix(prix) {
 export default function Formules() {
   const navigate  = useNavigate();
   const user      = JSON.parse(localStorage.getItem("user") || "null");
-  const [periode, setPeriode]   = useState("annuel"); // "mensuel" | "annuel"
-  const [hover, setHover]       = useState(null);
-  const [packsAPI, setPacksAPI] = useState([]);
+  const [hover, setHover]               = useState(null);
+  const [packsAPI, setPacksAPI]         = useState([]);
+  const [montantPack3, setMontantPack3] = useState("15000");
+  const [showPack3Input, setShowPack3Input] = useState(false);
+  const [erreurPack3, setErreurPack3]   = useState("");
+  const [soldeActuel, setSoldeActuel]   = useState(null);
+  const periode = "mensuel";
+
+  // Charger le solde actuel
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    fetch("http://localhost:5000/api/abonnements/mon-solde", {
+      headers: { "Authorization": `Bearer ${token}` }
+    })
+    .then(r => r.json())
+    .then(data => { if (data.success && data.data) setSoldeActuel(data.data); })
+    .catch(() => {});
+  }, []);
 
   // Charger les packs depuis l'API
   useEffect(() => {
@@ -121,7 +70,7 @@ export default function Formules() {
   const packsAffiches = PACKS.map(p => {
     const apiPack = packsAPI.find(a =>
       a.nom?.toLowerCase() === p.nom?.toLowerCase() ||
-      a.niveau === p.accessLevel
+      a.niveau === p.niveau
     );
     if (apiPack) {
       return {
@@ -137,7 +86,23 @@ export default function Formules() {
 
   const handleChoisir = (pack) => {
     if (!user) { navigate("/inscription"); return; }
-    navigate("/paiement", { state: { pack, periode } });
+    if (pack.flexible) {
+      setShowPack3Input(true);
+    } else {
+      navigate("/paiement", { state: { pack, periode } });
+    }
+  };
+
+  const confirmerPack3 = () => {
+    const pack = PACKS.find(p => p.id === "pack3");
+    let montant = Number(montantPack3);
+    if (Number.isNaN(montant) || montant < 15000) {
+      setErreurPack3("Montant invalide : minimum 15 000 FCFA");
+      return;
+    }
+    setErreurPack3("");
+    navigate("/paiement", { state: { pack: { ...pack, prix: { mensuel: montant } }, periode } });
+    setShowPack3Input(false);
   };
 
   return (
@@ -158,7 +123,7 @@ export default function Formules() {
         <nav className="home-navbar">
           <div className="home-logo" onClick={() => navigate("/")}>
             <span className="logo-text">NERE</span>
-            <span className="logo-sub">CCI-BF</span>
+            
           </div>
           <div className="home-nav-links">
             <span className="home-nav-link" onClick={() => navigate("/")}>Accueil</span>
@@ -184,17 +149,7 @@ export default function Formules() {
 
         {/* HERO */}
         <div style={{ textAlign:"center", padding:"64px 48px 48px" }}>
-          <div style={{ display:"inline-flex", alignItems:"center", gap:"8px",
-            background:"rgba(77,201,122,0.12)", border:"1px solid rgba(77,201,122,0.25)",
-            borderRadius:"100px", padding:"6px 18px", marginBottom:"20px" }}>
-            <span style={{ width:"7px", height:"7px", borderRadius:"50%",
-              background:"#4DC97A", display:"inline-block",
-              boxShadow:"0 0 8px #4DC97A" }}/>
-            <span style={{ fontSize:"12px", fontWeight:700, color:"#4DC97A",
-              letterSpacing:"0.1em", textTransform:"uppercase" }}>
-              Tarification officielle CCI-BF
-            </span>
-          </div>
+         
 
           <h1 style={{ fontFamily:"'Playfair Display',serif", fontSize:"48px",
             fontWeight:800, color:"#fff", margin:"0 0 16px",
@@ -206,35 +161,108 @@ export default function Formules() {
             Accédez à la base de données NERE selon vos besoins.
             Bloquez jusqu'au renouvellement si le quota est atteint.
           </p>
-
-          {/* Toggle mensuel / annuel */}
-          <div style={{ display:"inline-flex", alignItems:"center", gap:"0",
-            background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.12)",
-            borderRadius:"100px", padding:"4px", marginBottom:"60px" }}>
-            {["mensuel","annuel"].map(p => (
-              <button key={p} onClick={() => setPeriode(p)} style={{
-                padding:"10px 24px", borderRadius:"100px", border:"none",
-                background: periode===p ? "#4DC97A" : "transparent",
-                color: periode===p ? "#0A3D1F" : "rgba(255,255,255,0.5)",
-                fontWeight: periode===p ? 800 : 500,
-                fontSize:"14px", cursor:"pointer", fontFamily:"inherit",
-                transition:"all 0.25s", position:"relative",
-              }}>
-                {p.charAt(0).toUpperCase() + p.slice(1)}
-                {p === "annuel" && (
-                  <span style={{
-                    position:"absolute", top:"-10px", right:"-4px",
-                    background:"#D4A830", color:"#0A3D1F",
-                    fontSize:"10px", fontWeight:800, padding:"2px 7px",
-                    borderRadius:"100px", letterSpacing:"0.04em",
-                  }}>
-                    -17%
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
         </div>
+
+        {/* MODAL PACK 3 FLEXIBLE */}
+        {showPack3Input && (
+          <div style={{position:"fixed",inset:0,zIndex:1000,
+            background:"rgba(0,0,0,0.7)",display:"flex",
+            alignItems:"center",justifyContent:"center",padding:"20px"}}>
+            <div style={{background:"#0F3D20",border:"1px solid rgba(212,168,48,0.3)",
+              borderRadius:"20px",padding:"40px",maxWidth:"420px",width:"100%",
+              textAlign:"center"}}>
+              <div style={{fontSize:"40px",marginBottom:"16px"}}>💎</div>
+              <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:"22px",
+                color:"#fff",marginBottom:"8px"}}>Pack 3 — Montant flexible</h3>
+              <p style={{color:"rgba(255,255,255,0.5)",fontSize:"13px",
+                lineHeight:1.7,marginBottom:"24px"}}>
+                Saisissez le montant à créditer sur votre compte.<br/>
+                Montant personnalisé.
+              </p>
+              <div style={{background:"rgba(255,255,255,0.06)",borderRadius:"12px",
+                padding:"20px",marginBottom:"20px"}}>
+                <div style={{fontSize:"11px",fontWeight:700,
+                  color:"rgba(255,255,255,0.4)",textTransform:"uppercase",
+                  letterSpacing:"0.08em",marginBottom:"10px"}}>
+                  Montant à créditer (FCFA)
+                </div>
+                <input type="number" min="15000" step="1000"
+                  value={montantPack3}
+                  onChange={e => {
+                    const raw = e.target.value;
+                    if (raw === "") {
+                      setMontantPack3("");
+                    } else {
+                      const digits = raw.replace(/\D/g, "");
+                      setMontantPack3(digits);
+                    }
+                    setErreurPack3("");
+                  }}
+                  style={{width:"100%",padding:"14px",borderRadius:"10px",
+                    border:"1.5px solid rgba(212,168,48,0.4)",
+                    background:"rgba(255,255,255,0.07)",color:"#fff",
+                    fontSize:"22px",fontWeight:800,textAlign:"center",
+                    fontFamily:"inherit",outline:"none",boxSizing:"border-box"}}/>
+                <div style={{fontSize:"12px",color:"rgba(255,255,255,0.3)",
+                  marginTop:"8px"}}>
+                  Minimum : 15 000 FCFA, montant libre supérieur
+                </div>
+                {erreurPack3 && (
+                  <div style={{color:"#FF6B6B", fontSize:"12px", marginTop:"10px", fontWeight:700}}>
+                    {erreurPack3}
+                  </div>
+                )}
+              </div>
+              {/* Suggestions rapides */}
+              <div style={{display:"flex",gap:"8px",justifyContent:"center",
+                marginBottom:"20px"}}>
+                {[20000,30000,50000,100000].map(m => (
+                  <button key={m}
+                    onClick={() => setMontantPack3(String(m))}
+                    style={{padding:"6px 12px",borderRadius:"8px",
+                      background: Number(montantPack3)===m ? "#D4A830" : "rgba(255,255,255,0.08)",
+                      border:"none",color: Number(montantPack3)===m ? "#0A3D1F" : "rgba(255,255,255,0.5)",
+                      fontWeight:700,fontSize:"12px",cursor:"pointer",fontFamily:"inherit"}}>
+                    {m.toLocaleString()}
+                  </button>
+                ))}
+              </div>
+              <button onClick={confirmerPack3}
+                style={{width:"100%",padding:"14px",borderRadius:"12px",
+                  background:"linear-gradient(135deg,#D4A830,#A07820)",
+                  border:"none",color:"#0A3D1F",fontWeight:800,
+                  fontSize:"15px",cursor:"pointer",fontFamily:"inherit",
+                  marginBottom:"10px"}}>
+                Continuer avec {(Number(montantPack3) || 15000).toLocaleString()} FCFA →
+              </button>
+              <button onClick={() => setShowPack3Input(false)}
+                style={{color:"rgba(255,255,255,0.4)",background:"none",
+                  border:"none",cursor:"pointer",fontSize:"13px"}}>
+                Annuler
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* SOLDE ACTUEL si connecté */}
+        {user && soldeActuel && (
+          <div style={{maxWidth:"1100px",margin:"0 auto",padding:"0 48px 24px"}}>
+            <div style={{background:"rgba(77,201,122,0.08)",
+              border:"1px solid rgba(77,201,122,0.2)",
+              borderRadius:"14px",padding:"16px 24px",
+              display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <div style={{fontSize:"13px",color:"rgba(255,255,255,0.5)"}}>
+                Votre solde actuel · {soldeActuel.packLabel}
+              </div>
+              <div style={{fontFamily:"'Playfair Display',serif",
+                fontSize:"22px",fontWeight:900,
+                color: soldeActuel.solde < 2000 ? "#FF8080" :
+                       soldeActuel.solde < 5000 ? "#D4A830" : "#4DC97A"}}>
+                {soldeActuel.solde?.toLocaleString("fr-FR")} FCFA
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* CARTES PACKS */}
         <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)",
@@ -273,7 +301,7 @@ export default function Formules() {
                     fontSize:"11px", fontWeight:800, letterSpacing:"0.08em",
                     textTransform:"uppercase", whiteSpace:"nowrap",
                     boxShadow:"0 4px 12px rgba(77,201,122,0.4)" }}>
-                    ⭐ Le plus populaire
+                    
                   </div>
                 )}
 
@@ -313,88 +341,10 @@ export default function Formules() {
                         FCFA
                       </div>
                       <div style={{ fontSize:"11px", color:"rgba(255,255,255,0.3)" }}>
-                        /{periode === "mensuel" ? "mois" : "an"}
+                        /mois
                       </div>
                     </div>
                   </div>
-                  {periode === "mensuel" && (
-                    <div style={{ fontSize:"12px", color:"rgba(255,255,255,0.35)",
-                      marginTop:"6px" }}>
-                      Soit {formaterPrix(pack.prix.annuel)} FCFA/an
-                      <span style={{ color:pack.couleur, fontWeight:700, marginLeft:"6px" }}>
-                        (économisez {formaterPrix(pack.prix.mensuel * 12 - pack.prix.annuel)} FCFA)
-                      </span>
-                    </div>
-                  )}
-                  {periode === "annuel" && (
-                    <div style={{ fontSize:"12px", color:pack.couleur,
-                      fontWeight:600, marginTop:"6px" }}>
-                      ✓ Économie de {pack.reductionAnnuelle}% vs mensuel
-                    </div>
-                  )}
-                </div>
-
-                {/* Quotas */}
-                <div style={{ marginBottom:"24px", display:"flex", flexDirection:"column", gap:"8px" }}>
-                  {[
-                    { label:"Adresses (listes)",  val: pack.quotas.listes, icon:"📋" },
-                    { label:"Fiches",             val: pack.quotas.fiches, icon:"📄" },
-                    { label:"Statistiques",       val: pack.quotas.stats,  icon:"📊" },
-                  ].map(q => (
-                    <div key={q.label} style={{
-                      display:"flex", alignItems:"center", justifyContent:"space-between",
-                      padding:"8px 12px", borderRadius:"8px",
-                      background: q.val === 0
-                        ? "rgba(255,255,255,0.02)"
-                        : "rgba(255,255,255,0.05)",
-                    }}>
-                      <span style={{ fontSize:"12px",
-                        color: q.val === 0 ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.6)" }}>
-                        {q.icon} {q.label}
-                      </span>
-                      <span style={{
-                        fontSize:"12px", fontWeight:800,
-                        color: q.val === -1 ? pack.couleur
-                          : q.val === 0 ? "rgba(255,255,255,0.15)"
-                          : "#fff",
-                      }}>
-                        {q.val === -1 ? "Illimité" : q.val === 0 ? "—" : `${q.val.toLocaleString()}/an`}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Fonctionnalités */}
-                <div style={{ display:"flex", flexDirection:"column",
-                  gap:"8px", marginBottom:"28px" }}>
-                  {pack.fonctionnalites.map((f, i) => (
-                    <div key={i} style={{
-                      display:"flex", alignItems:"flex-start", gap:"10px",
-                      opacity: f.ok ? 1 : 0.35,
-                    }}>
-                      <div style={{
-                        width:"16px", height:"16px", borderRadius:"50%", flexShrink:0,
-                        marginTop:"1px",
-                        background: f.ok ? pack.couleur : "rgba(255,255,255,0.1)",
-                        display:"flex", alignItems:"center", justifyContent:"center",
-                        fontSize:"9px", color: f.ok ? "#0A3D1F" : "rgba(255,255,255,0.3)",
-                        fontWeight:900,
-                      }}>
-                        {f.ok ? "✓" : "✕"}
-                      </div>
-                      <span style={{ fontSize:"13px",
-                        color: f.ok ? "rgba(255,255,255,0.8)" : "rgba(255,255,255,0.3)",
-                        lineHeight:1.4 }}>
-                        {f.label}
-                        {f.note && (
-                          <span style={{ fontSize:"11px", color:pack.couleur,
-                            fontWeight:700, marginLeft:"6px" }}>
-                            ({f.note})
-                          </span>
-                        )}
-                      </span>
-                    </div>
-                  ))}
                 </div>
 
                 {/* Bouton */}
@@ -411,13 +361,17 @@ export default function Formules() {
                     ? `0 4px 16px ${pack.couleur}50` : "none",
                   transform: isHover ? "scale(1.02)" : "scale(1)",
                 }}>
-                  {user ? `Souscrire ${pack.nom}` : `Commencer avec ${pack.nom}`}
+                  {user
+                    ? pack.flexible
+                      ? ` Choisir le montant →`
+                      : `Souscrire `
+                    : `Commencer avec ${pack.nom}`}
                 </button>
 
                 {/* Mention paiement */}
                 <p style={{ textAlign:"center", fontSize:"11px",
                   color:"rgba(255,255,255,0.2)", marginTop:"10px", marginBottom:0 }}>
-                  CinetPay · Agence CCI-BF
+                 
                 </p>
               </div>
             );
@@ -430,7 +384,7 @@ export default function Formules() {
           <div style={{ display:"inline-flex", alignItems:"center", gap:"10px",
             background:"rgba(232,85,85,0.08)", border:"1px solid rgba(232,85,85,0.2)",
             borderRadius:"12px", padding:"14px 24px", marginBottom:"32px" }}>
-            <span style={{ fontSize:"20px" }}>🔒</span>
+            <span style={{ fontSize:"20px" }}></span>
             <div style={{ textAlign:"left" }}>
               <div style={{ fontWeight:700, fontSize:"14px", color:"#fff" }}>
                 Quota atteint = accès bloqué jusqu'au renouvellement
@@ -444,11 +398,11 @@ export default function Formules() {
           <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)",
             gap:"20px", maxWidth:"900px", margin:"0 auto" }}>
             {[
-              { icon:"📅", titre:"Renouvellement automatique",
+              {  titre:"Renouvellement automatique",
                 desc:"Votre pack se renouvelle automatiquement à l'échéance." },
-              { icon:"⬆️", titre:"Upgrade possible à tout moment",
+              {  titre:"Upgrade possible à tout moment",
                 desc:"Passez à un pack supérieur en cours de période. La différence est proratisée." },
-              { icon:"🏢", titre:"Paiement en agence",
+              {  titre:"Paiement en agence",
                 desc:"Réglez directement à la CCI-BF. Activation sous 24h après confirmation." },
             ].map(item => (
               <div key={item.titre} style={{ background:"rgba(255,255,255,0.03)",
@@ -471,7 +425,7 @@ export default function Formules() {
           </h2>
           {[
             { q:"Puis-je changer de pack en cours d'abonnement ?",
-              r:"Oui, vous pouvez upgrader à tout moment. La différence est calculée au prorata de la période restante." },
+              r:"Oui, vous pouvez augmenter votre credit  à tout moment. La différence est calculée au prorata de la période restante." },
             { q:"Que se passe-t-il quand mon quota est épuisé ?",
               r:"Votre accès aux données concernées est bloqué jusqu'au renouvellement de votre pack. Vous pouvez toutefois consulter vos demandes en cours." },
             { q:"Comment payer en agence CCI-BF ?",
@@ -508,7 +462,7 @@ export default function Formules() {
               background:"linear-gradient(135deg, #4DC97A, #1A7A40)",
               color:"#0A3D1F", fontWeight:800, fontSize:"15px",
               border:"none", cursor:"pointer", fontFamily:"inherit" }}>
-              💬 Contacter un agent
+              Contacter un agent
             </button>
             <button onClick={() => navigate("/")} style={{
               padding:"14px 32px", borderRadius:"12px",

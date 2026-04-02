@@ -4,7 +4,7 @@ import "../../styles/dashboard.css";
 
 const TYPES_REQUETES = [
   {
-    id: "liste", label: "Liste", icon: "📋",
+    id: "liste", label: "Liste", 
     prix: 250, unite: "adresse",
     description: "Liste d'entreprises ou d'associations professionnelles",
     sousTypes: [
@@ -14,7 +14,7 @@ const TYPES_REQUETES = [
     couleur: "#4DC97A",
   },
   {
-    id: "detail", label: "Détails", icon: "🔍",
+    id: "detail", label: "Détails", 
     prix: null, unite: null,
     description: "Informations détaillées sur entreprises, associations ou flux commerciaux",
     sousTypes: [
@@ -24,7 +24,7 @@ const TYPES_REQUETES = [
     couleur: "#22A052",
   },
   {
-    id: "statistique", label: "Statistiques", icon: "📊",
+    id: "statistique", label: "Statistiques", 
     prix: 5000, unite: "statistique",
     description: "Statistiques sur entreprises, associations, importations et exportations",
     sousTypes: [
@@ -36,7 +36,7 @@ const TYPES_REQUETES = [
     couleur: "#1A7A40",
   },
   {
-    id: "fiche", label: "Fiche", icon: "📄",
+    id: "fiche", label: "Fiche", 
     prix: 1000, unite: "fiche",
     description: "Fiche complète d'une entreprise ou association professionnelle",
     sousTypes: [
@@ -46,7 +46,7 @@ const TYPES_REQUETES = [
     couleur: "#0F5C2E",
   },
   {
-    id: "autre", label: "Autre", icon: "✉️",
+    id: "autre", label: "Autre", 
     prix: null, unite: null,
     description: "Toute autre demande spécifique — un agent vous recontactera",
     sousTypes: [],
@@ -112,6 +112,10 @@ function formaterMontant(m) {
 }
 
 export default function DemandeDocument() {
+  const [solde, setSolde] = useState(null);
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  const [coutRequete, setCoutRequete] = useState(0);
+  const [resultat, setResultat] = useState(null);
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user") || "null");
   const [onglet, setOnglet]   = useState("nouvelle");
@@ -140,6 +144,31 @@ export default function DemandeDocument() {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
+
+      // 1. Vérifier et déduire le solde
+      const deductRes = await fetch("http://localhost:5000/api/abonnements/deduire", {
+        method: "POST",
+        headers: { "Content-Type":"application/json", "Authorization":`Bearer ${token}` },
+        body: JSON.stringify({
+          typeRequete:  form.typeRequete,
+          quantite:     form.quantite || 1,
+          description:  `Requête ${form.typeRequete} - ${form.sousType}`,
+        }),
+      });
+      const deductData = await deductRes.json();
+
+      if (!deductData.success && deductData.code === 'SOLDE_INSUFFISANT') {
+        setCoutRequete(deductData.cout);
+        setShowUpgrade(true);
+        setLoading(false);
+        return;
+      }
+
+      if (deductData.success) {
+        setSolde(s => s ? { ...s, solde: deductData.data.solde } : null);
+      }
+
+      // 2. Enregistrer la demande
       const res = await fetch("http://localhost:5000/api/demandes", {
         method:  "POST",
         headers: {
@@ -162,15 +191,17 @@ export default function DemandeDocument() {
         }),
       });
       const data = await res.json();
-      if (data.success) {
-        setSuccess(true);
-      } else {
-        alert(data.message || "Erreur lors de l'envoi. Réessayez.");
+      const resultatSimule = genererResultatSimule(form, { ...data.data, quantite: form.quantite });
+      setResultat(resultatSimule);
+      setEtape(4);
+      if (!data.success) {
+        console.warn("API warning:", data.message);
       }
     } catch(e) {
-      console.warn("API indisponible:", e.message);
-      // Fallback — afficher succès même si API indisponible
-      setSuccess(true);
+      console.warn("API indisponible, résultat local:", e.message);
+      const resultatSimule = genererResultatSimule(form, { quantite: form.quantite });
+      setResultat(resultatSimule);
+      setEtape(4);
     } finally {
       setLoading(false);
     }
@@ -183,11 +214,17 @@ export default function DemandeDocument() {
       description:"", contact:user?.email||"", telephone:user?.telephone||"" });
   };
 
+  const PACKS_UPGRADE = [
+    { id:"pack1", label:"Pack 1", montant:5000  },
+    { id:"pack2", label:"Pack 2", montant:10000 },
+    { id:"pack3", label:"Pack 3", montant:15000 },
+  ];
+
   if (!user) return (
     <div style={{minHeight:"100vh",background:"#F5FAF7",display:"flex",alignItems:"center",
       justifyContent:"center",fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
       <div style={{textAlign:"center"}}>
-        <div style={{fontSize:"48px",marginBottom:"16px"}}>🔒</div>
+        <div style={{fontSize:"48px",marginBottom:"16px"}}></div>
         <h2 style={{color:"#0A3D1F"}}>Accès réservé aux abonnés</h2>
         <button onClick={()=>navigate("/connexion")} className="btn-save" style={{marginTop:"16px"}}>
           Se connecter</button>
@@ -230,7 +267,7 @@ export default function DemandeDocument() {
             <span className="dash-nav-link" onClick={()=>navigate("/")}>Accueil</span>
             <span className="dash-nav-link" onClick={()=>navigate("/recherche")}>Recherche</span>
             <span className="dash-nav-link active">Demande</span>
-            <span className="dash-nav-link" onClick={()=>navigate("/chat")}>💬 Chat</span>
+            <span className="dash-nav-link" onClick={()=>navigate("/chat")}> Chat</span>
           </div>
           <div className="dash-nav-actions">
             <div className="user-chip" onClick={()=>navigate("/profil")}>
@@ -242,7 +279,23 @@ export default function DemandeDocument() {
 
         {/* HERO avec tarifs */}
         <div className="pub-page-hero" style={{padding:"36px 48px 28px"}}>
-          <div className="pub-page-tag">CCI-BF · Service des données NERE</div>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+            <div className="pub-page-tag">CCI-BF · Service des données NERE</div>
+            {solde && (
+              <div style={{background:"rgba(255,255,255,0.1)",borderRadius:"12px",
+                padding:"8px 16px",display:"flex",alignItems:"center",gap:"10px"}}>
+                <div style={{fontSize:"11px",color:"rgba(255,255,255,0.5)",
+                  textTransform:"uppercase",letterSpacing:"0.06em"}}>
+                  Solde {solde.packLabel}
+                </div>
+                <div style={{fontWeight:800,fontSize:"18px",
+                  color: solde.solde < 2000 ? "#FF8080" :
+                         solde.solde < 5000 ? "#D4A830" : "#4DC97A"}}>
+                  {solde.solde?.toLocaleString()} FCFA
+                </div>
+              </div>
+            )}
+          </div>
           <h1 className="pub-page-title" style={{fontSize:"28px",textAlign:"left"}}>
             Demande de données officielles
           </h1>
@@ -261,11 +314,73 @@ export default function DemandeDocument() {
           </div>
         </div>
 
+        {/* MODAL UPGRADE */}
+        {showUpgrade && (
+          <div style={{position:"fixed",inset:0,zIndex:1000,
+            background:"rgba(0,0,0,0.6)",display:"flex",
+            alignItems:"center",justifyContent:"center",padding:"20px"}}>
+            <div style={{background:"#fff",borderRadius:"20px",padding:"36px",
+              maxWidth:"440px",width:"100%",textAlign:"center"}}>
+              <div style={{fontSize:"48px",marginBottom:"16px"}}></div>
+              <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:"22px",
+                color:"#0A3D1F",marginBottom:"8px"}}>Solde insuffisant</h3>
+              <p style={{color:"#6B9A7A",fontSize:"14px",lineHeight:1.6,marginBottom:"20px"}}>
+                Cette requête coûte <strong style={{color:"#CC3333"}}>
+                {coutRequete.toLocaleString()} FCFA</strong>.<br/>
+                Votre solde actuel est de <strong>{solde?.solde?.toLocaleString() || 0} FCFA</strong>.
+              </p>
+              <div style={{display:"flex",flexDirection:"column",gap:"10px",marginBottom:"20px"}}>
+                {PACKS_UPGRADE.filter(p => p.montant > (solde?.montantInitial || 0)).map(p => (
+                  <button key={p.id}
+                    onClick={async () => {
+                      const token = localStorage.getItem("token");
+                      await fetch("http://localhost:5000/api/abonnements/recharger", {
+                        method:"POST",
+                        headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`},
+                        body: JSON.stringify({ nouveauPack: p.id }),
+                      });
+                      setSolde({ pack:p.id, packLabel:p.label,
+                        montantInitial:p.montant, solde:p.montant });
+                      setShowUpgrade(false);
+                    }}
+                    style={{padding:"12px",borderRadius:"10px",
+                      background:"#0A3D1F",color:"#fff",border:"none",
+                      fontWeight:700,fontSize:"14px",cursor:"pointer",fontFamily:"inherit"}}>
+                    Passer au {p.label} — {p.montant.toLocaleString()} FCFA
+                  </button>
+                ))}
+                <button
+                  onClick={async () => {
+                    const montantRecharge = coutRequete + 2000;
+                    const token = localStorage.getItem("token");
+                    await fetch("http://localhost:5000/api/abonnements/recharger", {
+                      method:"POST",
+                      headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`},
+                      body: JSON.stringify({ montant: montantRecharge }),
+                    });
+                    setSolde(s => s ? {...s, solde:(s.solde||0)+montantRecharge} : null);
+                    setShowUpgrade(false);
+                  }}
+                  style={{padding:"12px",borderRadius:"10px",
+                    background:"#E8F5EE",color:"#0A3D1F",border:"1px solid #C0D8C8",
+                    fontWeight:600,fontSize:"14px",cursor:"pointer",fontFamily:"inherit"}}>
+                  Recharger de {(coutRequete+2000).toLocaleString()} FCFA
+                </button>
+              </div>
+              <button onClick={() => setShowUpgrade(false)}
+                style={{color:"#6B9A7A",background:"none",border:"none",
+                  cursor:"pointer",fontSize:"13px"}}>
+                Annuler
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* ONGLETS */}
         <div style={{background:"#fff",borderBottom:"1px solid var(--border)",
           padding:"0 48px",display:"flex"}}>
-          {[{key:"nouvelle",label:"📝 Nouvelle demande"},
-            {key:"historique",label:`📋 Mes demandes (${DEMANDES_MOCK.length})`}]
+          {[{key:"nouvelle",label:" Nouvelle demande"},
+            {key:"historique",label:` Mes demandes (${DEMANDES_MOCK.length})`}]
             .map(o=>(
             <button key={o.key} onClick={()=>setOnglet(o.key)} style={{
               padding:"14px 24px",background:"transparent",border:"none",
@@ -286,7 +401,7 @@ export default function DemandeDocument() {
               {success ? (
                 <div style={{background:"#fff",borderRadius:"16px",border:"1px solid var(--border)",
                   padding:"48px",textAlign:"center"}}>
-                  <div style={{fontSize:"56px",marginBottom:"16px"}}>✅</div>
+                  <div style={{fontSize:"56px",marginBottom:"16px"}}></div>
                   <h2 style={{fontFamily:"'Playfair Display',serif",color:"var(--green-dark)",
                     fontSize:"24px",marginBottom:"12px"}}>Demande enregistrée !</h2>
                   <p style={{color:"var(--text-muted)",lineHeight:1.7,marginBottom:"28px"}}>
@@ -298,7 +413,7 @@ export default function DemandeDocument() {
                     <div style={{background:"var(--green-pale)",border:"1px solid rgba(34,160,82,0.2)",
                       borderRadius:"12px",padding:"16px 24px",marginBottom:"24px",
                       display:"inline-flex",alignItems:"center",gap:"12px"}}>
-                      <span style={{fontSize:"24px"}}>💰</span>
+                      <span style={{fontSize:"24px"}}></span>
                       <div style={{textAlign:"left"}}>
                         <div style={{fontSize:"11px",fontWeight:700,color:"var(--text-muted)",
                           textTransform:"uppercase",letterSpacing:"0.08em"}}>Montant estimé</div>
@@ -320,10 +435,10 @@ export default function DemandeDocument() {
                   {/* Barre étapes */}
                   <div style={{background:"var(--green-deep)",padding:"18px 32px",
                     display:"flex",alignItems:"center"}}>
-                    {[{n:1,label:"Type de requête"},{n:2,label:"Critères de sélection"},
-                      {n:3,label:"Confirmation"}].map((s,i)=>(
+                    {[{n:1,label:"Type de requête"},{n:2,label:"Critères"},
+                      {n:3,label:"Confirmation"},{n:4,label:"Résultat"}].map((s,i)=>(
                       <div key={s.n} style={{display:"flex",alignItems:"center",
-                        flex:i<2?1:"none"}}>
+                        flex:i<3?1:"none"}}>
                         <div style={{display:"flex",alignItems:"center",gap:"8px"}}>
                           <div style={{width:"28px",height:"28px",borderRadius:"50%",
                             background:etape>s.n?"var(--green-light)":
@@ -339,7 +454,7 @@ export default function DemandeDocument() {
                             {s.label}
                           </span>
                         </div>
-                        {i<2 && <div style={{flex:1,height:"2px",
+                        {i<3 && <div style={{flex:1,height:"2px",
                           background:"rgba(255,255,255,0.12)",margin:"0 12px"}}/>}
                       </div>
                     ))}
@@ -409,7 +524,7 @@ export default function DemandeDocument() {
                                   color:form.sousType===s.value?"var(--green-dark)":"var(--text-mid)",
                                   fontWeight:form.sousType===s.value?700:500,
                                   fontSize:"13px",cursor:"pointer",fontFamily:"inherit",transition:"all 0.2s"}}>
-                                {form.sousType===s.value?"✓ ":""}{s.label}
+                                {form.sousType===s.value?" ":""}{s.label}
                               </button>
                             ))}
                           </div>
@@ -474,7 +589,7 @@ export default function DemandeDocument() {
                       <div style={{display:"flex",flexDirection:"column",gap:"16px"}}>
 
                         {/* Géographique */}
-                        <SectionCritere icon="🗺️" titre="Sélection par secteur géographique"
+                        <SectionCritere  titre="Sélection par secteur géographique"
                           sous="(Région, Province, Ville)">
                           <div style={{marginBottom:"12px"}}>
                             <label className="profil-label" style={{marginBottom:"8px",display:"block"}}>
@@ -504,7 +619,7 @@ export default function DemandeDocument() {
                         </SectionCritere>
 
                         {/* Activité */}
-                        <SectionCritere icon="🏭" titre="Sélection par activité"
+                        <SectionCritere  titre="Sélection par activité"
                           sous="(Commerce, Industrie, Services)">
                           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px"}}>
                             {ACTIVITES.map(a=>(
@@ -522,7 +637,7 @@ export default function DemandeDocument() {
                         </SectionCritere>
 
                         {/* Forme juridique */}
-                        <SectionCritere icon="⚖️" titre="Sélection par structure"
+                        <SectionCritere  titre="Sélection par structure"
                           sous="(Forme juridique)">
                           <div style={{display:"flex",flexWrap:"wrap",gap:"8px"}}>
                             {FORMES_JURIDIQUES.map(f=>(
@@ -540,28 +655,28 @@ export default function DemandeDocument() {
                         </SectionCritere>
 
                         {/* Effectif */}
-                        <SectionCritere icon="👥" titre="Sélection par tranche d'effectif salarié">
-                          <div style={{display:"flex",flexDirection:"column",gap:"8px"}}>
-                            {TRANCHES_EFFECTIF.map(t=>(
-                              <button key={t.value} onClick={()=>toggleArr("tranches",t.value)}
-                                style={{padding:"11px 16px",borderRadius:"10px",textAlign:"left",
-                                  border:form.tranches.includes(t.value)?"2px solid var(--green-light)":"1.5px solid var(--border)",
-                                  background:form.tranches.includes(t.value)?"var(--green-pale)":"#fff",
-                                  color:form.tranches.includes(t.value)?"var(--green-dark)":"var(--text-mid)",
-                                  fontWeight:form.tranches.includes(t.value)?700:500,
-                                  fontSize:"13px",cursor:"pointer",fontFamily:"inherit",
-                                  transition:"all 0.15s",display:"flex",alignItems:"center",gap:"10px"}}>
-                                <div style={{width:"18px",height:"18px",borderRadius:"50%",flexShrink:0,
-                                  border:form.tranches.includes(t.value)?"2px solid var(--green-light)":"2px solid var(--border)",
-                                  background:form.tranches.includes(t.value)?"var(--green-light)":"transparent",
-                                  display:"flex",alignItems:"center",justifyContent:"center",fontSize:"10px",color:"#fff"}}>
-                                  {form.tranches.includes(t.value)?"✓":""}
-                                </div>
-                                {t.label}
-                              </button>
-                            ))}
-                          </div>
-                        </SectionCritere>
+                       <SectionCritere titre="Sélection par tranche d'effectif salarié">
+  <div style={{display:"flex",flexDirection:"column",gap:"8px"}}>
+    {TRANCHES_EFFECTIF.map(t=>(
+      <button key={t.value} onClick={()=>toggleArr("tranches",t.value)}
+        style={{padding:"11px 16px",borderRadius:"10px",textAlign:"left",
+          border:form.tranches.includes(t.value)?"2px solid var(--green-light)":"1.5px solid var(--border)",
+          background:form.tranches.includes(t.value)?"var(--green-pale)":"#fff",
+          color:form.tranches.includes(t.value)?"var(--green-dark)":"var(--text-mid)",
+          fontWeight:form.tranches.includes(t.value)?700:500,
+          fontSize:"13px",cursor:"pointer",fontFamily:"inherit",
+          transition:"all 0.15s",display:"flex",alignItems:"center",gap:"10px"}}>
+        <div style={{width:"18px",height:"18px",borderRadius:"50%",flexShrink:0,
+          border:form.tranches.includes(t.value)?"2px solid var(--green-light)":"2px solid var(--border)",
+          background:form.tranches.includes(t.value)?"var(--green-light)":"transparent",
+          display:"flex",alignItems:"center",justifyContent:"center",fontSize:"10px",color:"#fff"}}>
+          {form.tranches.includes(t.value)?"✓":""}
+        </div>
+        {t.label}
+      </button>
+    ))}
+  </div>
+</SectionCritere>
 
                         {/* Description + contact */}
                         <div className="profil-field">
@@ -650,7 +765,7 @@ export default function DemandeDocument() {
                             <div>
                               <div style={{fontSize:"11px",fontWeight:700,color:"var(--text-muted)",
                                 textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:"6px"}}>
-                                🗺️ Régions
+                              Régions
                               </div>
                               <div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>
                                 {form.regions.map(r=><Chip key={r} label={r}/>)}
@@ -661,7 +776,7 @@ export default function DemandeDocument() {
                             <div>
                               <div style={{fontSize:"11px",fontWeight:700,color:"var(--text-muted)",
                                 textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:"6px"}}>
-                                🏭 Activités
+                                 Activités
                               </div>
                               <div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>
                                 {form.activites.map(a=>(
@@ -674,7 +789,7 @@ export default function DemandeDocument() {
                             <div>
                               <div style={{fontSize:"11px",fontWeight:700,color:"var(--text-muted)",
                                 textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:"6px"}}>
-                                ⚖️ Formes juridiques
+                                 Formes juridiques
                               </div>
                               <div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>
                                 {form.formesJuridiques.map(f=><Chip key={f} label={f}/>)}
@@ -685,7 +800,7 @@ export default function DemandeDocument() {
                             <div>
                               <div style={{fontSize:"11px",fontWeight:700,color:"var(--text-muted)",
                                 textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:"6px"}}>
-                                👥 Tranches d'effectif
+                                 Tranches d'effectif
                               </div>
                               <div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>
                                 {form.tranches.map(t=>(
@@ -707,7 +822,7 @@ export default function DemandeDocument() {
                         border:"1px solid rgba(34,160,82,0.2)",borderRadius:"10px",
                         padding:"12px 16px",marginBottom:"20px",
                         fontSize:"13px",color:"var(--text-mid)",lineHeight:1.6}}>
-                        ℹ️ Un agent CCI-BF vous recontactera à <strong>{form.contact}</strong> sous{" "}
+                         Un agent CCI-BF vous recontactera à <strong>{form.contact}</strong> sous{" "}
                         <strong>3 à 5 jours ouvrables</strong> pour confirmer et organiser le paiement.
                       </div>
 
@@ -717,7 +832,7 @@ export default function DemandeDocument() {
                           disabled={loading} onClick={soumettre}>
                           {loading
                             ? <><span className="spinner-sm"/>&nbsp;Envoi...</>
-                            : "📤 Soumettre la demande"}
+                            : " Soumettre la demande"}
                         </button>
                       </div>
                     </>)}
@@ -732,7 +847,7 @@ export default function DemandeDocument() {
             <div style={{maxWidth:"820px"}}>
               {DEMANDES_MOCK.length===0 ? (
                 <div style={{textAlign:"center",padding:"60px 0",color:"var(--text-muted)"}}>
-                  <div style={{fontSize:"48px",marginBottom:"12px"}}>📋</div>
+                  <div style={{fontSize:"48px",marginBottom:"12px"}}></div>
                   <p>Aucune demande pour l'instant.</p>
                   <button className="btn-save" style={{marginTop:"16px"}}
                     onClick={()=>setOnglet("nouvelle")}>Faire une demande</button>
@@ -763,7 +878,7 @@ export default function DemandeDocument() {
                             <span style={{background:sc.bg,color:sc.color,
                               border:`1px solid ${sc.color}33`,borderRadius:"100px",
                               padding:"4px 12px",fontSize:"11px",fontWeight:700}}>
-                              ● {sc.label}
+                              {sc.label}
                             </span>
                             {d.montantEstime && (
                               <span style={{fontSize:"13px",fontWeight:700,color:"var(--green-dark)"}}>
@@ -773,12 +888,12 @@ export default function DemandeDocument() {
                           </div>
                         </div>
                         <div style={{display:"flex",flexWrap:"wrap",gap:"6px",marginBottom:"10px"}}>
-                          {d.criteres?.regions?.map(r=><Chip key={r} label={"🗺️ "+r}/>)}
+                          {d.criteres?.regions?.map(r=><Chip key={r} label={+r}/>)}
                           {d.criteres?.activites?.map(a=>(
-                            <Chip key={a} label={"🏭 "+ACTIVITES.find(x=>x.value===a)?.label}/>
+                            <Chip key={a} label={+ACTIVITES.find(x=>x.value===a)?.label}/>
                           ))}
                           {d.criteres?.tranches?.map(t=>(
-                            <Chip key={t} label={"👥 "+t}/>
+                            <Chip key={t} label={+t}/>
                           ))}
                         </div>
                         <p style={{fontSize:"13px",color:"var(--text-muted)",
@@ -793,7 +908,7 @@ export default function DemandeDocument() {
         </div>
 
         <footer className="dash-footer">
-          <span>© 2025 CCI-BF — Chambre de Commerce et d'Industrie du Burkina Faso</span>
+          <span> CCI-BF — Chambre de Commerce et d'Industrie du Burkina Faso</span>
           <div style={{display:"flex",gap:"20px"}}>
             <span>Tarifs officiels CCI-BF</span>
             <span>+226 25 30 61 22</span>

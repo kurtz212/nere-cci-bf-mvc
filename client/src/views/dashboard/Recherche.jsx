@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../styles/dashboard.css";
 
@@ -7,7 +7,7 @@ const CATEGORIES = [
   {
     value: "commerce",
     label: "Commerce",
-    icon: "🛒",
+    icon: "",
     sousCats: [
       { value: "commerce_gros",   label: "Commerce de gros" },
       { value: "commerce_detail", label: "Commerce de détail" },
@@ -16,7 +16,7 @@ const CATEGORIES = [
   {
     value: "industrie",
     label: "Industrie",
-    icon: "🏭",
+   
     sousCats: [
       { value: "industrie_agro",    label: "Agro-alimentaire" },
       { value: "industrie_textile", label: "Textile" },
@@ -27,7 +27,7 @@ const CATEGORIES = [
   {
     value: "artisanat",
     label: "Artisanat",
-    icon: "🎨",
+   
     sousCats: [
       { value: "artisanat_bijou",      label: "Bijouterie" },
       { value: "artisanat_tissage",    label: "Tissage" },
@@ -38,7 +38,7 @@ const CATEGORIES = [
   {
     value: "services",
     label: "Services",
-    icon: "🏦",
+   
     sousCats: [
       { value: "service_banque",       label: "Banques" },
       { value: "service_finance",      label: "Établissements financiers" },
@@ -49,7 +49,7 @@ const CATEGORIES = [
   {
     value: "agrobusiness",
     label: "Agrobusiness",
-    icon: "🌾",
+    
     sousCats: [
       { value: "agro_elevage",     label: "Élevage" },
       { value: "agro_agriculture", label: "Agriculture" },
@@ -103,16 +103,29 @@ function formaterCA(ca) {
 }
 
 const TYPES_AFFICHAGE = [
-  { value:"liste",      label:"Liste",       icon:"📋", desc:"Noms et adresses" },
-  { value:"tableau",    label:"Tableau",     icon:"📊", desc:"Données détaillées" },
-  { value:"statistique",label:"Statistiques",icon:"📈", desc:"Analyses & chiffres" },
+  { value:"liste",       label:"Liste",                 desc:"Noms et adresses",        sousTypes:[
+      { value:"entreprise",   label:"Entreprises" },
+      { value:"association",  label:"Associations professionnelles" },
+  ]},
+  { value:"tableau",     label:"Tableau",               desc:"Données détaillées",       sousTypes:[] },
+  { value:"statistique", label:"Statistiques",          desc:"Analyses & chiffres",      sousTypes:[
+      { value:"entreprise",   label:"Entreprises" },
+      { value:"association",  label:"Associations professionnelles" },
+      { value:"import_export",label:"Importation & Exportation" },
+  ]},
+  { value:"fiche",       label:"Fiche entreprise",      desc:"Demande de fiche détaillée", sousTypes:[
+      { value:"entreprise",   label:"Fiche d'entreprise" },
+      { value:"association",  label:"Fiche d'association" },
+  ]},
+  { value:"repertoire",  label:"Répertoire thématique", desc:"Répertoire par secteur",   sousTypes:[] },
 ];
 
 export default function Recherche() {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user") || "null");
 
-  const [typeAffichage, setTypeAffichage] = useState("tableau");
+  const [typeAffichage, setTypeAffichage]     = useState("tableau");
+  const [sousTypeAffichage, setSousType]      = useState("");
   const ANNEE_COURANTE = new Date().getFullYear();
   const [filtres, setFiltres] = useState({
     region:   "",
@@ -129,6 +142,20 @@ export default function Recherche() {
   const [rechercheLancee, setLancee]    = useState(false);
   const [loading, setLoading]           = useState(false);
   const [detail, setDetail]             = useState(null);
+  const [description, setDescription]  = useState("");
+  const [quota, setQuota]              = useState(null);
+
+  // Charger le quota au montage
+  React.useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    fetch("http://localhost:5000/api/searchlogs/quota", {
+      headers: { "Authorization": `Bearer ${token}` }
+    })
+    .then(r => r.json())
+    .then(data => { if (data.success) setQuota(data.data); })
+    .catch(() => {});
+  }, []);
 
   const catObj    = CATEGORIES.find(c => c.value === filtres.categorie);
   const villesDispo = filtres.region ? VILLES_PAR_REGION[filtres.region] || [] : [];
@@ -163,12 +190,51 @@ export default function Recherche() {
     setResultats(res);
     setLancee(true);
     setLoading(false);
+
+    // Enregistrer la recherche dans l'historique
+    const token = localStorage.getItem("token");
+    if (token) {
+      fetch("http://localhost:5000/api/searchlogs", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          description: description || "Recherche sans titre",
+          criteres: {
+            typeAffichage: typeAffichage,
+            sousType: sousTypeAffichage,
+            region:   filtres.region,
+            ville:    filtres.ville,
+            categorie:filtres.categorie,
+            sousCat:  filtres.sousCat,
+            nombre:   filtres.nombre,
+          },
+          nbResultats: res.length,
+          forfait: user?.pack || "gratuit",
+          quotaAvant: quota?.restant || 0,
+          quotaApres: quota?.restant !== "illimité" ? Math.max(0, (quota?.restant || 0) - 1) : "illimité",
+        }),
+      })
+      .then(r => r.json())
+      .then(() => {
+        // Rafraîchir le quota
+        return fetch("http://localhost:5000/api/searchlogs/quota", {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+      })
+      .then(r => r.json())
+      .then(data => { if (data.success) setQuota(data.data); })
+      .catch(() => {});
+    }
   };
 
   const reset = () => {
     setFiltres({ region:"", ville:"", categorie:"", sousCat:"", nombre:1 });
     setModeAnnee("toutes"); setAnneeVal(2024); setAnneeMin(2022); setAnneeMax(2024);
     setResultats([]); setLancee(false); setDetail(null);
+    setDescription("");
   };
 
   // ── Stats calculées ──
@@ -205,9 +271,9 @@ export default function Recherche() {
             <span className="dash-nav-link" onClick={() => navigate("/")}>Accueil</span>
             <span className="dash-nav-link" onClick={() => navigate("/publications")}>Publications</span>
             <span className="dash-nav-link active">Recherche</span>
-           {/* <span className="dash-nav-link" onClick={() => navigate("/reclamation")}>Réclamation</span>*/}
-         
            
+            <span className="dash-nav-link" onClick={() => navigate("/contact")}>Contact</span>
+            {user && <span className="dash-nav-link" onClick={() => navigate("/profil")}>Mon Profil</span>}
           </div>
           <div className="dash-nav-actions">
             {user ? (
@@ -243,10 +309,67 @@ export default function Recherche() {
             {/* En-tête */}
             <div style={{ background:"var(--green-deep)", padding:"16px 20px" }}>
               <div style={{ fontFamily:"'Playfair Display',serif", fontSize:"16px",
-                fontWeight:800, color:"#fff" }}>🔍 Critères de recherche</div>
+                fontWeight:800, color:"#fff" }}> Critères de recherche</div>
             </div>
 
             <div style={{ padding:"20px", display:"flex", flexDirection:"column", gap:"18px" }}>
+
+              {/* QUOTA */}
+              {quota && (
+                <div style={{ padding:"10px 14px", borderRadius:"10px",
+                  background: quota.illimite ? "rgba(77,201,122,0.1)" :
+                    quota.restant === 0 ? "rgba(255,107,107,0.1)" :
+                    quota.restant <= 5  ? "rgba(212,168,48,0.1)" : "rgba(77,201,122,0.1)",
+                  border: quota.illimite ? "1px solid rgba(77,201,122,0.3)" :
+                    quota.restant === 0 ? "1px solid rgba(255,107,107,0.3)" :
+                    quota.restant <= 5  ? "1px solid rgba(212,168,48,0.3)" : "1px solid rgba(77,201,122,0.3)",
+                }}>
+                  <div style={{ fontSize:"11px", fontWeight:700,
+                    color:"var(--text-muted)", textTransform:"uppercase",
+                    letterSpacing:"0.07em", marginBottom:"6px" }}>
+                    Quota du forfait {quota.pack}
+                  </div>
+                  {quota.illimite ? (
+                    <div style={{ fontSize:"13px", fontWeight:700, color:"var(--green-dark)" }}>
+                      ♾️ Recherches illimitées
+                    </div>
+                  ) : (
+                    <>
+                      <div style={{ display:"flex", justifyContent:"space-between",
+                        fontSize:"12px", marginBottom:"6px" }}>
+                        <span style={{ color:"var(--text-mid)" }}>{quota.utilise} utilisées</span>
+                        <span style={{ fontWeight:700,
+                          color: quota.restant === 0 ? "#FF6B6B" :
+                                 quota.restant <= 5  ? "#D4A830" : "var(--green-dark)" }}>
+                          {quota.restant} restantes
+                        </span>
+                      </div>
+                      <div style={{ height:"6px", borderRadius:"100px",
+                        background:"var(--border)", overflow:"hidden" }}>
+                        <div style={{ height:"100%", borderRadius:"100px",
+                          width:`${Math.min(100,(quota.utilise/quota.quota)*100)}%`,
+                          background: quota.restant === 0 ? "#FF6B6B" :
+                                      quota.restant <= 5  ? "#D4A830" : "#4DC97A",
+                          transition:"width 0.4s ease" }}/>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* DESCRIPTION */}
+              <div>
+                <label style={labelStyle}> Titre / Description de la recherche</label>
+                <input
+                  type="text"
+                  placeholder="Ex: Entreprises BTP région Centre..."
+                  value={description}
+                  onChange={e => setDescription(e.target.value)}
+                  style={inputStyle}
+                  onFocus={el => el.target.style.borderColor="var(--green-light)"}
+                  onBlur={el => el.target.style.borderColor="var(--border)"}
+                />
+              </div>
 
               {/* ÉTAPE 1 — Type d'affichage */}
               <div>
@@ -254,7 +377,7 @@ export default function Recherche() {
                 <div style={{ display:"flex", flexDirection:"column", gap:"7px" }}>
                   {TYPES_AFFICHAGE.map(t => (
                     <button key={t.value} type="button"
-                      onClick={() => setTypeAffichage(t.value)}
+                      onClick={() => { setTypeAffichage(t.value); setSousType(""); }}
                       style={{
                         padding:"10px 14px", borderRadius:"10px",
                         border: typeAffichage===t.value
@@ -281,6 +404,65 @@ export default function Recherche() {
                 </div>
               </div>
 
+              {/* SOUS-TYPE si liste ou statistique ou fiche */}
+              {TYPES_AFFICHAGE.find(t=>t.value===typeAffichage)?.sousTypes?.length > 0 && (
+                <div>
+                  <label style={labelStyle}>
+                    {typeAffichage==="liste" ? "① Type d'entité" :
+                     typeAffichage==="statistique" ? "① Type de données" :
+                     "① Type de fiche"}
+                  </label>
+                  <div style={{ display:"flex", flexDirection:"column", gap:"7px" }}>
+                    {TYPES_AFFICHAGE.find(t=>t.value===typeAffichage).sousTypes.map(s => (
+                      <button key={s.value} type="button"
+                        onClick={() => setSousType(s.value)}
+                        style={{
+                          padding:"9px 14px", borderRadius:"10px", textAlign:"left",
+                          border: sousTypeAffichage===s.value
+                            ? "2px solid var(--green-light)"
+                            : "1.5px solid var(--border)",
+                          background: sousTypeAffichage===s.value ? "var(--green-pale)" : "#fff",
+                          color: sousTypeAffichage===s.value ? "var(--green-dark)" : "var(--text-mid)",
+                          fontWeight: sousTypeAffichage===s.value ? 700 : 500,
+                          fontSize:"13px", cursor:"pointer", fontFamily:"inherit",
+                          transition:"all 0.15s",
+                        }}>
+                        {sousTypeAffichage===s.value ? "✓ " : ""}{s.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* CAS SPÉCIAUX : Fiche et Répertoire → bouton redirection */}
+              {(typeAffichage === "fiche" || typeAffichage === "repertoire") && (
+                <div style={{ background:"rgba(77,201,122,0.08)",
+                  border:"1px solid rgba(77,201,122,0.2)",
+                  borderRadius:"12px", padding:"16px" }}>
+                  <div style={{ fontSize:"13px", color:"var(--green-dark)",
+                    fontWeight:600, marginBottom:"8px" }}>
+                    {typeAffichage === "fiche"
+                      ? " Demande de fiche " + (sousTypeAffichage === "association" ? "d'association" : "d'entreprise")
+                      : " Demande de répertoire thématique"}
+                  </div>
+                  <div style={{ fontSize:"12px", color:"var(--text-muted)",
+                    lineHeight:1.6, marginBottom:"12px" }}>
+                    {typeAffichage === "fiche"
+                      ? "Votre demande sera transmise à la CCI-BF. Un rendez-vous vous sera confirmé par email."
+                      : "Précisez le thème souhaité dans le formulaire. Un rendez-vous vous sera confirmé par email."}
+                  </div>
+                  <button className="btn-save" style={{ width:"100%", padding:"11px" }}
+                    onClick={() => {
+                      const msg = typeAffichage === "fiche"
+                        ? `Bonjour, je souhaite obtenir une fiche ${sousTypeAffichage === "association" ? "d'association professionnelle" : "d'entreprise"} du fichier NERE. Merci de me confirmer un rendez-vous.`
+                        : `Bonjour, je souhaite obtenir un répertoire thématique du fichier NERE. Merci de me confirmer un rendez-vous.`;
+                      navigate("/contact?demande=" + encodeURIComponent(msg));
+                    }}>
+                     Faire ma demande →
+                  </button>
+                </div>
+              )}
+
               <div style={{ borderTop:"1px solid var(--border)" }}/>
 
               {/* ÉTAPE 2 — Région + Ville */}
@@ -297,7 +479,7 @@ export default function Recherche() {
 
               <div>
                 <label style={labelStyle}>Ville</label>
-                <select 
+                <select  value={filtres.ville}
                   onChange={e => set("ville", e.target.value)}
                   disabled={!filtres.region}
                   onFocus={el => el.target.style.borderColor="var(--green-light)"}
@@ -449,11 +631,15 @@ export default function Recherche() {
 
               {/* Boutons */}
               <div style={{ display:"flex", gap:"8px" }}>
-                <button className="btn-save" style={{ flex:1, padding:"12px" }}
-                  onClick={lancer} disabled={loading}>
+                <button className="btn-save" style={{ flex:1, padding:"12px",
+                    opacity: (typeAffichage==="fiche"||typeAffichage==="repertoire") ? 0.4 : 1 }}
+                  onClick={lancer}
+                  disabled={loading || typeAffichage==="fiche" || typeAffichage==="repertoire"}>
                   {loading
                     ? <><span className="spinner-sm"/>&nbsp;...</>
-                    : "🔍 Rechercher"}
+                    : (typeAffichage==="fiche"||typeAffichage==="repertoire")
+                      ? "↑ Utilisez le bouton ci-dessus"
+                      : " Rechercher"}
                 </button>
                 <button className="btn-cancel" style={{ padding:"12px 14px" }}
                   onClick={reset} title="Réinitialiser">
@@ -469,7 +655,7 @@ export default function Recherche() {
               <div style={{ background:"#fff", borderRadius:"16px",
                 border:"1px solid var(--border)", padding:"60px",
                 textAlign:"center" }}>
-                <div style={{ fontSize:"56px", marginBottom:"16px" }}>🔍</div>
+                <div style={{ fontSize:"56px", marginBottom:"16px" }}></div>
                 <h3 style={{ fontFamily:"'Playfair Display',serif",
                   color:"var(--text-dark)", fontSize:"20px", marginBottom:"8px" }}>
                   Lancez votre recherche
@@ -495,7 +681,7 @@ export default function Recherche() {
                       <span style={{ background:"var(--green-pale)",
                         color:"var(--green-dark)", borderRadius:"100px",
                         padding:"3px 10px", fontSize:"11px", fontWeight:600 }}>
-                        📍 {filtres.region}
+                         {filtres.region}
                       </span>
                     )}
                     {catObj && (
@@ -512,7 +698,7 @@ export default function Recherche() {
                       <span style={{ marginLeft:"8px", background:"#E8F0FF",
                         color:"#3366CC", borderRadius:"100px",
                         padding:"2px 8px", fontSize:"11px", fontWeight:600 }}>
-                        📅 {modeAnnee==="courante" ? `${new Date().getFullYear()}`
+                         {modeAnnee==="courante" ? `${new Date().getFullYear()}`
                           : modeAnnee==="precise" ? anneeVal
                           : `${anneeMin} – ${anneeMax}`}
                       </span>
@@ -523,7 +709,7 @@ export default function Recherche() {
                 {resultats.length === 0 && (
                   <div style={{ background:"#fff", borderRadius:"14px",
                     border:"1px solid var(--border)", padding:"48px", textAlign:"center" }}>
-                    <div style={{ fontSize:"40px", marginBottom:"12px" }}>🔍</div>
+                    <div style={{ fontSize:"40px", marginBottom:"12px" }}></div>
                     <p style={{ color:"var(--text-muted)", fontSize:"14px" }}>
                       Aucune entreprise ne correspond à vos critères.
                     </p>
@@ -549,7 +735,7 @@ export default function Recherche() {
                             color:"var(--text-dark)" }}>{e.nom}</div>
                           <div style={{ fontSize:"12px", color:"var(--text-muted)",
                             marginTop:"2px" }}>
-                            📍 {e.ville}, {e.region} &nbsp;·&nbsp; {CATEGORIES.find(c=>c.value===e.cat)?.icon} {CATEGORIES.find(c=>c.value===e.cat)?.label}
+                             {e.ville}, {e.region} &nbsp;·&nbsp; {CATEGORIES.find(c=>c.value===e.cat)?.icon} {CATEGORIES.find(c=>c.value===e.cat)?.label}
                           </div>
                         </div>
                         <div style={{ fontSize:"12px", color:"var(--text-muted)",
@@ -649,11 +835,11 @@ export default function Recherche() {
                         <div style={{ display:"flex", gap:"8px" }}>
                           <button className="btn-save" style={{ fontSize:"12px", padding:"8px 16px" }}
                             onClick={() => navigate("/demande-document")}>
-                            📄 Demander un document
+                             Demander un document
                           </button>
                           <button className="btn-cancel" style={{ fontSize:"12px", padding:"8px 16px" }}
                             onClick={() => navigate("/contact")}>
-                            ✉️ Contacter la CCI-BF
+                             Contacter la CCI-BF
                           </button>
                         </div>
                       </div>
@@ -668,9 +854,9 @@ export default function Recherche() {
                     {/* KPIs */}
                     <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:"14px" }}>
                       {[
-                        { icon:"🏢", label:"Entreprises", val:resultats.length },
-                        { icon:"👥", label:"Effectif total", val:totalEffectif.toLocaleString() },
-                        { icon:"💰", label:"CA total", val:formaterCA(totalCA) },
+                        {  label:"Entreprises", val:resultats.length },
+                        {  label:"Effectif total", val:totalEffectif.toLocaleString() },
+                        {  label:"CA total", val:formaterCA(totalCA) },
                       ].map(k => (
                         <div key={k.label} style={{ background:"#fff", borderRadius:"14px",
                           border:"1px solid var(--border)", padding:"20px",
@@ -693,7 +879,7 @@ export default function Recherche() {
                       border:"1px solid var(--border)", padding:"22px" }}>
                       <div style={{ fontWeight:700, fontSize:"14px",
                         color:"var(--text-dark)", marginBottom:"16px" }}>
-                        📊 Répartition par catégorie
+                        Répartition par catégorie
                       </div>
                       <div style={{ display:"flex", flexDirection:"column", gap:"10px" }}>
                         {Object.entries(parCat).sort((a,b)=>b[1]-a[1]).map(([cat,nb]) => {
@@ -723,7 +909,7 @@ export default function Recherche() {
                       border:"1px solid var(--border)", padding:"22px" }}>
                       <div style={{ fontWeight:700, fontSize:"14px",
                         color:"var(--text-dark)", marginBottom:"16px" }}>
-                        📅 Répartition par année
+                         Répartition par année
                       </div>
                       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"8px" }}>
                         {Object.entries(
@@ -744,7 +930,7 @@ export default function Recherche() {
                       border:"1px solid var(--border)", padding:"22px" }}>
                       <div style={{ fontWeight:700, fontSize:"14px",
                         color:"var(--text-dark)", marginBottom:"16px" }}>
-                        🗺️ Répartition par région
+                        Répartition par région
                       </div>
                       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"8px" }}>
                         {Object.entries(
@@ -767,7 +953,7 @@ export default function Recherche() {
         </div>
 
         <footer className="dash-footer">
-          <span>© 2026 CCI-BF — Chambre de Commerce et d'Industrie du Burkina Faso</span>
+          <span>CCI-BF — Chambre de Commerce et d'Industrie du Burkina Faso</span>
           <span>Base NERE · Données officielles</span>
         </footer>
       </div>

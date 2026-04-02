@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import html2pdf from "html2pdf.js";
 import "../../styles/dashboard.css";
 
 const MODES_PAIEMENT = [
   {
     id: "cinetpay",
-    label: "CinetPay — Mobile Money",
-    icon: "📱",
+    label: "Mobile Money",
+   
     description: "Orange Money, Moov Money, Coris Money. Activation immédiate.",
     badge: "Instantané",
     badgeColor: "#4DC97A",
@@ -14,7 +15,7 @@ const MODES_PAIEMENT = [
   {
     id: "agence",
     label: "Paiement en agence CCI-BF",
-    icon: "🏢",
+   
     description: "Rendez-vous à l'agence CCI-BF avec votre référence. Activation sous 24h.",
     badge: "24h",
     badgeColor: "#D4A830",
@@ -35,6 +36,18 @@ export default function Paiement() {
   const [loading, setLoading]     = useState(false);
   const [reference, setReference] = useState("");
   const [success, setSuccess]     = useState(false);
+  const [montantPack3, setMontantPack3] = useState(15000);
+  const [photoRecu, setPhotoRecu] = useState(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [photoSubmitted, setPhotoSubmitted] = useState(false);
+  const [photoError, setPhotoError] = useState("");
+
+  // Initialiser montant pour pack flexible
+  useEffect(() => {
+    if (packChoisi?.flexible && packChoisi.prix?.mensuel) {
+      setMontantPack3(packChoisi.prix.mensuel);
+    }
+  }, [packChoisi]);
 
   if (!user) {
     navigate("/connexion"); return null;
@@ -46,7 +59,7 @@ export default function Paiement() {
         alignItems:"center", justifyContent:"center",
         fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
         <div style={{ textAlign:"center" }}>
-          <div style={{ fontSize:"48px", marginBottom:"16px" }}>⚠️</div>
+          <div style={{ fontSize:"48px", marginBottom:"16px" }}></div>
           <h2 style={{ color:"#0A3D1F" }}>Aucun pack sélectionné</h2>
           <button className="btn-save" style={{ marginTop:"16px" }}
             onClick={() => navigate("/formules")}>
@@ -57,14 +70,29 @@ export default function Paiement() {
     );
   }
 
-  const prix = packChoisi.prix[periodeChoisie];
-  const periodeLabel = periodeChoisie === "mensuel" ? "mois" : "an";
+  const montantCredit = packChoisi?.flexible
+    ? montantPack3
+    : packChoisi?.prix?.mensuel || 0;
+  const periodeLabel = "crédit";
 
   const handlePayer = async () => {
     setLoading(true);
     const token = localStorage.getItem("token");
 
     try {
+      // D'abord souscrire l'abonnement en base
+        const packId = packChoisi?.id === "basic" ? "pack1"
+                 : packChoisi?.id === "pro"   ? "pack2" : "pack3";
+    const montant = packChoisi?.flexible
+      ? Number(montantPack3) || 15000
+      : Number(packChoisi?.prix?.mensuel || 0);
+
+    await fetch("http://localhost:5000/api/abonnements/souscrire", {
+      method: "POST",
+      headers: { "Content-Type":"application/json", "Authorization":`Bearer ${token}` },
+      body: JSON.stringify({ pack:packId, montantCustom: montant }),
+    });
+
       if (modePaiement === "cinetpay") {
         // ── CINETPAY — appel API pour initier le paiement ──
         const res  = await fetch("http://localhost:5000/api/paiements/initier", {
@@ -77,7 +105,7 @@ export default function Paiement() {
             packId:       packChoisi?.id,
             packNom:      packChoisi?.nom,
             montant:      montant,
-            periode:      periode,
+           
             modePaiement: "cinetpay",
           }),
         });
@@ -127,6 +155,130 @@ export default function Paiement() {
       setSuccess(true);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const genererRecuAgence = () => {
+    const now = new Date();
+    const dateStr = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()}`;
+    const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+    const recuHTML = `
+      <div style="font-family: Arial, sans-serif; max-width: 400px; margin: 0 auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px;">
+        <div style="text-align: center; margin-bottom: 20px;">
+          <div style="font-size: 24px; font-weight: bold; color: #0A3D1F; margin-bottom: 5px;">NERE CCI-BF</div>
+          <div style="font-size: 12px; color: #666;">Plateforme de Données Commerciales</div>
+        </div>
+
+        <div style="border-top: 1px solid #0A3D1F; border-bottom: 1px solid #0A3D1F; padding: 15px 0; margin-bottom: 15px; text-align: center;">
+          <div style="font-size: 14px; font-weight: bold; color: #0A3D1F;">REÇU DE PAIEMENT EN AGENCE</div>
+          <div style="font-size: 11px; color: #666; margin-top: 5px;">Date: ${dateStr} — ${timeStr}</div>
+        </div>
+
+        <div style="margin-bottom: 15px; font-size: 13px; line-height: 1.8;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span style="font-weight: bold;">Référence :</span>
+            <span style="font-family: monospace; font-weight: bold; color: #0A3D1F;">${reference}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span style="font-weight: bold;">Client :</span>
+            <span>${user.prenom} ${user.nom}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span style="font-weight: bold;">Email :</span>
+            <span>${user.email}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span style="font-weight: bold;">Pack :</span>
+            <span>${packChoisi.nom}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span style="font-weight: bold;">Montant :</span>
+            <span style="font-weight: bold; color: #0A3D1F;">${montantCredit.toLocaleString("fr-FR")} FCFA</span>
+          </div>
+        </div>
+
+        <div style="background-color: #f5f5f5; border-left: 4px solid #D4A830; padding: 12px; margin-bottom: 15px; font-size: 12px; line-height: 1.6; color: #333;">
+          <div style="font-weight: bold; margin-bottom: 5px;">Instructions :</div>
+          <div>1. Présentez ce reçu à la CCI-BF</div>
+          <div>2. Donnez la référence ci-dessus</div>
+          <div>3. Effectuez le paiement du montant indiqué</div>
+          <div>4. Votre crédit sera activé sous 24h</div>
+        </div>
+
+        <div style="border-top: 1px solid #ccc; padding-top: 12px; text-align: center; font-size: 11px; color: #999;">
+          <div style="margin-bottom: 3px;">CCI-BF Ouagadougou</div>
+          <div style="margin-bottom: 3px;">Avenue de Lyon, 01 BP 502</div>
+          <div style="margin-bottom: 3px;">Tél : +226 25 30 61 22</div>
+          <div style="margin-top: 8px; font-size: 10px; color: #bbb;">Généré le ${dateStr} à ${timeStr}</div>
+        </div>
+      </div>
+    `;
+
+    const opt = {
+      margin: 10,
+      filename: `NERE-Recu-${reference}.pdf`,
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { orientation: "portrait", unit: "mm", format: "a4" },
+    };
+
+    html2pdf().set(opt).from(recuHTML).save();
+  };
+
+  const handlePhotoRecuUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setPhotoError("Veuillez sélectionner une image (JPG, PNG, etc.)");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setPhotoError("L'image ne doit pas dépasser 5 MB");
+      return;
+    }
+
+    setPhotoRecu(file);
+    setPhotoError("");
+  };
+
+  const soumettrePhotoRecu = async () => {
+    if (!photoRecu) {
+      setPhotoError("Veuillez sélectionner une image du reçu");
+      return;
+    }
+
+    setUploadingPhoto(true);
+    setPhotoError("");
+
+    try {
+      const token = localStorage.getItem("token");
+      const formData = new FormData();
+      formData.append("photoRecu", photoRecu);
+      formData.append("reference", reference);
+      formData.append("packId", packChoisi?.id);
+      formData.append("montant", montantCredit);
+
+      const res = await fetch("http://localhost:5000/api/paiements/valider-agence", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${token}` },
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setPhotoSubmitted(true);
+      } else {
+        setPhotoError(data.message || "Erreur lors de la validation du reçu");
+      }
+    } catch (error) {
+      setPhotoError("Erreur réseau : " + error.message);
+      console.error(error);
+    } finally {
+      setUploadingPhoto(false);
     }
   };
 
@@ -180,91 +332,29 @@ export default function Paiement() {
                 </div>
               </div>
 
-              <div style={{ background:"rgba(255,255,255,0.06)", borderRadius:"10px",
-                padding:"14px 16px", marginBottom:"16px" }}>
-                <div style={{ display:"flex", justifyContent:"space-between",
-                  alignItems:"center", marginBottom:"6px" }}>
-                  <span style={{ fontSize:"13px", color:"rgba(255,255,255,0.5)" }}>
-                    Période
-                  </span>
-                  <span style={{ fontSize:"13px", fontWeight:700, color:"#fff",
-                    textTransform:"capitalize" }}>
-                    {periodeChoisie === "mensuel" ? "Mensuel" : "Annuel"}
-                  </span>
-                </div>
-                <div style={{ display:"flex", justifyContent:"space-between",
-                  alignItems:"center" }}>
-                  <span style={{ fontSize:"13px", color:"rgba(255,255,255,0.5)" }}>
-                    Renouvellement
-                  </span>
-                  <span style={{ fontSize:"13px", fontWeight:700, color:"#fff" }}>
-                    Automatique
-                  </span>
-                </div>
-              </div>
-
-              {/* Quotas inclus */}
-              <div style={{ marginBottom:"20px" }}>
-                <div style={{ fontSize:"11px", fontWeight:700, color:"rgba(255,255,255,0.35)",
-                  textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:"10px" }}>
-                  Quotas inclus
-                </div>
-                {[
-                  { label:"Adresses (listes)", val:packChoisi.quotas.listes, icon:"📋" },
-                  { label:"Fiches",            val:packChoisi.quotas.fiches, icon:"📄" },
-                  { label:"Statistiques",      val:packChoisi.quotas.stats,  icon:"📊" },
-                ].map(q => (
-                  <div key={q.label} style={{
-                    display:"flex", justifyContent:"space-between",
-                    padding:"7px 0",
-                    borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
-                    <span style={{ fontSize:"12px",
-                      color: q.val===0 ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.55)" }}>
-                      {q.icon} {q.label}
-                    </span>
-                    <span style={{ fontSize:"12px", fontWeight:800,
-                      color: q.val===-1 ? packChoisi.couleur
-                        : q.val===0 ? "rgba(255,255,255,0.15)" : "#fff" }}>
-                      {q.val===-1 ? "Illimité" : q.val===0 ? "—" : q.val.toLocaleString()}
-                    </span>
-                  </div>
-                ))}
-              </div>
+             
+              
 
               {/* Montant */}
               <div style={{ borderTop:"1px solid rgba(255,255,255,0.1)", paddingTop:"16px" }}>
                 <div style={{ display:"flex", justifyContent:"space-between",
                   alignItems:"center" }}>
                   <span style={{ fontSize:"14px", color:"rgba(255,255,255,0.6)" }}>
-                    Total à payer
+                    Crédit à ajouter
                   </span>
                   <div style={{ textAlign:"right" }}>
                     <div style={{ fontFamily:"'Playfair Display',serif",
                       fontSize:"26px", fontWeight:900, color:"#fff" }}>
-                      {prix.toLocaleString("fr-FR")}
+                      {montantCredit.toLocaleString("fr-FR")}
                     </div>
                     <div style={{ fontSize:"12px", color:"rgba(255,255,255,0.4)" }}>
-                      FCFA / {periodeLabel}
+                      FCFA
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Sécurité */}
-            <div style={{ background:"rgba(77,201,122,0.06)",
-              border:"1px solid rgba(77,201,122,0.15)", borderRadius:"12px",
-              padding:"14px 16px" }}>
-              {["🔒 Paiement sécurisé",
-                "✅ Activation immédiate (CinetPay)",
-                "📞 Support CCI-BF : +226 25 30 61 22"].map(item => (
-                <div key={item} style={{ fontSize:"12px", color:"rgba(255,255,255,0.5)",
-                  padding:"5px 0", display:"flex", alignItems:"center", gap:"8px",
-                  borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
-                  {item}
-                </div>
-              ))}
-            </div>
           </div>
 
           {/* COLONNE DROITE — Formulaire paiement */}
@@ -276,7 +366,7 @@ export default function Paiement() {
                 border:"1px solid var(--border)", padding:"48px",
                 textAlign:"center" }}>
                 <div style={{ fontSize:"56px", marginBottom:"16px" }}>
-                  {modePaiement === "cinetpay" ? "🎉" : "📋"}
+                  {modePaiement === "cinetpay" ? "" : ""}
                 </div>
                 <h2 style={{ fontFamily:"'Playfair Display',serif",
                   color:"var(--green-dark)", fontSize:"24px", marginBottom:"12px" }}>
@@ -312,23 +402,69 @@ export default function Paiement() {
                 </p>
 
                 {modePaiement === "agence" && (
-                  <div style={{ background:"rgba(212,168,48,0.08)",
-                    border:"1px solid rgba(212,168,48,0.2)", borderRadius:"10px",
-                    padding:"14px 18px", marginBottom:"24px", textAlign:"left" }}>
-                    <div style={{ fontWeight:700, fontSize:"13px", color:"#D4A830",
-                      marginBottom:"8px" }}>
-                      🏢 Adresse CCI-BF Ouagadougou
+                  <>
+                    <div style={{ background:"rgba(212,168,48,0.08)",
+                      border:"1px solid rgba(212,168,48,0.2)", borderRadius:"10px",
+                      padding:"14px 18px", marginBottom:"24px", textAlign:"left" }}>
+                      <div style={{ fontWeight:700, fontSize:"13px", color:"#D4A830",
+                        marginBottom:"8px" }}>
+                         Prochaines étapes
+                      </div>
+                      <div style={{ fontSize:"13px", color:"var(--text-muted)", lineHeight:1.7 }}>
+                        <div style={{marginBottom:"8px"}}>📍 <strong>CCI-BF Ouagadougou</strong><br/>Avenue de Lyon, 01 BP 502 | Tél : +226 25 30 61 22</div>
+                        <div style={{marginBottom:"8px"}}>1. Rendez-vous à l'agence CCI-BF</div>
+                        <div style={{marginBottom:"8px"}}>2. Fournissez la référence <strong>{reference}</strong></div>
+                        <div style={{marginBottom:"8px"}}>3. Effectuez le paiement de <strong>{montantCredit.toLocaleString("fr-FR")} FCFA</strong></div>
+                        <div style={{marginBottom:"8px"}}>4. Récupérez le reçu de paiement</div>
+                        <div style={{borderTop:"1px solid rgba(212,168,48,0.2)", paddingTop:"10px", marginTop:"10px"}}>5. Prenez une photo du reçu et uploadez-la ici pour valider</div>
+                      </div>
                     </div>
-                    <div style={{ fontSize:"13px", color:"var(--text-muted)", lineHeight:1.7 }}>
-                      Avenue de Lyon, 01 BP 502<br/>
-                      Ouagadougou 01, Burkina Faso<br/>
-                      Lun–Ven : 8h00 – 17h00<br/>
-                      Tél : +226 25 30 61 22
-                    </div>
-                  </div>
+
+                    {!photoSubmitted ? (
+                      <div style={{ background:"rgba(77,201,122,0.06)", border:"1px solid rgba(77,201,122,0.2)",
+                        borderRadius:"10px", padding:"20px", marginBottom:"20px" }}>
+                        <div style={{ fontWeight:700, fontSize:"14px", color:"#0A3D1F", marginBottom:"12px" }}>
+                          📸 Uploader la photo du reçu
+                        </div>
+                        <div style={{ marginBottom:"12px" }}>
+                          <input type="file" accept="image/*" onChange={handlePhotoRecuUpload}
+                            style={{ fontSize:"13px", padding:"8px", width:"100%" }} />
+                        </div>
+                        {photoRecu && (
+                          <div style={{ fontSize:"12px", color:"#0A3D1F", marginBottom:"12px", fontWeight:600 }}>
+                            ✓ Fichier sélectionné : {photoRecu.name}
+                          </div>
+                        )}
+                        {photoError && (
+                          <div style={{ color:"#FF6B6B", fontSize:"12px", marginBottom:"12px", fontWeight:700 }}>
+                            {photoError}
+                          </div>
+                        )}
+                        <button style={{ width:"100%", padding:"12px", borderRadius:"10px",
+                          background: photoRecu ? "linear-gradient(135deg, #4DC97A, #1A7A40)" : "rgba(77,201,122,0.3)",
+                          color: photoRecu ? "#0A3D1F" : "rgba(10,61,31,0.5)",
+                          fontWeight:800, fontSize:"14px", border:"none",
+                          cursor: photoRecu ? "pointer" : "not-allowed", fontFamily:"inherit" }}
+                          onClick={soumettrePhotoRecu} disabled={!photoRecu || uploadingPhoto}>
+                          {uploadingPhoto ? "Validation en cours..." : "Valider le reçu"}
+                        </button>
+                      </div>
+                    ) : (
+                      <div style={{ background:"rgba(77,201,122,0.06)", border:"1px solid rgba(77,201,122,0.2)",
+                        borderRadius:"10px", padding:"20px", marginBottom:"20px", textAlign:"center" }}>
+                        <div style={{ fontSize:"32px", marginBottom:"10px" }}>✅</div>
+                        <div style={{ fontWeight:700, fontSize:"14px", color:"#0A3D1F", marginBottom:"8px" }}>
+                          Reçu validé !
+                        </div>
+                        <div style={{ fontSize:"13px", color:"rgba(10,61,31,0.7)", lineHeight:1.6 }}>
+                          Votre crédit de <strong>{montantCredit.toLocaleString("fr-FR")} FCFA</strong> sera accrédité sous 24h.
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
 
-                <div style={{ display:"flex", gap:"12px", justifyContent:"center" }}>
+                <div style={{ display:"flex", gap:"12px", justifyContent:"center", flexWrap:"wrap" }}>
                   <button className="btn-save" onClick={() => navigate("/dashboard")}>
                     Mon espace abonné
                   </button>
@@ -449,11 +585,11 @@ export default function Paiement() {
                       border:"1px solid var(--border)", padding:"18px",
                       marginBottom:"20px" }}>
                       {[
-                        { label:"Abonné",      value:`${user.prenom} ${user.nom}` },
+                        { label:"Client",       value:`${user.prenom} ${user.nom}` },
                         { label:"Email",       value:user.email },
-                        { label:"Pack",        value:`${packChoisi.nom} — ${periodeChoisie === "mensuel" ? "Mensuel" : "Annuel"}` },
+                        { label:"Pack",        value:`${packChoisi.nom}` },
                         { label:"Mode",        value:MODES_PAIEMENT.find(m=>m.id===modePaiement)?.label },
-                        { label:"Montant",     value:`${prix.toLocaleString("fr-FR")} FCFA` },
+                        { label:"Crédit à ajouter",     value:`${montantCredit.toLocaleString("fr-FR")} FCFA` },
                       ].map(({ label, value }) => (
                         <div key={label} style={{ display:"flex", gap:"16px",
                           padding:"9px 0", borderBottom:"1px solid var(--border)" }}>
@@ -476,7 +612,7 @@ export default function Paiement() {
                         border:"1px solid rgba(77,201,122,0.2)", borderRadius:"10px",
                         padding:"14px 16px", marginBottom:"20px",
                         fontSize:"13px", color:"var(--text-mid)", lineHeight:1.7 }}>
-                        📱 Vous allez être redirigé vers <strong>CinetPay</strong> pour finaliser
+                         Vous allez être redirigé vers <strong>CinetPay</strong> pour finaliser
                         le paiement via Orange Money, Moov Money ou Coris Money.
                         Votre pack sera activé <strong>immédiatement</strong> après confirmation.
                       </div>
@@ -487,7 +623,7 @@ export default function Paiement() {
                         border:"1px solid rgba(212,168,48,0.2)", borderRadius:"10px",
                         padding:"14px 16px", marginBottom:"20px",
                         fontSize:"13px", color:"var(--text-mid)", lineHeight:1.7 }}>
-                        🏢 Une référence de paiement vous sera générée. Présentez-la à la{" "}
+                         Une référence de paiement vous sera générée. Présentez-la à la{" "}
                         <strong>CCI-BF</strong> pour régler. Activation sous <strong>24h</strong>{" "}
                         après confirmation de paiement.
                       </div>
@@ -516,9 +652,9 @@ export default function Paiement() {
                         {loading ? (
                           <><span className="spinner-sm"/>&nbsp;Traitement...</>
                         ) : modePaiement === "cinetpay" ? (
-                          `💳 Payer ${prix.toLocaleString("fr-FR")} FCFA`
+                          ` Créditer ${montantCredit.toLocaleString("fr-FR")} FCFA`
                         ) : (
-                          `📋 Générer ma référence`
+                          ` Générer ma référence de paiement`
                         )}
                       </button>
                     </div>
@@ -530,8 +666,8 @@ export default function Paiement() {
         </div>
 
         <footer className="dash-footer">
-          <span>© 2026 CCI-BF — Chambre de Commerce et d'Industrie du Burkina Faso</span>
-          <span>Paiement sécurisé · CinetPay · Agence CCI-BF</span>
+          <span> CCI-BF — Chambre de Commerce et d'Industrie du Burkina Faso</span>
+          <span>Paiement sécurisé · Mobile Money · Agence CCI-BF</span>
         </footer>
       </div>
     </div>

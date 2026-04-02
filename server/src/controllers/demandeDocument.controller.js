@@ -8,6 +8,7 @@ exports.creerDemande = async (req, res, next) => {
       typeRequete, sousType, quantite, montantEstime,
       regions, villes, activites, formesJuridiques, tranches,
       description, contact, telephone,
+      periodType, periodYear, periodStart, periodEnd,
     } = req.body;
 
     const demande = await DemandeDocument.create({
@@ -15,6 +16,7 @@ exports.creerDemande = async (req, res, next) => {
       typeRequete, sousType, quantite, montantEstime,
       regions, villes, activites, formesJuridiques, tranches,
       description, contact, telephone,
+      periodType, periodYear, periodStart, periodEnd,
     });
 
     // Email — ignorer si SMTP non configuré

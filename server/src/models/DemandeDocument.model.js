@@ -23,6 +23,12 @@ const demandeDocumentSchema = new mongoose.Schema({
   formesJuridiques: [{ type:String }],
   tranches:         [{ type:String }],
 
+  // Période pour statistiques
+  periodType:  { type:String, enum:['current','specific','range'], default:'' },
+  periodYear:  { type:String, default:'' },
+  periodStart: { type:String, default:'' },
+  periodEnd:   { type:String, default:'' },
+
   // Description libre
   description: { type:String, default:'' },
 

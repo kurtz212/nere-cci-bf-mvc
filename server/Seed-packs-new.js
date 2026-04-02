@@ -92,36 +92,3 @@ async function seed() {
 }
 
 seed();
-  recommande:      { type: Boolean, default: false },
-  actif:           { type: Boolean, default: true },
-}, { timestamps: true });
-
-async function seed() {
-  try {
-    const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/nere-cci-bf';
-    await mongoose.connect(MONGO_URI);
-    console.log('✅ MongoDB connecté');
-
-    const Pack = mongoose.model('Pack', PackSchema);
-
-    // Supprimer les anciens packs
-    await Pack.deleteMany({});
-    console.log('🗑️  Anciens packs supprimés');
-
-    // Insérer les nouveaux
-    const inserted = await Pack.insertMany(PACKS);
-    console.log(`✅ ${inserted.length} packs insérés :`);
-    inserted.forEach(p => {
-      console.log(`   - ${p.nom} (niveau ${p.niveau}) — ${p.prix.mensuel.toLocaleString()} FCFA/mois`);
-    });
-
-    await mongoose.disconnect();
-    console.log('✅ Terminé !');
-    process.exit(0);
-  } catch(err) {
-    console.error('❌ Erreur:', err.message);
-    process.exit(1);
-  }
-}
-
-seed();

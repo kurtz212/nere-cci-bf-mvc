@@ -14,7 +14,6 @@ import DemandeDocument     from './views/dashboard/DemandeDocument';
 import Chat                from './views/dashboard/Chat';
 import Admin               from './views/admin/Admin';
 import AdminRoute          from './components/AdminRoute';
-import Reclamation         from './views/shared/Reclamation';
 import RechercheEntreprise from './views/shared/Rechercheentreprise';
 import Contact             from './views/shared/Contact';
 
@@ -37,7 +36,6 @@ export default function App() {
           <Route path="/admin" element={
             <AdminRoute><Admin /></AdminRoute>
           } />
-          <Route path="/reclamation"          element={<Reclamation />} />
           <Route path="/recherche-entreprise" element={<RechercheEntreprise />} />
           <Route path="/contact"              element={<Contact />} />
           <Route path="*"                     element={<NotFound />} />

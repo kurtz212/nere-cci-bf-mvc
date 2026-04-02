@@ -101,7 +101,7 @@ export default function Chat() {
         <div style={{ background:"rgba(255,255,255,0.05)", borderRadius:"20px",
           border:"1px solid rgba(255,255,255,0.1)", padding:"48px 40px",
           textAlign:"center", maxWidth:"420px", width:"100%" }}>
-          <div style={{ fontSize:"56px", marginBottom:"16px" }}>🔒</div>
+          <div style={{ fontSize:"56px", marginBottom:"16px" }}></div>
           <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:"24px",
             fontWeight:900, color:"#fff", marginBottom:"12px" }}>
             Chat indisponible
@@ -128,7 +128,7 @@ export default function Chat() {
                 background:"linear-gradient(135deg,#4DC97A,#1A7A40)",
                 border:"none", color:"#0A3D1F", fontWeight:800,
                 fontSize:"14px", cursor:"pointer", fontFamily:"inherit" }}>
-              ✉️ Laisser un message
+              Laisser un message
             </button>
             <button onClick={() => navigate("/")}
               style={{ padding:"12px", borderRadius:"12px",
@@ -154,9 +154,9 @@ export default function Chat() {
           <div className="dash-logo" onClick={() => navigate("/")}>NERE <span>CCI-BF</span></div>
           <div className="dash-nav-links">
             <span className="dash-nav-link" onClick={() => navigate("/")}>Accueil</span>
-            <span className="dash-nav-link" onClick={() => navigate("/recherche")}>Recherche</span>
-            <span className="dash-nav-link" onClick={() => navigate("/demande-document")}>Demande fiche</span>
-            <span className="dash-nav-link active">💬 Chat</span>
+            <span className="dash-nav-link" onClick={() => navigate("/contact")}>Contact</span>
+
+            <span className="dash-nav-link active"> Chat</span>
           </div>
           <div className="dash-nav-actions">
             <div className="user-chip" onClick={() => navigate("/profil")}>
@@ -218,9 +218,9 @@ export default function Chat() {
                 Contacts CCI-BF
               </div>
               {[
-                { icon:"📞", label:"+226 25 30 61 22" },
-                { icon:"📧", label:"info@cci-bf.org" },
-                { icon:"🕐", label:"Lun–Ven 8h–17h" },
+                { label:"Tel:+226 25 30 61 22" },
+                {  label:"Email: info@cci-bf.org" },
+                {  label:"Heures d'ouverture: Lun–Ven 8h–17h" },
               ].map(({ icon, label }) => (
                 <div key={label} style={{ display:"flex", alignItems:"center", gap:"8px",
                   padding:"8px 0", borderBottom:"1px solid var(--border)",
@@ -239,11 +239,11 @@ export default function Chat() {
               </div>
               <button className="btn-edit" style={{ width:"100%", marginBottom:"8px", fontSize:"12px" }}
                 onClick={() => navigate("/demande-document")}>
-                📄 Demander un document
+                Demander un document
               </button>
               <button className="btn-edit" style={{ width:"100%", fontSize:"12px" }}
-                onClick={() => navigate("/recherche")}>
-                🔍 Rechercher une entreprise
+                onClick={() => navigate("/demande-document")}>
+                 Rechercher une entreprise
               </button>
             </div>
           </div>
@@ -261,7 +261,7 @@ export default function Chat() {
               <div style={{ width:"36px", height:"36px", borderRadius:"50%",
                 background:"rgba(77,201,122,0.2)", display:"flex",
                 alignItems:"center", justifyContent:"center", fontSize:"16px" }}>
-                💬
+                
               </div>
               <div>
                 <div style={{ fontWeight:700, fontSize:"14px", color:"#fff" }}>

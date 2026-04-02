@@ -132,7 +132,7 @@ export default function Publications() {
           <div className="dash-nav-links">
             <span className="dash-nav-link" onClick={() => navigate("/")}>Accueil</span>
             <span className="dash-nav-link active">Publications</span>
-            <span className="dash-nav-link" onClick={() => navigate("/recherche")}>Recherche</span>
+            
           </div>
           <div className="dash-nav-actions">
             {user ? (
@@ -193,7 +193,7 @@ export default function Publications() {
             Rapports, classements et analyses sur l'économie du Burkina Faso
           </p>
           <div className="pub-search-bar">
-            <span className="pub-search-icon">🔍</span>
+            <span className="pub-search-icon"></span>
             <input
               className="pub-search-input"
               placeholder="Rechercher par titre, catégorie, mot-clé..."
@@ -339,7 +339,7 @@ export default function Publications() {
 
         {/* ── FOOTER ── */}
         <footer className="dash-footer">
-          <span>© 2025 CCI-BF — Chambre de Commerce et d'Industrie du Burkina Faso</span>
+          <span>CCI-BF — Chambre de Commerce et d'Industrie du Burkina Faso</span>
           <div style={{ display: "flex", gap: "20px" }}>
             <span>CGU</span><span>Contact</span><span>Support</span>
           </div>

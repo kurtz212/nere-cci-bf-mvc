@@ -1,34 +1,31 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import "../../styles/dashboard.css";
 
 const SUJETS = [
-  "Informations sur les formules d'abonnement",
-  "Aide technique / problème sur la plateforme",
-  "Demande de partenariat",
-  "Demande de devis personnalisé",
-  "Question sur les données NERE",
-  "Autre",
+  
+  "Fiche",
+  "Repertoire thematique",
 ];
 
 const CONTACTS_INFO = [
   {
-    icon: "📍",
+    
     titre: "Adresse",
     lignes: ["Avenue de Lyon, 01 BP 502", "Ouagadougou 01, Burkina Faso"],
   },
   {
-    icon: "📞",
+    
     titre: "Téléphone",
     lignes: ["+226 25 30 61 22", "+226 25 30 61 23"],
   },
   {
-    icon: "📧",
+   
     titre: "Email",
-    lignes: ["contact@cci-bf.org", "nere@cci-bf.org"],
+    lignes: ["https://www.cci.bf/", "https://www.fichiernere.bf/"],
   },
   {
-    icon: "🕐",
+   
     titre: "Horaires",
     lignes: ["Lundi – Vendredi", "8h00 – 17h00"],
   },
@@ -56,13 +53,16 @@ export default function Contact() {
   const now        = new Date();
   const jourActuel = JOURS[now.getDay()];
   const heureActuelle = `${String(now.getHours()).padStart(2,"0")}h${String(now.getMinutes()).padStart(2,"0")}`;
+  // Lire le message pré-rempli depuis l'URL (?demande=...)
+  const demandeParam = new URLSearchParams(location.search).get("demande") || "";
+
   const [form, setForm] = useState({
     nom:       user?.nom    || "",
     prenom:    user?.prenom || "",
     email:     user?.email  || "",
     telephone: user?.telephone || "",
-    sujet:     "",
-    message:   "",
+    sujet:     demandeParam ? "Demande de document NERE" : "",
+    message:   demandeParam || "",
   });
 
   const handleChange = (e) =>
@@ -73,14 +73,14 @@ export default function Contact() {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:5000/api/reclamations", {
+      const res = await fetch("http://localhost:5000/api/demandes", {
         method:  "POST",
         headers: {
           "Content-Type": "application/json",
           ...(token ? { "Authorization": `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
-          type:        "autre",
+          type:        "contact",
           sujet:       form.sujet,
           description: form.message,
           nom:         form.nom,
@@ -114,10 +114,6 @@ export default function Contact() {
           <div className="dash-nav-links">
             <span className="dash-nav-link" onClick={() => navigate("/")}>Accueil</span>
             <span className="dash-nav-link" onClick={() => navigate("/publications")}>Publications</span>
-            <span className="dash-nav-link" onClick={() => navigate("/recherche")}>Recherche</span>
-           
-            <span className="dash-nav-link active">Contact</span>
-          
           </div>
           <div className="dash-nav-actions">
             {user ? (
@@ -149,87 +145,7 @@ export default function Contact() {
           <div style={{ display:"grid", gridTemplateColumns:"1fr 340px",
             gap:"28px", maxWidth:"1000px" }}>
 
-            {/* FORMULAIRE */}
-            <div style={{ background:"#fff", borderRadius:"16px",
-              border:"1px solid var(--border)", padding:"32px" }}>
 
-              {success ? (
-                <div style={{ textAlign:"center", padding:"32px 0" }}>
-                  <div style={{ fontSize:"56px", marginBottom:"16px" }}>✉️</div>
-                  <h2 style={{ fontFamily:"'Playfair Display',serif",
-                    color:"var(--green-dark)", fontSize:"22px", marginBottom:"12px" }}>
-                    Message envoyé !
-                  </h2>
-                  <p style={{ color:"var(--text-muted)", lineHeight:1.7, marginBottom:"24px" }}>
-                    Merci pour votre message.<br/>
-                    Notre équipe vous répondra sous <strong>48h ouvrables</strong>.
-                  </p>
-                  <button className="btn-save" onClick={() => navigate("/")}>
-                    Retour à l'accueil
-                  </button>
-                </div>
-              ) : (
-                <form onSubmit={handleSubmit}>
-                  <h3 style={{ fontFamily:"'Playfair Display',serif", fontSize:"18px",
-                    color:"var(--text-dark)", marginBottom:"20px" }}>
-                    Envoyez-nous un message
-                  </h3>
-
-                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr",
-                    gap:"14px", marginBottom:"14px" }}>
-                    <div className="profil-field">
-                      <label className="profil-label">Nom *</label>
-                      <input className="profil-input" name="nom"
-                        value={form.nom} onChange={handleChange} required/>
-                    </div>
-                    <div className="profil-field">
-                      <label className="profil-label">Prénom *</label>
-                      <input className="profil-input" name="prenom"
-                        value={form.prenom} onChange={handleChange} required/>
-                    </div>
-                    <div className="profil-field">
-                      <label className="profil-label">Email</label>
-                      <input className="profil-input" name="email" type="email"
-                        value={form.email} onChange={handleChange}/>
-                    </div>
-                    <div className="profil-field">
-                      <label className="profil-label">Téléphone</label>
-                      <input className="profil-input" name="telephone"
-                        placeholder="+226 XX XX XX XX"
-                        value={form.telephone} onChange={handleChange}/>
-                    </div>
-                  </div>
-
-                  <div className="profil-field" style={{ marginBottom:"14px" }}>
-                    <label className="profil-label">Sujet *</label>
-                    <select className="profil-input" name="sujet"
-                      value={form.sujet} onChange={handleChange} required>
-                      <option value="">Sélectionner un sujet...</option>
-                      {SUJETS.map(s => (
-                        <option key={s} value={s}>{s}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="profil-field" style={{ marginBottom:"24px" }}>
-                    <label className="profil-label">Message *</label>
-                    <textarea className="profil-input" name="message" rows={6}
-                      placeholder="Écrivez votre message ici..."
-                      value={form.message} onChange={handleChange}
-                      style={{ resize:"vertical" }} required/>
-                  </div>
-
-                  <button className="btn-save" type="submit"
-                    style={{ padding:"13px 32px" }} disabled={loading}>
-                    {loading
-                      ? <><span className="spinner-sm"/>&nbsp;Envoi...</>
-                      : "📤 Envoyer le message"}
-                  </button>
-                </form>
-              )}
-            </div>
-
-            {/* INFOS CONTACT */}
             <div style={{ display:"flex", flexDirection:"column", gap:"14px" }}>
 
               {CONTACTS_INFO.map(c => (
@@ -250,40 +166,26 @@ export default function Contact() {
                     {c.lignes.map((l, i) => (
                       <div key={i} style={{ fontSize:"13px",
                         color:"var(--text-muted)", lineHeight:1.6 }}>
-                        {l}
+                        {c.titre === "Email" ? (
+                          <a href={`mailto:${l}`} style={{ color:"var(--text-muted)", textDecoration:"none" }}
+                            onMouseEnter={(e) => e.target.style.textDecoration = "underline"}
+                            onMouseLeave={(e) => e.target.style.textDecoration = "none"}>
+                            {l}
+                          </a>
+                        ) : (
+                          l
+                        )}
                       </div>
                     ))}
                   </div>
                 </div>
               ))}
 
-              {/* Réclamation */}
-              <div style={{ background:"rgba(232,85,85,0.06)", borderRadius:"14px",
-                border:"1px solid rgba(232,85,85,0.15)",
-                padding:"18px 20px", textAlign:"center" }}>
-                <div style={{ fontSize:"28px", marginBottom:"8px" }}>📋</div>
-                <div style={{ fontWeight:700, fontSize:"14px",
-                  color:"var(--text-dark)", marginBottom:"6px" }}>
-                  Déposer une réclamation
-                </div>
-                <div style={{ fontSize:"12px", color:"var(--text-muted)",
-                  marginBottom:"14px", lineHeight:1.5 }}>
-                  Traitement sous<br/>5 jours ouvrables
-                </div>
-                <button style={{ width:"100%", padding:"10px", borderRadius:"10px",
-                  background:"rgba(232,85,85,0.1)", border:"1px solid rgba(232,85,85,0.25)",
-                  color:"#E85555", fontWeight:700, fontSize:"13px",
-                  cursor:"pointer", fontFamily:"inherit", transition:"all 0.2s" }}
-                  onClick={() => navigate("/reclamation")}>
-                  📋 Faire une réclamation
-                </button>
-              </div>
-
               {/* Chat rapide */}
               <div style={{ background: chatOuvert ? "var(--green-deep)" : "#2A2A2A",
                 borderRadius:"14px", padding:"18px 20px", textAlign:"center",
                 transition:"background 0.3s" }}>
-                <div style={{ fontSize:"28px", marginBottom:"8px" }}>💬</div>
+                <div style={{ fontSize:"28px", marginBottom:"8px" }}></div>
                 <div style={{ fontWeight:700, fontSize:"14px",
                   color:"#fff", marginBottom:"6px" }}>
                   Chat en direct
@@ -318,18 +220,18 @@ export default function Contact() {
                 </div>
 
                 {chatOuvert ? (
-                  <button className="btn-save" style={{ width:"100%", padding:"10px" }}
-                    onClick={() => navigate("/chat")}>
-                    💬 Ouvrir le chat
+                  <button className="btn-save" style={{ width:"100%", padding:"10px", textAlign:"center", fontSize:"13px", display:"inline-flex", justifyContent:"center", alignItems:"center" }}
+                    onClick={() => navigate("/chat") }>
+                    Ouvrir le chat
                   </button>
                 ) : (
                   <>
-                    <button disabled style={{ width:"100%", padding:"10px",
+                    <button disabled style={{ width:"100%", padding:"10px", display:"inline-flex", justifyContent:"center", alignItems:"center",
                       borderRadius:"10px", background:"rgba(255,255,255,0.08)",
                       border:"1px solid rgba(255,255,255,0.1)",
                       color:"rgba(255,255,255,0.3)", fontWeight:700, fontSize:"13px",
                       cursor:"not-allowed", fontFamily:"inherit", marginBottom:"8px" }}>
-                      🔒 Chat indisponible
+                      Chat indisponible
                     </button>
                     <div style={{ fontSize:"11px", color:"rgba(255,255,255,0.25)",
                       lineHeight:1.6 }}>
@@ -343,7 +245,7 @@ export default function Contact() {
         </div>
 
         <footer className="dash-footer">
-          <span>© 2025 CCI-BF — Chambre de Commerce et d'Industrie du Burkina Faso</span>
+          <span>© 2026 CCI-BF — Chambre de Commerce et d'Industrie du Burkina Faso</span>
           <span>Réponse sous 48h ouvrables</span>
         </footer>
       </div>

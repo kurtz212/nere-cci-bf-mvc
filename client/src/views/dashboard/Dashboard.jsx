@@ -51,13 +51,13 @@ export default function Dashboard() {
   const initiales = `${user.prenom?.[0]||""}${user.nom?.[0]||""}`.toUpperCase();
 
   const MENU = [
-    { icone:"🏠", label:"Accueil",           path:"/"                  },
-    { icone:"🔍", label:"Recherche",          path:"/recherche"         },
-    { icone:"📰", label:"Publications",       path:"/publications"      },
-    { icone:"📄", label:"Demande document",   path:"/demande-document"  },
-    { icone:"💬", label:"Chat",               path:"/chat"              },
-    { icone:"👤", label:"Mon Profil",         path:"/profil"            },
-    { icone:"💳", label:"Abonnement",         path:"/paiement"          },
+    {  label:"Accueil",           path:"/"                  },
+    { label:"Recherche",          path:"/recherche"         },
+    {  label:"Publications",       path:"/publications"      },
+    {  label:"Demande document",   path:"/demande-document"  },
+    {  label:"Chat",               path:"/chat"              },
+    {  label:"Mon Profil",         path:"/profil"            },
+    {  label:"Abonnement",         path:"/paiement"          },
   ];
 
   const statutCouleur = (s) => ({
@@ -102,7 +102,7 @@ export default function Dashboard() {
               {user.prenom} {user.nom}
             </div>
             <div style={{ fontSize:"11px", color:"rgba(255,255,255,0.4)" }}>
-              {user.role === "admin" ? "👑 Admin" : user.typeCompte || "Utilisateur"}
+              {user.role === "admin" ? " Admin" : user.typeCompte || "Utilisateur"}
             </div>
           </div>
         </div>
@@ -131,7 +131,7 @@ export default function Dashboard() {
                 color:"#4DC97A", fontWeight:700,
                 fontSize:"13px", fontFamily:"inherit",
                 marginBottom:"4px", textAlign:"left" }}>
-              <span style={{ fontSize:"18px" }}>⚙️</span>
+              <span style={{ fontSize:"18px" }}></span>
               <span>Administration</span>
             </button>
           )}
@@ -145,7 +145,7 @@ export default function Dashboard() {
               border:"none", cursor:"pointer", background:"rgba(255,100,100,0.1)",
               color:"#FF8080", fontWeight:600, fontSize:"13px",
               fontFamily:"inherit" }}>
-            <span style={{ fontSize:"18px" }}>🚪</span>
+            <span style={{ fontSize:"18px" }}></span>
             <span>Déconnexion</span>
           </button>
         </div>
@@ -159,7 +159,7 @@ export default function Dashboard() {
           padding:"0 28px", height:"60px", display:"flex",
           alignItems:"center", justifyContent:"space-between", flexShrink:0 }}>
           <div style={{ fontWeight:700, fontSize:"15px", color:"#0A3D1F" }}>
-            👋 Bonjour, {user.prenom} !
+             Bonjour, {user.prenom} !
           </div>
           <div style={{ fontSize:"13px", color:"#6B9A7A" }}>
             {new Date().toLocaleDateString("fr-FR", {weekday:"long", day:"numeric", month:"long", year:"numeric"})}
@@ -172,9 +172,9 @@ export default function Dashboard() {
           <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)",
             gap:"16px", marginBottom:"24px" }}>
             {[
-              { icone:"📰", label:"Publications disponibles", val: pubs.length,    couleur:"#4A9EFF" },
-              { icone:"📄", label:"Mes demandes",             val: demandes.length, couleur:"#4DC97A" },
-              { icone:"💳", label:"Mon pack",                 val: user.role === "admin" ? "Admin" : (user.pack || "Gratuit"), couleur:"#D4A830" },
+              {  label:"Publications disponibles", val: pubs.length,    couleur:"#4A9EFF" },
+              {  label:"Mes demandes",             val: demandes.length, couleur:"#4DC97A" },
+              {  label:"Mon pack",                 val: user.role === "admin" ? "Admin" : (user.pack || "Gratuit"), couleur:"#D4A830" },
             ].map(k => (
               <div key={k.label} style={{ background:"#fff", borderRadius:"14px",
                 border:"1px solid #E2EDE6", padding:"20px",
@@ -205,7 +205,7 @@ export default function Dashboard() {
               <div style={{ display:"flex", justifyContent:"space-between",
                 alignItems:"center", marginBottom:"16px" }}>
                 <div style={{ fontWeight:700, fontSize:"15px", color:"#0A3D1F" }}>
-                  📰 Publications récentes
+                   Publications récentes
                 </div>
                 <button onClick={() => navigate("/publications")}
                   style={{ fontSize:"12px", color:"#4DC97A", background:"none",
@@ -255,10 +255,10 @@ export default function Dashboard() {
               </div>
               {loading ? (
                 <div style={{ textAlign:"center", padding:"20px",
-                  color:"#6B9A7A", fontSize:"13px" }}>⏳ Chargement...</div>
+                  color:"#6B9A7A", fontSize:"13px" }}>Chargement...</div>
               ) : demandes.length === 0 ? (
                 <div style={{ textAlign:"center", padding:"30px 20px" }}>
-                  <div style={{ fontSize:"32px", marginBottom:"8px" }}>📄</div>
+                  <div style={{ fontSize:"32px", marginBottom:"8px" }}></div>
                   <div style={{ fontSize:"13px", color:"#6B9A7A",
                     marginBottom:"14px" }}>
                     Aucune demande pour l'instant
@@ -304,13 +304,13 @@ export default function Dashboard() {
           <div style={{ background:"#fff", borderRadius:"14px",
             border:"1px solid #E2EDE6", padding:"22px", marginTop:"20px" }}>
             <div style={{ fontWeight:700, fontSize:"15px", color:"#0A3D1F",
-              marginBottom:"16px" }}>⚡ Accès rapide</div>
+              marginBottom:"16px" }}> Accès rapide</div>
             <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:"12px" }}>
               {[
-                { icone:"🔍", label:"Rechercher une entreprise", path:"/recherche",        bg:"#E8F5EE", color:"#0A3D1F" },
-                { icone:"📄", label:"Demander un document",      path:"/demande-document", bg:"#E8F0FF", color:"#3366CC" },
-                { icone:"📰", label:"Voir les publications",     path:"/publications",     bg:"#FFF5E8", color:"#CC6600" },
-                { icone:"💬", label:"Contacter un agent",        path:"/contact",          bg:"#F0FFF5", color:"#007A3F" },
+                {  label:"Rechercher une entreprise", path:"/recherche",        bg:"#E8F5EE", color:"#0A3D1F" },
+                {  label:"Demander un document",      path:"/demande-document", bg:"#E8F0FF", color:"#3366CC" },
+                {  label:"Voir les publications",     path:"/publications",     bg:"#FFF5E8", color:"#CC6600" },
+                {  label:"Contacter un agent",        path:"/contact",          bg:"#F0FFF5", color:"#007A3F" },
               ].map(item => (
                 <button key={item.path}
                   onClick={() => navigate(item.path)}

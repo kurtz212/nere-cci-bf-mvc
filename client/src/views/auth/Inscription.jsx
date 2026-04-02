@@ -16,6 +16,8 @@ export default function Inscription() {
   const [error, setError]     = useState("");
   const [showPwd, setShowPwd] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [packChoisi, setPackChoisi] = useState(null);
+  const [montantPack3, setMontantPack3] = useState("");
   const [form, setForm] = useState({
     typeCompte: "",
     nom:        "",
@@ -301,6 +303,15 @@ export default function Inscription() {
           {/* ÉTAPE 2 : Confirmation email */}
           {step === 2 && (
             <div className="auth-card verify-card">
+              <div className="steps-row">
+                {["Informations","Vérification","Formule","Paiement"].map((s, i) => (
+                  <div key={i} className={`step-item ${i === 1 ? "current" : ""}`}>
+                    <div className="step-circle">{i + 1}</div>
+                    <span>{s}</span>
+                    {i < 3 && <div className="step-line"/>}
+                  </div>
+                ))}
+              </div>
               <div className="verify-icon">📧</div>
               <h2 className="auth-title">Vérifiez votre email</h2>
               <p className="verify-desc">
@@ -313,9 +324,201 @@ export default function Inscription() {
                 Pas reçu ?{" "}
                 <span className="auth-link">Renvoyer le mail</span>
               </p>
-              <button className="btn-auth-outline" onClick={() => navigate("/connexion")}>
-                Aller à la connexion
-              </button>
+              <div style={{ display: "flex", gap: "12px", marginTop: "24px" }}>
+                <button className="btn-auth" onClick={() => setStep(3)} style={{ flex: 1 }}>
+                  ✓ Compte vérifié, continuer
+                </button>
+                <button className="btn-auth-outline" onClick={() => navigate("/connexion")} style={{ flex: 1 }}>
+                  Aller à la connexion
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 3 - FORMULE */}
+          {step === 3 && (
+            <div className="auth-card wide-card">
+              <div className="steps-row">
+                {["Informations","Vérification","Formule","Paiement"].map((s, i) => (
+                  <div key={i} className={`step-item ${i === 2 ? "current" : ""}`}>
+                    <div className="step-circle">{i + 1}</div>
+                    <span>{s}</span>
+                    {i < 3 && <div className="step-line"/>}
+                  </div>
+                ))}
+              </div>
+
+              <div className="auth-card-header">
+                <h1 className="auth-title">Choisissez votre formule</h1>
+                <p className="auth-subtitle">Sélectionnez le crédit qui correspond à vos besoins</p>
+              </div>
+
+              {error && <div className="auth-error">⚠️ {error}</div>}
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "20px", marginTop: "24px" }}>
+                {/* Pack 1 */}
+                <div onClick={() => { setPackChoisi({ id: "pack1", nom: "Pack 1", prix: 5000 }); setError(""); }}
+                  style={{
+                    padding: "20px",
+                    borderRadius: "10px",
+                    border: packChoisi?.id === "pack1" ? "2px solid #4DC97A" : "1.5px solid rgba(255,255,255,0.1)",
+                    background: packChoisi?.id === "pack1" ? "rgba(77,201,122,0.12)" : "rgba(255,255,255,0.03)",
+                    cursor: "pointer",
+                    transition: "all 0.2s"
+                  }}>
+                  <div style={{ fontSize: "24px", fontWeight: "bold", color: "#4DC97A" }}>5 000 FCFA</div>
+                  <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.7)", marginTop: "8px" }}>
+                    Crédit prépayé · Déduction à chaque requête
+                  </div>
+                </div>
+
+                {/* Pack 2 */}
+                <div onClick={() => { setPackChoisi({ id: "pack2", nom: "Pack 2", prix: 10000 }); setError(""); }}
+                  style={{
+                    padding: "20px",
+                    borderRadius: "10px",
+                    border: packChoisi?.id === "pack2" ? "2px solid #22A052" : "1.5px solid rgba(255,255,255,0.1)",
+                    background: packChoisi?.id === "pack2" ? "rgba(34,160,82,0.12)" : "rgba(255,255,255,0.03)",
+                    cursor: "pointer",
+                    transition: "all 0.2s"
+                  }}>
+                  <div style={{ fontSize: "24px", fontWeight: "bold", color: "#22A052" }}>10 000 FCFA</div>
+                  <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.7)", marginTop: "8px" }}>
+                    Crédit prépayé · Déduction à chaque requête
+                  </div>
+                </div>
+
+                {/* Pack 3 */}
+                <div onClick={() => { setPackChoisi({ id: "pack3", nom: "Pack 3", prix: null, flexible: true }); setError(""); }}
+                  style={{
+                    padding: "20px",
+                    borderRadius: "10px",
+                    border: packChoisi?.id === "pack3" ? "2px solid #D4A830" : "1.5px solid rgba(255,255,255,0.1)",
+                    background: packChoisi?.id === "pack3" ? "rgba(212,168,48,0.12)" : "rgba(255,255,255,0.03)",
+                    cursor: "pointer",
+                    transition: "all 0.2s"
+                  }}>
+                  <div style={{ fontSize: "24px", fontWeight: "bold", color: "#D4A830" }}>À partir de 15 000 FCFA</div>
+                  <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.7)", marginTop: "8px" }}>
+                    Montant flexible · Déduction à chaque requête
+                  </div>
+                </div>
+              </div>
+
+              {/* Montant personnalisé pour Pack 3 */}
+              {packChoisi?.id === "pack3" && (
+                <div style={{ marginTop: "20px" }}>
+                  <label style={{ fontSize: "13px", color: "rgba(255,255,255,0.7)", display: "block", marginBottom: "8px" }}>
+                    Montant (minimum 15 000 FCFA)
+                  </label>
+                  <input
+                    type="number"
+                    value={montantPack3}
+                    onChange={(e) => setMontantPack3(e.target.value)}
+                    placeholder="50 000"
+                    style={{
+                      width: "100%",
+                      padding: "12px",
+                      borderRadius: "6px",
+                      border: "1.5px solid rgba(255,255,255,0.2)",
+                      background: "rgba(255,255,255,0.05)",
+                      color: "white",
+                      fontSize: "14px",
+                      fontFamily: "inherit"
+                    }}
+                  />
+                </div>
+              )}
+
+              <div style={{ display: "flex", gap: "12px", marginTop: "24px" }}>
+                <button className="btn-auth-outline" onClick={() => setStep(2)} style={{ flex: 1 }}>
+                  ← Retour
+                </button>
+                <button
+                  className="btn-auth"
+                  onClick={() => {
+                    if (!packChoisi) {
+                      setError("Veuillez sélectionner une formule.");
+                      return;
+                    }
+                    if (packChoisi.id === "pack3" && parseInt(montantPack3) < 15000) {
+                      setError("Le montant doit être au minimum 15 000 FCFA.");
+                      return;
+                    }
+                    if (packChoisi.id === "pack3") {
+                      packChoisi.prix = parseInt(montantPack3);
+                    }
+                    setStep(4);
+                  }}
+                  style={{ flex: 1 }}
+                >
+                  Continuer au paiement →
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 4 - PAIEMENT */}
+          {step === 4 && (
+            <div className="auth-card wide-card">
+              <div className="steps-row">
+                {["Informations","Vérification","Formule","Paiement"].map((s, i) => (
+                  <div key={i} className={`step-item ${i === 3 ? "current" : ""}`}>
+                    <div className="step-circle">{i + 1}</div>
+                    <span>{s}</span>
+                    {i < 3 && <div className="step-line"/>}
+                  </div>
+                ))}
+              </div>
+
+              <div className="auth-card-header">
+                <h1 className="auth-title">Finaliser votre paiement</h1>
+                <p className="auth-subtitle">Complétez votre inscription avec le paiement</p>
+              </div>
+
+              {error && <div className="auth-error">⚠️ {error}</div>}
+
+              <div style={{
+                background: "rgba(77,201,122,0.06)",
+                border: "1px solid rgba(77,201,122,0.25)",
+                borderRadius: "10px",
+                padding: "16px",
+                marginBottom: "20px"
+              }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+                  <span style={{ color: "rgba(255,255,255,0.6)" }}>Formule choisie:</span>
+                  <span style={{ fontWeight: "bold", color: "#4DC97A" }}>{packChoisi?.nom}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span style={{ color: "rgba(255,255,255,0.6)" }}>Montant:</span>
+                  <span style={{ fontWeight: "bold", fontSize: "18px", color: "#4DC97A" }}>
+                    {packChoisi?.prix?.toLocaleString("fr-FR")} FCFA
+                  </span>
+                </div>
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                <button
+                  className="btn-auth"
+                  onClick={() => navigate("/paiement", { state: { pack: packChoisi, user: form } })}
+                  style={{ width: "100%" }}
+                >
+                  Procéder au paiement (CinetPay)
+                </button>
+                <button
+                  className="btn-auth-outline"
+                  onClick={() => navigate("/paiement", { state: { pack: packChoisi, user: form, modePaiement: "agence" } })}
+                  style={{ width: "100%" }}
+                >
+                  Payer à l'agence CCI-BF
+                </button>
+              </div>
+
+              <div style={{ display: "flex", gap: "12px", marginTop: "16px" }}>
+                <button className="btn-auth-outline" onClick={() => setStep(3)} style={{ flex: 1 }}>
+                  ← Retour
+                </button>
+              </div>
             </div>
           )}
 
