@@ -171,7 +171,7 @@ export default function Formules() {
             <div style={{background:"#0F3D20",border:"1px solid rgba(212,168,48,0.3)",
               borderRadius:"20px",padding:"40px",maxWidth:"420px",width:"100%",
               textAlign:"center"}}>
-              <div style={{fontSize:"40px",marginBottom:"16px"}}>💎</div>
+              <div style={{fontSize:"40px",marginBottom:"16px"}}></div>
               <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:"22px",
                 color:"#fff",marginBottom:"8px"}}>Pack 3 — Montant flexible</h3>
               <p style={{color:"rgba(255,255,255,0.5)",fontSize:"13px",

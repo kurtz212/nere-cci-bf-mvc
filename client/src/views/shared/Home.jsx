@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../styles/home.css";
-import logoCCI     from "../../assets/ccibf.jpg";
+import logoCCI     from "../../assets/ccibf.png";
 import logoNERE    from "../../assets/nere.jpg";
 
 import logoCEFORE  from "../../assets/cefore.png";
@@ -125,27 +125,14 @@ export default function Home() {
   const [user, setUser]                 = useState(null);
   const [menuOpen, setMenuOpen]         = useState(false);
   const [showPubModal, setShowPubModal] = useState(false);
-  const [partenairesAPI, setPartenairesAPI] = useState([]);
 
   useEffect(() => {
     const u = localStorage.getItem("user");
     if (u) setUser(JSON.parse(u));
   }, []);
 
-  // Charger les partenaires depuis l'API
-  useEffect(() => {
-    fetch("http://localhost:5000/api/partenaires")
-      .then(r => r.json())
-      .then(data => {
-        if (data.success && data.data.length > 0) {
-          setPartenairesAPI(data.data);
-        }
-      })
-      .catch(() => {}); // Garder les partenaires locaux si API indisponible
-  }, []);
-
-  // Utiliser les partenaires API ou les locaux comme fallback
-  const partenairesAffiches = partenairesAPI.length > 0 ? partenairesAPI : PARTENAIRES;
+  // Utiliser les partenaires locaux
+  const partenairesAffiches = PARTENAIRES;
 
   useEffect(() => {
     const bg = document.querySelector(".animated-bg");
@@ -224,17 +211,15 @@ export default function Home() {
 
         {/* ══ NAVBAR ══ */}
         <nav className="navbar" style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
-          <div className="logo-zone" style={{display:"flex", alignItems:"center", gap:"12px"}}>
+          <div className="logo-zone" style={{display:"flex", alignItems:"center", gap:"10px"}}>
             <div className="logo-img-box">
-              <img src={logoCCI} alt="Logo CCI-BF" style={{height:"80px", width:"auto"}}/>
+              <img src={logoCCI} alt="Logo CCI-BF" />
             </div>
-            <div className="logo-texts">
-              <div className="logo-main">CCI-BF</div>
-              <div className="logo-sub">Chambre de Commerce et d'Industrie<br/>Du Burkina Faso</div>
+            <div className="logo-texts"> 
             </div>
-            <div style={{width:"1px", height:"44px", background:"rgba(255,255,255,0.15)", margin:"0 4px"}}/>
+            <div style={{width:"0px", height:"44px", background:"rgba(255,255,255,0.15)", margin:"0 4px"}}/>
             <div style={{display:"flex", alignItems:"center", gap:"8px"}}>
-              <img src={logoNERE} alt="Logo NERE" style={{height:"60px", width:"auto", borderRadius:"6px"}}/>
+              <img src={logoNERE} alt="Logo NERE" style={{height:"90px", width:"auto", borderRadius:"6px"}}/>
               <div style={{display:"flex", flexDirection:"column"}}>
                 <span style={{fontSize:"11px", fontWeight:800, color:"#ffffff", letterSpacing:"0.06em", textTransform:"uppercase"}}>Fichier NERE</span>
                 <span style={{fontSize:"10px", color:"rgba(255,255,255,0.45)", lineHeight:1.4}}>Registre national des entreprises<br/>Du Burkina Faso</span>
@@ -263,7 +248,7 @@ export default function Home() {
                       <div className="dropdown-header">
                         <div className="dropdown-name">{user.prenom} {user.nom}</div>
                         <div className="dropdown-email">{user.email || "—"}</div>
-                        <div className="dropdown-pack">{user.role==="admin" ? "👑 Administrateur" : "Pack · Actif"}</div>
+                        <div className="dropdown-pack">{user.role==="admin" ? " Administrateur" : "Pack · Actif"}</div>
                       </div>
                       <div className="dropdown-divider"/>
                       <div className="dropdown-item" onClick={()=>{navigate("/profil");setMenuOpen(false);}}> Mon Profil</div>
@@ -291,7 +276,7 @@ export default function Home() {
         {/* ══ HERO ══ */}
         <section className="hero">
           <div className="hero-content">
-            <div className="hero-badge"><span className="badge-dot"/>Plateforme officielle · CCI-BF</div>
+            <div className="hero-badge"><span className="badge-dot"/>Bienvenu sur la platefome officielle du NERE</div>
             <h1 className="hero-title">Accédez aux données<br/>économiques du <em>Burkina Faso</em></h1>
             <p className="hero-desc">Consultez les informations officielles des entreprises enregistrées au NERE — secteur d'activité, chiffre d'affaires, localisation et bien plus, selon votre formule d'abonnement.</p>
             <div className="hero-btns">
@@ -351,7 +336,7 @@ export default function Home() {
     }}>
       {[...partenairesAffiches, ...partenairesAffiches].map((p) => (
 
-        /* 🔥 CARTE CLIQUABLE PRO */
+        /*  CARTE CLIQUABLE PRO */
         <a
           key={p.nom}
           href={p.lien || "#"}

@@ -10,6 +10,10 @@ const searchLogSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Subscription'
   },
+  description: {
+    type: String,
+    default: 'Recherche enregistrée'
+  },
   criteres: {
     denomination: String,
     secteur: String,
@@ -25,6 +29,11 @@ const searchLogSchema = new mongoose.Schema({
   resultatCount: {
     type: Number,
     default: 0
+  },
+  forfait: String,
+  lastConsultedAt: {
+    type: Date,
+    default: null
   },
   isBilled: {
     type: Boolean,

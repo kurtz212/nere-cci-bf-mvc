@@ -13,6 +13,7 @@ try {
 }
 
 router.post('/',            proteger, ctrl.creerDemande);
+router.post('/special-notification', proteger, ctrl.specialNotification);
 router.get('/mes-demandes', proteger, ctrl.mesDemandes);
 router.get('/:id',          proteger, ctrl.getDemandeById);
 

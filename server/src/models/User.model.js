@@ -43,7 +43,7 @@ const userSchema = new mongoose.Schema({
   // ── Rôle & statut ──
   role: {
     type:    String,
-    enum:    ['visitor', 'subscriber', 'admin'],
+    enum:    ['visitor', 'subscriber', 'manager', 'admin'],
     default: 'visitor',
   },
   isActive: { type: Boolean, default: true },

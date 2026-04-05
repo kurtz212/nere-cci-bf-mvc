@@ -34,13 +34,79 @@ router.get('/', proteger, autoriser('admin'), async (req, res) => {
   } catch(err) { res.status(500).json({ success:false, message: err.message }); }
 });
 
+// POST /api/users  (admin) — Créer un gestionnaire / utilisateur
+router.post('/', proteger, autoriser('admin'), async (req, res) => {
+  try {
+    const User = require('../models/User.model');
+    const { nom, prenom, email, telephone, fonction, typeCompte, password, role, isActive } = req.body;
+
+    if (!nom || !prenom || !email || !password) {
+      return res.status(400).json({ success:false, message:'Nom, prénom, email et mot de passe sont requis.' });
+    }
+
+    const existing = await User.findOne({ email });
+    if (existing) {
+      return res.status(400).json({ success:false, message:'Cet email est déjà utilisé.' });
+    }
+
+    const user = await User.create({
+      nom,
+      prenom,
+      email,
+      telephone,
+      fonction,
+      typeCompte: typeCompte || 'administration',
+      password,
+      role: role || 'manager',
+      isActive: typeof isActive === 'boolean' ? isActive : true,
+      emailVerified: true,
+    });
+
+    res.status(201).json({ success:true, data: { ...user.toObject(), password: undefined } });
+  } catch(err) { res.status(500).json({ success:false, message: err.message }); }
+});
+
+// PUT  /api/users/:id/role  (admin)
+router.put('/:id/role', proteger, autoriser('admin'), async (req, res) => {
+  try {
+    const User = require('../models/User.model');
+    const { role } = req.body;
+    if (!['visitor','subscriber','manager','admin'].includes(role)) {
+      return res.status(400).json({ success:false, message:'Rôle invalide.' });
+    }
+    const user = await User.findByIdAndUpdate(req.params.id, { role }, { new:true }).select('-password');
+    res.json({ success:true, data: user });
+  } catch(err) { res.status(500).json({ success:false, message: err.message }); }
+});
+
+// PUT  /api/users/:id/activate  (admin)
+router.put('/:id/activate', proteger, autoriser('admin'), async (req, res) => {
+  try {
+    const User = require('../models/User.model');
+    const user = await User.findByIdAndUpdate(req.params.id, {
+      isActive: req.body.isActive === true,
+    }, { new:true }).select('-password');
+    res.json({ success:true, data: user });
+  } catch(err) { res.status(500).json({ success:false, message: err.message }); }
+});
+
+// DELETE /api/users/:id  (admin)
+router.delete('/:id', proteger, autoriser('admin'), async (req, res) => {
+  try {
+    const User = require('../models/User.model');
+    await User.findByIdAndDelete(req.params.id);
+    res.json({ success:true, message:'Utilisateur supprimé.' });
+  } catch(err) { res.status(500).json({ success:false, message: err.message }); }
+});
+
 // PUT  /api/users/:id/statut  (admin)
 router.put('/:id/statut', proteger, autoriser('admin'), async (req, res) => {
   try {
     const User = require('../models/User.model');
+    const isActive = req.body.statut === 'actif';
     const user = await User.findByIdAndUpdate(
       req.params.id,
-      { statut: req.body.statut },
+      { isActive },
       { new:true }
     ).select('-password');
     res.json({ success:true, data: user });

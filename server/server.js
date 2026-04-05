@@ -52,13 +52,11 @@ const ROUTES = [
   { path:'/api/packs',        file:'./src/routes/pack.routes'         },
   { path:'/api/paiements',    file:'./src/routes/payment.routes'      },
   { path:'/api/searchlogs',   file:'./src/routes/searchlog.routes'    },
-  { path:'/api/partenaires',   file:'./src/routes/partenaire.routes'   },
   { path:'/api/abonnements',   file:'./src/routes/abonnement.routes'   },
   { path:'/api/users',        file:'./src/routes/user.routes'        },
   { path:'/api/publications', file:'./src/routes/publication.routes' },
   { path:'/api/demandes',     file:'./src/routes/demande.routes'     },
   { path:'/api/chat',         file:'./src/routes/chat.routes'        },
-  { path:'/api/reclamations', file:'./src/routes/reclamation.routes' },
 ];
 
 ROUTES.forEach(({ path, file }) => {

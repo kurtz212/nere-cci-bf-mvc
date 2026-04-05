@@ -12,7 +12,7 @@ exports.rechercherEntreprises = async (req, res, next) => {
     await SearchLog.create({
       userId: req.user.id,
       criteres: params,
-      nbResultats: response.data.data?.length || 0
+      resultatCount: response.data.data?.length || 0
     });
 
     res.json({ success: true, data: response.data.data });
