@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../styles/home.css";
-import logoCCI     from "../../assets/ccibf.png";
+import logoCCI     from "../../assets/ccibff.png";
 import logoNERE    from "../../assets/nere.jpg";
 
 import logoCEFORE  from "../../assets/cefore.png";
@@ -222,7 +222,7 @@ export default function Home() {
               <img src={logoNERE} alt="Logo NERE" style={{height:"90px", width:"auto", borderRadius:"6px"}}/>
               <div style={{display:"flex", flexDirection:"column"}}>
                 <span style={{fontSize:"11px", fontWeight:800, color:"#ffffff", letterSpacing:"0.06em", textTransform:"uppercase"}}>Fichier NERE</span>
-                <span style={{fontSize:"10px", color:"rgba(255,255,255,0.45)", lineHeight:1.4}}>Registre national des entreprises<br/>Du Burkina Faso</span>
+                <span style={{fontSize:"10px", color:"#ffffff", lineHeight:1.4}}>Registre national des entreprises<br/>Du Burkina Faso</span>
               </div>
             </div>
           </div>
@@ -244,7 +244,7 @@ export default function Home() {
                 {menuOpen && (
                   <>
                     <div style={{position:"fixed",inset:0,zIndex:50}} onClick={()=>setMenuOpen(false)}/>
-                    <div className="user-dropdown" style={{position:"absolute",zIndex:9999,top:"calc(100% + 8px)",right:0}} onClick={e=>e.stopPropagation()}>
+                    <div className="user-dropdown" style={{position:"absolute",zIndex:9999, background: "#24bf43",top:"calc(100% + 8px)",right:0}} onClick={e=>e.stopPropagation()}>
                       <div className="dropdown-header">
                         <div className="dropdown-name">{user.prenom} {user.nom}</div>
                         <div className="dropdown-email">{user.email || "—"}</div>
@@ -253,10 +253,15 @@ export default function Home() {
                       <div className="dropdown-divider"/>
                       <div className="dropdown-item" onClick={()=>{navigate("/profil");setMenuOpen(false);}}> Mon Profil</div>
                       <div className="dropdown-item" onClick={()=>{navigate("/paiement");setMenuOpen(false);}}>Mon Abonnement</div>
-                      <div className="dropdown-item" onClick={()=>{navigate("/publications");setMenuOpen(false);}}> Publications</div>
-                      <div className="dropdown-item" onClick={()=>{navigate("/recherche");setMenuOpen(false);}}> Recherche</div>
+                      <div className="dropdown-item" onClick={()=>{navigate("/profil");setMenuOpen(false);}}> Historique</div>
+                      <div className="dropdown-item" onClick={()=>{navigate("/profil");setMenuOpen(false);}}> Sécurité</div>
+                      <div className="dropdown-item" onClick={()=>{navigate("/profil");setMenuOpen(false);}}> Notifications</div>
                       {user.role==="admin" && (
-                        <div className="dropdown-item" onClick={()=>{navigate("/admin");setMenuOpen(false);}}> Administration</div>
+                        <div className="dropdown-item" onClick={()=>{navigate("/admin");setMenuOpen(false);}}> Tableau de bord</div>
+                      )}
+
+                       {user.role==="manager" && (
+                        <div className="dropdown-item" onClick={()=>{navigate("/Gestionnaire");setMenuOpen(false);}}> tableau de bord</div>
                       )}
                       <div className="dropdown-divider"/>
                       <div className="dropdown-item danger" onClick={handleLogout}>Déconnexion</div>
@@ -311,19 +316,19 @@ export default function Home() {
   </div>
 
   {/* CAROUSEL */}
-  <div style={{position:"relative", overflow:"hidden", borderRadius:"16px", background:"#0A3D1F", padding:"32px 0"}}>
+  <div style={{position:"relative", overflow:"hidden", borderRadius:"16px", background:"linear-gradient(135deg, #00904C, #006B38)", padding:"32px 0"}}>
 
     {/* Gradient gauche */}
     <div style={{
       position:"absolute", left:0, top:0, bottom:0, width:"100px",
-      background:"linear-gradient(90deg,#0A3D1F,transparent)",
+      background:"linear-gradient(90deg,rgba(0,144,76,0.8),transparent)",
       zIndex:2, pointerEvents:"none"
     }}/>
 
     {/* Gradient droite */}
     <div style={{
       position:"absolute", right:0, top:0, bottom:0, width:"100px",
-      background:"linear-gradient(-90deg,#0A3D1F,transparent)",
+      background:"linear-gradient(-90deg,rgba(0,144,76,0.8),transparent)",
       zIndex:2, pointerEvents:"none"
     }}/>
 
@@ -406,7 +411,7 @@ export default function Home() {
 
               <div style={{
                 fontSize:"10px",
-                color:"#4DC97A",
+                color:"#E1F5E8",
                 fontWeight:600,
                 textTransform:"uppercase",
                 letterSpacing:"0.06em",
@@ -420,7 +425,7 @@ export default function Home() {
           {/* DESCRIPTION */}
           <div style={{
             fontSize:"12px",
-            color:"rgba(255,255,255,0.45)",
+            color:"#ffffff",
             lineHeight:1.6
           }}>
             {p.contribution}
@@ -431,7 +436,7 @@ export default function Home() {
             display:"inline-flex",
             alignItems:"center",
             gap:"5px",
-            background:"rgba(77,201,122,0.1)",
+            background:"#ffffff",
             borderRadius:"100px",
             padding:"3px 10px",
             width:"fit-content"
@@ -440,7 +445,7 @@ export default function Home() {
             <span style={{
               fontSize:"11px",
               fontWeight:600,
-              color:"#4DC97A"
+              color:"#FFFFFF"
             }}>
               {p.badge}
             </span>

@@ -16,7 +16,7 @@ import Admin               from './views/admin/Admin';
 import AdminRoute          from './components/AdminRoute';
 import RechercheEntreprise from './views/shared/Rechercheentreprise';
 import Contact             from './views/shared/Contact';
-
+import Gestionnaire from "./views/dashboard/Gestionnaire";
 export default function App() {
   return (
     <BrowserRouter>
@@ -39,8 +39,11 @@ export default function App() {
           <Route path="/recherche-entreprise" element={<RechercheEntreprise />} />
           <Route path="/contact"              element={<Contact />} />
           <Route path="*"                     element={<NotFound />} />
+          <Route path="/gestionnaire" element={<Gestionnaire />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
   );
 }
+
+

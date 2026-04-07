@@ -252,6 +252,7 @@ export default function Profil() {
                 { key:"historique",    label:"Historique" },
                 { key:"securite",      label:"Sécurité" },
                 { key:"notifications", label:"Notifications" },
+               
               ].map(item => (
                 <div key={item.key}
                   className={`profil-menu-item ${activeTab===item.key?"active":""}`}
@@ -301,7 +302,7 @@ export default function Profil() {
                     <label className="profil-label">Email</label>
                     {editing
                       ? <input className="profil-input" name="email" type="email" value={form.email} onChange={handleChange}/>
-                      : <div className="profil-value">{user.email}<span className="verified-chip">✓ Vérifié</span></div>}
+                      : <div className="profil-value">{user.email}<span className="verified-chip"> Vérifié</span></div>}
                   </div>
                   <div className="profil-field full">
                     <label className="profil-label">Organisation / Entreprise</label>
@@ -348,7 +349,7 @@ export default function Profil() {
                 {abonnement && abonnement.solde <= 0 && (
                   <div style={{ background:"#FFE5E5", border:"2px solid #FF6B6B", borderRadius:"8px",
                     padding:"16px", marginBottom:"20px", display:"flex", alignItems:"center", gap:"12px" }}>
-                    <span style={{ fontSize:"20px" }}>⚠️</span>
+                    <span style={{ fontSize:"20px" }}></span>
                     <div>
                       <div style={{ fontWeight:"bold", color:"#FF3333" }}>Crédit épuisé</div>
                       <div style={{ fontSize:"13px", color:"#D32F2F", marginTop:"4px" }}>
@@ -471,7 +472,7 @@ export default function Profil() {
                     {histoRechercheLoading && (
                       <div style={{ textAlign:"center", padding:"40px",
                         color:"var(--text-muted)", fontSize:"14px" }}>
-                        ⏳ Chargement...
+                         Chargement...
                       </div>
                     )}
                     {!histoRechercheLoading && histoRechercheErreur && (
@@ -484,7 +485,7 @@ export default function Profil() {
                     )}
                     {!histoRechercheLoading && !histoRechercheErreur && histoRecherches.length === 0 && (
                       <div style={{ textAlign:"center", padding:"40px", color:"var(--text-muted)" }}>
-                        <div style={{ fontSize:"40px", marginBottom:"12px" }}>🔍</div>
+                        <div style={{ fontSize:"40px", marginBottom:"12px" }}></div>
                         <p style={{ fontSize:"14px", marginBottom:"16px" }}>
                           Aucune recherche d'entreprise enregistrée.
                         </p>
@@ -550,7 +551,7 @@ export default function Profil() {
                     {histoDemandeLoading && (
                       <div style={{ textAlign:"center", padding:"40px",
                         color:"var(--text-muted)", fontSize:"14px" }}>
-                        ⏳ Chargement...
+                         Chargement...
                       </div>
                     )}
                     {!histoDemandeLoading && histoDemandeErreur && (
@@ -563,7 +564,7 @@ export default function Profil() {
                     )}
                     {!histoDemandeLoading && !histoDemandeErreur && histoDemandes.length === 0 && (
                       <div style={{ textAlign:"center", padding:"40px", color:"var(--text-muted)" }}>
-                        <div style={{ fontSize:"40px", marginBottom:"12px" }}>📋</div>
+                        <div style={{ fontSize:"40px", marginBottom:"12px" }}></div>
                         <p style={{ fontSize:"14px", marginBottom:"16px" }}>
                           Aucune demande de document enregistrée.
                         </p>

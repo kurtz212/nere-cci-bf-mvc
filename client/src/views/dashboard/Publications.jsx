@@ -69,40 +69,88 @@ export default function Publications() {
   const [selected, setSelected]   = useState(null);
   const [pubs, setPubs]           = useState(PUBLICATIONS_MOCK);
   const [loading, setLoading]     = useState(true);
+  const [showForm, setShowForm]   = useState(false);
+  const [editPub, setEditPub]     = useState(null);
+  const [formPub, setFormPub]     = useState({ titre:"", cat:"Rapport", contenu:"", statut:"brouillon" });
+  const [pubError, setPubError]   = useState("");
+  const [pubSaving, setPubSaving] = useState(false);
+
+  const canEdit = user && ["admin","manager"].includes(user.role);
+
+  const getToken = () => localStorage.getItem("token");
 
   useEffect(() => {
     const u = localStorage.getItem("user");
     if (u) setUser(JSON.parse(u));
   }, []);
 
-  // Charger les publications depuis l'API
-  useEffect(() => {
-    const chargerPubs = async () => {
-      try {
-        const res  = await fetch("http://localhost:5000/api/publications");
-        const data = await res.json();
-        if (data.success && data.data.length > 0) {
-          // Adapter le format API au format attendu par le composant
-          const pubsFormatees = data.data.map(p => ({
-            id:          p._id,
-            titre:       p.titre,
-            extrait:     p.extrait || (p.contenu ? p.contenu.substring(0, 150) + "..." : ""),
-            contenu:     p.contenu || "",
-            categorie:   p.categorie || "Rapport",
-            date:        new Date(p.createdAt).toLocaleDateString("fr-FR", {day:"2-digit", month:"long", year:"numeric"}),
-            tags:        [p.categorie || "Rapport"],
-            accessLevel: (p.accesPack || 1) - 1,
-            vues:        p.vues || 0,
-          }));
-          setPubs(pubsFormatees);
-        }
-      } catch(e) {
-        console.warn("⚠️ API indisponible, utilisation des données mock");
-        // Garder les mock si API indisponible
-      } finally {
-        setLoading(false);
+  const chargerPubs = async () => {
+    try {
+      const res  = await fetch("http://localhost:5000/api/publications");
+      const data = await res.json();
+      if (data.success && data.data.length > 0) {
+        const pubsFormatees = data.data.map(p => ({
+          id:          p._id,
+          titre:       p.titre,
+          extrait:     p.extrait || (p.contenu ? p.contenu.substring(0, 150) + "..." : ""),
+          contenu:     p.contenu || "",
+          categorie:   p.categorie || "Rapport",
+          date:        new Date(p.createdAt).toLocaleDateString("fr-FR", {day:"2-digit", month:"long", year:"numeric"}),
+          tags:        [p.categorie || "Rapport"],
+          accessLevel: (p.accesPack || 1) - 1,
+          vues:        p.vues || 0,
+        }));
+        setPubs(pubsFormatees);
       }
-    };
+    } catch(e) {
+      console.warn("⚠️ API indisponible, utilisation des données mock");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const sauvegarderPub = async () => {
+    if (!formPub.titre.trim()) {
+      setPubError("Le titre est obligatoire.");
+      return;
+    }
+    setPubError("");
+    setPubSaving(true);
+    try {
+      const url    = editPub ? `http://localhost:5000/api/publications/${editPub.id}` : "http://localhost:5000/api/publications";
+      const method = editPub ? "PUT" : "POST";
+      const res = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getToken()}`,
+        },
+        body: JSON.stringify({
+          titre: formPub.titre,
+          categorie: formPub.cat,
+          contenu: formPub.contenu,
+          statut: formPub.statut,
+        }),
+      });
+      const data = await res.json();
+      if (!data.success) {
+        setPubError(data.message || "Erreur lors de la sauvegarde.");
+      } else {
+        await chargerPubs();
+        setShowForm(false);
+        setEditPub(null);
+        setFormPub({ titre:"", cat:"Rapport", contenu:"", statut:"brouillon" });
+      }
+    } catch (err) {
+      setPubError("Serveur indisponible.");
+    } finally {
+      setPubSaving(false);
+    }
+  };
+
+  useEffect(() => {
+    const u = localStorage.getItem("user");
+    if (u) setUser(JSON.parse(u));
     chargerPubs();
   }, []);
 
@@ -159,29 +207,12 @@ export default function Publications() {
             flexWrap: "wrap", gap: "12px",
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <span style={{ fontSize: "20px" }}>🔒</span>
+              <span style={{ fontSize: "20px" }}></span>
               <span style={{ color: "#fff", fontSize: "14px", fontWeight: 600 }}>
                 Contenu masqué — inscrivez-vous pour accéder aux informations complètes
               </span>
             </div>
-            <div style={{ display: "flex", gap: "10px" }}>
-              <button onClick={() => navigate("/connexion")} style={{
-                padding: "8px 18px", borderRadius: "8px", background: "transparent",
-                border: "1.5px solid rgba(255,255,255,0.35)", color: "#fff",
-                fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
-              }}>
-                Se connecter
-              </button>
-              <button onClick={() => navigate("/inscription")} style={{
-                padding: "8px 18px", borderRadius: "8px",
-                background: "var(--green-light)", border: "none",
-                color: "var(--green-deep)", fontSize: "13px", fontWeight: 700,
-                cursor: "pointer", fontFamily: "inherit",
-                boxShadow: "0 4px 14px rgba(77,201,122,0.4)",
-              }}>
-                Créer un compte gratuit
-              </button>
-            </div>
+          
           </div>
         )}
 
@@ -237,7 +268,7 @@ export default function Publications() {
                 {/* Badge accès */}
                 <div className="pub-access-badge"
                   style={{ background: access.bg, color: access.color, border: `1px solid ${access.color}44` }}>
-                  {locked || isVisiteur ? "🔒 " : "✓ "}{access.label}
+                  {locked || isVisiteur ? " " : " "}{access.label}
                 </div>
 
                 <div className="pub-card-cat">{pub.categorie}</div>
@@ -285,14 +316,14 @@ export default function Publications() {
                       style={{ marginTop: "14px", width: "100%", padding: "10px" }}
                       onClick={e => { e.stopPropagation(); navigate("/inscription"); }}
                     >
-                      🔓 S'inscrire pour lire
+                       S'inscrire pour lire
                     </button>
                   </>
 
                 ) : locked ? (
                   /* ─── CONNECTÉ MAIS PACK INSUFFISANT ─── */
                   <div className="pub-card-locked-msg">
-                    <div className="lock-icon">🔒</div>
+                    <div className="lock-icon"></div>
                     <div>Réservé aux abonnés <strong>{access.label}</strong></div>
                     <button className="btn-upgrade"
                       onClick={e => { e.stopPropagation(); navigate("/inscription"); }}>
@@ -308,7 +339,7 @@ export default function Publications() {
                       <div className="pub-card-tags">
                         {pub.tags.map(t => <span key={t} className="pub-tag">{t}</span>)}
                       </div>
-                      <span className="pub-card-read">Lire →</span>
+                      <span className="pub-card-read">Lire </span>
                     </div>
                   </>
                 )}
@@ -338,10 +369,11 @@ export default function Publications() {
         )}
 
         {/* ── FOOTER ── */}
-        <footer className="dash-footer">
+         <footer className="dash-footer">
           <span>CCI-BF — Chambre de Commerce et d'Industrie du Burkina Faso</span>
-          <div style={{ display: "flex", gap: "20px" }}>
-            <span>CGU</span><span>Contact</span><span>Support</span>
+          <div style={{display:"flex",gap:"20px"}}>
+            <span>Tarifs officiels CCI-BF</span>
+            <span>+226 25 30 61 22</span>
           </div>
         </footer>
 

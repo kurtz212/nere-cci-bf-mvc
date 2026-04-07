@@ -108,13 +108,13 @@ export default function Connexion() {
           {/* ── MODE : CONNEXION ── */}
           {mode === "login" && (
             <div className="auth-card login-card">
-              <div className="auth-card-icon">🔐</div>
+              <div className="auth-card-icon"></div>
               <div className="auth-card-header">
                 <h1 className="auth-title">Connexion</h1>
                 <p className="auth-subtitle">Accédez à votre espace NERE CCI-BF</p>
               </div>
 
-              {error && <div className="auth-error">⚠️ {error}</div>}
+              {error && <div className="auth-error"> {error}</div>}
 
               <form onSubmit={handleLogin} className="auth-form">
                 <div className="form-field">

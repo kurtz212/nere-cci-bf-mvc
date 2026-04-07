@@ -34,16 +34,16 @@ router.get('/:id', async (req, res) => {
   } catch(err) { res.status(500).json({ success:false, message:err.message }); }
 });
 
-// POST /api/publications (admin)
-router.post('/', proteger, autoriser('admin'), async (req, res) => {
+// POST /api/publications (admin, manager)
+router.post('/', proteger, autoriser('admin','manager'), async (req, res) => {
   try {
     const pub = await Publication.create({ ...req.body, auteur: req.user.id });
     res.status(201).json({ success:true, data:pub });
   } catch(err) { res.status(400).json({ success:false, message:err.message }); }
 });
 
-// PUT /api/publications/:id (admin)
-router.put('/:id', proteger, autoriser('admin'), async (req, res) => {
+// PUT /api/publications/:id (admin, manager)
+router.put('/:id', proteger, autoriser('admin','manager'), async (req, res) => {
   try {
     const pub = await Publication.findByIdAndUpdate(req.params.id, req.body, { new:true });
     if (!pub) return res.status(404).json({ success:false, message:'Publication introuvable' });

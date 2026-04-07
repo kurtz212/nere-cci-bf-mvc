@@ -63,19 +63,19 @@ function AdminLogin({ onSuccess }) {
   };
 
   return (
-    <div style={{ minHeight:"100vh", background:"#0A3D1F", display:"flex",
+    <div style={{ minHeight:"100vh", background:"#00904C", display:"flex",
       alignItems:"center", justifyContent:"center",
       fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
-      <div style={{ background:"rgba(255,255,255,0.05)", borderRadius:"20px",
-        border:"1px solid rgba(77,201,122,0.15)", padding:"48px 40px",
+      <div style={{ background:"#00904C", borderRadius:"20px",
+        border:"1px solid #00904C", padding:"48px 40px",
         width:"100%", maxWidth:"400px" }}>
         <div style={{ textAlign:"center", marginBottom:"32px" }}>
-          <div style={{ fontSize:"40px", marginBottom:"12px" }}>🔐</div>
+          <div style={{ fontSize:"40px", marginBottom:"12px" }}></div>
           <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:"24px",
             fontWeight:900, color:"#fff", margin:0 }}>
             Administration NERE
           </h2>
-          <p style={{ color:"rgba(255,255,255,0.4)", fontSize:"13px",
+          <p style={{ color:"#ffffff", fontSize:"13px",
             marginTop:"8px" }}>
             Accès réservé aux administrateurs
           </p>
@@ -113,14 +113,14 @@ function AdminLogin({ onSuccess }) {
             <div style={{ background:"rgba(232,85,85,0.1)", border:"1px solid rgba(232,85,85,0.3)",
               borderRadius:"8px", padding:"10px 14px", color:"#FF8080",
               fontSize:"13px", marginBottom:"16px" }}>
-              ❌ {error}
+               {error}
             </div>
           )}
 
           <button type="submit" disabled={loading}
             style={{ width:"100%", padding:"13px", borderRadius:"12px",
-              background:"linear-gradient(135deg,#4DC97A,#1A7A40)",
-              border:"none", color:"#0A3D1F", fontWeight:800,
+              background:"#ffffff",
+              border:"none", color:"#00904C", fontWeight:800,
               fontSize:"15px", cursor:"pointer", fontFamily:"inherit" }}>
             {loading ? "Connexion..." : "Accéder au panneau admin"}
           </button>
@@ -542,7 +542,7 @@ export default function Admin() {
   // ═══════════════════════════════════════
   const S = {
     wrap:   { display:"flex", minHeight:"100vh", fontFamily:"'Plus Jakarta Sans',sans-serif", background:"#F5FAF7" },
-    side:   { width: sidebarOpen ? "240px" : "64px", background:"#0A3D1F", flexShrink:0,
+    side:   { width: sidebarOpen ? "240px" : "64px", background:"#00904C", flexShrink:0,
               display:"flex", flexDirection:"column", transition:"width 0.25s ease",
               overflow:"hidden", position:"sticky", top:0, height:"100vh" },
     main:   { flex:1, display:"flex", flexDirection:"column", overflow:"auto" },
@@ -553,7 +553,7 @@ export default function Admin() {
     card:   { background:"#fff", borderRadius:"14px", border:"1px solid #E2EDE6", padding:"22px" },
     badge:  (c) => ({ background:`${c}18`, color:c, borderRadius:"100px",
               padding:"3px 10px", fontSize:"11px", fontWeight:700 }),
-    btn:    { padding:"9px 18px", borderRadius:"10px", background:"#0A3D1F", color:"#fff",
+    btn:    { padding:"9px 18px", borderRadius:"10px", background:"#00904C", color:"#fff",
               border:"none", fontWeight:700, fontSize:"13px", cursor:"pointer",
               fontFamily:"inherit", transition:"opacity 0.15s" },
     btnGhost:{ padding:"9px 18px", borderRadius:"10px", background:"transparent",
@@ -593,8 +593,8 @@ export default function Admin() {
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", flexWrap:"wrap", gap:"16px", marginBottom:"24px" }}>
         <div>
           <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:"22px",
-            color:"#0A3D1F", margin:0 }}>Vue d'ensemble</h2>
-          <p style={{ color:"#6B9A7A", fontSize:"13px", marginTop:"4px" }}>
+            color:"#00904C", margin:0 }}>Vue d'ensemble</h2>
+          <p style={{ color:"#00904C", fontSize:"13px", marginTop:"4px" }}>
             Aujourd'hui — {new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}
           </p>
         </div>
@@ -615,7 +615,7 @@ export default function Admin() {
             </div>
             <div>
               <div style={{ fontFamily:"'Playfair Display',serif", fontSize:"24px",
-                fontWeight:900, color:"#0A3D1F" }}>{k.val}</div>
+                fontWeight:900, color:"#00904C" }}>{k.val}</div>
               <div style={{ fontSize:"12px", color:"#6B9A7A", fontWeight:600 }}>{k.label}</div>
             </div>
           </div>
@@ -646,7 +646,7 @@ export default function Admin() {
                 <div style={{ width:"36px", height:"36px", borderRadius:"10px",
                   background:"#F0F8F3", display:"flex", alignItems:"center",
                   justifyContent:"center", fontSize:"16px", flexShrink:0 }}>
-                  🔎
+                  
                 </div>
                 <div style={{ flex:1 }}>
                   <div style={{ fontSize:"13px", color:"#1A2E1F", lineHeight:1.5 }}>{a.texte}</div>
@@ -789,7 +789,7 @@ export default function Admin() {
                     {p.statut === "brouillon" && (
                       <button onClick={() => publierPub(p.id)}
                         style={{ padding:"5px 10px", borderRadius:"7px",
-                          background:"#4DC97A", border:"none", color:"#fff",
+                          background:"#00904C", border:"none", color:"#fff",
                           fontSize:"12px", fontWeight:600, cursor:"pointer" }}>
                         Publier
                       </button>
@@ -896,13 +896,13 @@ export default function Admin() {
           {userError && (
             <div style={{ marginTop:"16px", padding:"12px 14px", background:"#FFF0F0",
               color:"#CC3333", borderRadius:"10px", fontSize:"13px" }}>
-              ❌ {userError}
+               {userError}
             </div>
           )}
 
           <div style={{ display:"flex", gap:"10px", marginTop:"18px" }}>
             <button style={S.btn} onClick={sauvegarderUtilisateur} disabled={userLoading}>
-              {userLoading ? "⏳ Enregistrement..." : "Enregistrer le gestionnaire"}
+              {userLoading ? " Enregistrement..." : "Enregistrer le gestionnaire"}
             </button>
             <button style={S.btnGhost} onClick={() => {
               setShowUserForm(false);
@@ -1027,7 +1027,7 @@ export default function Admin() {
         <div style={{ ...S.card, marginBottom:"20px", border:"2px solid #4DC97A" }}>
           <div style={{ fontWeight:700, fontSize:"16px", color:"#0A3D1F",
             marginBottom:"18px", fontFamily:"'Playfair Display',serif" }}>
-            {editPart ? "✏️ Modifier le partenaire" : "➕ Nouveau partenaire"}
+            {editPart ? " Modifier le partenaire" : " Nouveau partenaire"}
           </div>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"14px" }}>
             <div>
@@ -1052,7 +1052,7 @@ export default function Admin() {
                 marginBottom:"6px" }}>Icône (emoji)</label>
               <input style={S.input} value={formPart.icone}
                 onChange={e => setFormPart(f=>({...f,icone:e.target.value}))}
-                placeholder="🏛️"/>
+                placeholder=""/>
             </div>
             <div>
               <label style={{ display:"block", fontSize:"11px", fontWeight:700,
@@ -1089,7 +1089,7 @@ export default function Admin() {
           )}
           <div style={{ display:"flex", gap:"10px", marginTop:"16px" }}>
             <button style={S.btn} onClick={sauvegarderPartenaire} disabled={partLoading}>
-              {partLoading ? "⏳ Sauvegarde..." : `💾 ${editPart ? "Enregistrer" : "Ajouter"}`}
+              {partLoading ? " Sauvegarde..." : ` ${editPart ? "Enregistrer" : "Ajouter"}`}
             </button>
             <button style={S.btnGhost} onClick={() => { setShowFormPart(false); setPartError(""); }}>
               Annuler
@@ -1201,7 +1201,7 @@ export default function Admin() {
               <div style={{ width:"40px", height:"40px", borderRadius:"10px",
                 background:"#F0F8F3", display:"flex", alignItems:"center",
                 justifyContent:"center", fontSize:"18px", flexShrink:0 }}>
-                🔎
+                
               </div>
               <div style={{ flex:1 }}>
                 <div style={{ fontSize:"14px", color:"#0A3D1F", lineHeight:1.5,
@@ -1238,20 +1238,20 @@ export default function Admin() {
       <aside style={S.side}>
         {/* Logo */}
         <div style={{ padding: sidebarOpen ? "20px 20px 16px" : "20px 12px 16px",
-          borderBottom:"1px solid rgba(255,255,255,0.08)",
+          borderBottom:"1px solid #00904C",
           display:"flex", alignItems:"center", justifyContent:"space-between" }}>
           {sidebarOpen && (
             <div>
               <div style={{ fontFamily:"'Playfair Display',serif", fontSize:"17px",
-                fontWeight:900, color:"#fff" }}>
-                NERE <span style={{ color:"#4DC97A" }}>Admin</span>
+                fontWeight:900, color:"#ffffff" }}>
+                NERE <span style={{ color:"#00904C" }}>Admin</span>
               </div>
-              <div style={{ fontSize:"10px", color:"rgba(255,255,255,0.35)",
+              <div style={{ fontSize:"10px", color:"rgba(255, 255, 255, 0.86)",
                 marginTop:"2px" }}>CCI-BF · Backoffice</div>
             </div>
           )}
           <button onClick={() => setSidebar(o=>!o)}
-            style={{ background:"rgba(255,255,255,0.08)", border:"none",
+            style={{ background:"#009032", border:"none",
               borderRadius:"8px", width:"30px", height:"30px",
               color:"rgba(255,255,255,0.5)", cursor:"pointer",
               fontSize:"14px", flexShrink:0 }}>
@@ -1271,8 +1271,8 @@ export default function Admin() {
                 padding: sidebarOpen ? "10px 12px" : "10px",
                 borderRadius:"10px", border:"none", cursor:"pointer",
                 background: section===item.id
-                  ? "rgba(77,201,122,0.15)" : "transparent",
-                color: section===item.id ? "#4DC97A" : "rgba(255,255,255,0.55)",
+                  ? "#9ae1c0" : "transparent",
+                color: section===item.id ? "#070707" : "#070707",
                 fontWeight: section===item.id ? 700 : 500,
                 fontSize:"13px", fontFamily:"inherit",
                 marginBottom:"4px", transition:"all 0.15s",
@@ -1296,17 +1296,17 @@ export default function Admin() {
         </nav>
 
         {/* Retour site */}
-        <div style={{ padding:"12px 8px", borderTop:"1px solid rgba(255,255,255,0.08)" }}>
+        <div style={{ padding:"12px 8px", borderTop:"1px solid rgba(237, 6, 6, 0.08)" }}>
           <button onClick={() => navigate("/")}
             style={{ width:"100%", display:"flex", alignItems:"center",
               gap: sidebarOpen ? "10px" : "0",
               justifyContent: sidebarOpen ? "flex-start" : "center",
               padding: sidebarOpen ? "10px 12px" : "10px",
               borderRadius:"10px", border:"none", cursor:"pointer",
-              background:"transparent",
-              color:"rgba(255,255,255,0.35)",
+              background:"#b4ecd2",
+              color:"rgba(7, 1, 1, 0.35)",
               fontSize:"13px", fontFamily:"inherit" }}>
-            <span style={{ fontSize:"18px" }}>🌐</span>
+            <span style={{ fontSize:"18px" }}></span>
             {sidebarOpen && <span>Voir le site</span>}
           </button>
         </div>
@@ -1316,18 +1316,18 @@ export default function Admin() {
       <main style={S.main}>
         {/* Topbar */}
         <div style={S.topbar}>
-          <div style={{ fontWeight:700, fontSize:"15px", color:"#0A3D1F" }}>
+          <div style={{ fontWeight:700, fontSize:"15px", color:"#00904C" }}>
             {NAV_ITEMS.find(n=>n.id===section)?.icone}{" "}
             {NAV_ITEMS.find(n=>n.id===section)?.label}
           </div>
           <div style={{ display:"flex", alignItems:"center", gap:"12px" }}>
             <div style={{ width:"8px", height:"8px", borderRadius:"50%",
-              background:"#4DC97A" }}/>
-            <span style={{ fontSize:"13px", color:"#6B9A7A" }}>
+              background:"#00904C" }}/>
+            <span style={{ fontSize:"13px", color:"#00904C" }}>
               {adminUser?.prenom} {adminUser?.nom}
             </span>
             <div style={{ width:"34px", height:"34px", borderRadius:"10px",
-              background:"#0A3D1F", display:"flex", alignItems:"center",
+              background:"#00904c", display:"flex", alignItems:"center",
               justifyContent:"center", color:"#4DC97A",
               fontWeight:800, fontSize:"13px" }}>
               {adminUser?.prenom?.[0]}{adminUser?.nom?.[0]}
@@ -1338,7 +1338,7 @@ export default function Admin() {
                 background:"#FFF0F0", border:"1px solid #FFD0D0",
                 color:"#CC3333", fontWeight:700, fontSize:"12px",
                 cursor:"pointer", fontFamily:"inherit" }}>
-              🚪 Déconnexion
+               Déconnexion
             </button>
           </div>
         </div>

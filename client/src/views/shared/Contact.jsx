@@ -245,7 +245,7 @@ export default function Contact() {
         </div>
 
         <footer className="dash-footer">
-          <span>© 2026 CCI-BF — Chambre de Commerce et d'Industrie du Burkina Faso</span>
+          <span>CCI-BF — Chambre de Commerce et d'Industrie du Burkina Faso</span>
           <span>Réponse sous 48h ouvrables</span>
         </footer>
       </div>

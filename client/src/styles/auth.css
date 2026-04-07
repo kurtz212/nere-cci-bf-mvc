@@ -113,7 +113,7 @@
   transition: opacity 0.2s;
 }
 .auth-logo:hover { opacity: 0.7; }
-.auth-logo span { color: #22A052; }
+.auth-logo span { color: #00904C; }
 
 .auth-nav-right {
   font-size: 13px;
@@ -121,12 +121,12 @@
 }
 
 .auth-link {
-  color: #22A052;
+  color: #00904C;
   font-weight: 600;
   cursor: pointer;
   transition: color 0.2s;
 }
-.auth-link:hover { color: #34c76f; }
+.auth-link:hover { color: #00904C; }
 
 /* ── CONTAINER ── */
 .auth-container {
@@ -307,7 +307,7 @@
 }
 .strength-weak   { width: 30%; background: #e85555; }
 .strength-medium { width: 65%; background: #FF9F40; }
-.strength-strong { width: 100%; background: #22A052; }
+.strength-strong { width: 100%; background: #00904C; }
 .pwd-label {
   font-size: 11px;
   font-weight: 600;
@@ -328,7 +328,7 @@
 }
 .cgu-row input[type="checkbox"] {
   margin-top: 2px;
-  accent-color: #22A052;
+  accent-color: #00904C;
   flex-shrink: 0;
   cursor: pointer;
 }
@@ -370,19 +370,19 @@
 }
 
 .step-item.current {
-  color: #22A052;
+  color: #00904C;
   font-weight: 700;
 }
 .step-item.current .step-circle {
-  background: #22A052;
-  border-color: #22A052;
+  background: #00904C;
+  border-color: #00904C;
   color: #fff;
 }
 
-.step-item.done { color: #22A052; }
+.step-item.done { color: #00904C; }
 .step-item.done .step-circle {
-  background: #22A052;
-  border-color: #22A052;
+  background: #00904C;
+  border-color: #00904C;
   color: #fff;
 }
 
@@ -440,17 +440,17 @@
   margin-top: 4px;
 }
 .btn-auth-outline:hover {
-  border-color: #22A052;
-  color: #22A052;
-  background: rgba(34, 160, 82, 0.06);
+  border-color: #00904C;
+  color: #00904C;
+  background: rgba(0, 144, 76, 0.06);
 }
 
 /* ── Spinner ── */
 .spinner {
   display: inline-block;
   width: 18px; height: 18px;
-  border: 2px solid rgba(34, 160, 82, 0.3);
-  border-top-color: #22A052;
+  border: 2px solid rgba(0, 144, 76, 0.3);
+  border-top-color: #00904C;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
