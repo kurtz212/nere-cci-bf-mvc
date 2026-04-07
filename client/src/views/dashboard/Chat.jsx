@@ -155,7 +155,7 @@ export default function Chat() {
           <div className="dash-nav-links">
             <span className="dash-nav-link" onClick={() => navigate("/")}>Accueil</span>
             <span className="dash-nav-link" onClick={() => navigate("/contact")}>Contact</span>
-
+            <span className="nav-link" onClick={()=>navigate("/demande-document")}>Recherche</span>
             <span className="dash-nav-link active"> Chat</span>
           </div>
           <div className="dash-nav-actions">

@@ -16,6 +16,7 @@ import Admin               from './views/admin/Admin';
 import AdminRoute          from './components/AdminRoute';
 import RechercheEntreprise from './views/shared/Rechercheentreprise';
 import Contact             from './views/shared/Contact';
+
 import Gestionnaire from "./views/dashboard/Gestionnaire";
 export default function App() {
   return (
@@ -28,7 +29,7 @@ export default function App() {
           <Route path="/formules"             element={<Formules />} />
           <Route path="/publications"         element={<Publications />} />
           <Route path="/profil"               element={<Profil />} />
-          <Route path="/recherche"            element={<Recherche />} />
+           <Route path="/rechercheacc" element={<Recherche />} />
           <Route path="/demande-document"     element={<DemandeDocument />} />
           <Route path="/chat"                 element={<Chat />} />
           <Route path="/paiement"             element={<Paiement />} />
@@ -47,3 +48,4 @@ export default function App() {
 }
 
 
+  

@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../styles/home.css";
-import logoCCI     from "../../assets/ccibff.png";
+import logoCCI     from "../../assets/ccibf.png";
 import logoNERE    from "../../assets/nere.jpg";
-
 import logoCEFORE  from "../../assets/cefore.png";
 import logoDouanes from "../../assets/douanes.png";
 import logoCNSS    from "../../assets/cnss.png";
@@ -110,7 +109,7 @@ const PARTENAIRES = [
   },
   {
     logo: logoMAISON_ENTREPRISE,
-    nom: "Maison de l’Entreprise",
+    nom: "Maison de l'Entreprise",
     type: "Accompagnement",
     contribution: "Appui aux entreprises.",
     badge: "Support PME",
@@ -131,7 +130,6 @@ export default function Home() {
     if (u) setUser(JSON.parse(u));
   }, []);
 
-  // Utiliser les partenaires locaux
   const partenairesAffiches = PARTENAIRES;
 
   useEffect(() => {
@@ -183,6 +181,16 @@ export default function Home() {
 
   return (
     <>
+      {/* Style global Arial */}
+      <style>{`
+        * { font-family: Arial, Helvetica, sans-serif !important; }
+
+        @keyframes carousel {
+          0%   { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+      `}</style>
+
       {/* ══ FOND ANIMÉ ══ */}
       <div className="animated-bg">
         <div className="blob1"/><div className="blob2"/><div className="blob3"/>
@@ -209,14 +217,9 @@ export default function Home() {
 
       <div className="site-wrapper">
 
-        {/* ══ NAVBAR ══ */}
+        {/* ══ NAVBAR ══ — logo CCI-BF retiré */}
         <nav className="navbar" style={{display:"flex", alignItems:"center", justifyContent:"space-between"}}>
           <div className="logo-zone" style={{display:"flex", alignItems:"center", gap:"10px"}}>
-            <div className="logo-img-box">
-              <img src={logoCCI} alt="Logo CCI-BF" />
-            </div>
-            <div className="logo-texts"> 
-            </div>
             <div style={{width:"0px", height:"44px", background:"rgba(255,255,255,0.15)", margin:"0 4px"}}/>
             <div style={{display:"flex", alignItems:"center", gap:"8px"}}>
               <img src={logoNERE} alt="Logo NERE" style={{height:"90px", width:"auto", borderRadius:"6px"}}/>
@@ -227,10 +230,12 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="nav-links" style={{display:"flex", alignItems:"center", gap:"8px", marginLeft:"40px"}}>
+          <div className="nav-links" style={{display:"flex", alignItems:"center", gap:"25px", marginLeft:"40px"}}>
             <span className="nav-link active" onClick={()=>navigate("/")}>Accueil</span>
             <span className="nav-link" onClick={()=>navigate("/publications")}>Publications</span>
-            <span className="nav-link" onClick={()=>navigate("/demande-document")}>Recherche</span>
+                 <span className="nav-link" onClick={()=>navigate("/rechercheacc")}>Recherche</span>
+            <span className="nav-link" onClick={()=>navigate("/Contact")}>Contact</span>
+            <span className="nav-link" onClick={()=>navigate("/Chat")}>Chat</span>
           </div>
 
           <div className="nav-actions">
@@ -244,7 +249,7 @@ export default function Home() {
                 {menuOpen && (
                   <>
                     <div style={{position:"fixed",inset:0,zIndex:50}} onClick={()=>setMenuOpen(false)}/>
-                    <div className="user-dropdown" style={{position:"absolute",zIndex:9999, background: "#24bf43",top:"calc(100% + 8px)",right:0}} onClick={e=>e.stopPropagation()}>
+                    <div className="user-dropdown" style={{position:"absolute",zIndex:9999, background: "#00904C",top:"calc(100% + 8px)",right:0}} onClick={e=>e.stopPropagation()}>
                       <div className="dropdown-header">
                         <div className="dropdown-name">{user.prenom} {user.nom}</div>
                         <div className="dropdown-email">{user.email || "—"}</div>
@@ -259,9 +264,8 @@ export default function Home() {
                       {user.role==="admin" && (
                         <div className="dropdown-item" onClick={()=>{navigate("/admin");setMenuOpen(false);}}> Tableau de bord</div>
                       )}
-
-                       {user.role==="manager" && (
-                        <div className="dropdown-item" onClick={()=>{navigate("/Gestionnaire");setMenuOpen(false);}}> tableau de bord</div>
+                      {user.role==="manager" && (
+                        <div className="dropdown-item" onClick={()=>{navigate("/Gestionnaire");setMenuOpen(false);}}> Tableau de bord</div>
                       )}
                       <div className="dropdown-divider"/>
                       <div className="dropdown-item danger" onClick={handleLogout}>Déconnexion</div>
@@ -285,8 +289,7 @@ export default function Home() {
             <h1 className="hero-title">Accédez aux données<br/>économiques du <em>Burkina Faso</em></h1>
             <p className="hero-desc">Consultez les informations officielles des entreprises enregistrées au NERE — secteur d'activité, chiffre d'affaires, localisation et bien plus, selon votre formule d'abonnement.</p>
             <div className="hero-btns">
-              <button className="btn btn-white btn-lg" onClick={()=>navigate("/recherche-entreprise")}>Rechercher une entreprise</button>
-              <button className="btn btn-outline btn-lg" onClick={()=>navigate("/Formules")}>Voir les formules →</button>
+              <button className="btn btn-outline btn-lg" onClick={()=>navigate("/Formules")}>Voir les formules</button>
             </div>
             <div className="stats-row">
               {[
@@ -304,167 +307,160 @@ export default function Home() {
           </div>
         </section>
 
-       {/* ══ PARTENAIRES ══ */}
-<section className="publications-section">
-  <div className="section-header">
-    <div>
-      <div className="section-title">NOS PARTENAIRES OFFICIELS</div>
-      <div className="section-tag">
-        qui assurent la fiabilité des informations que nous fournissons
-      </div>
-    </div>
-  </div>
+        {/* ══ PARTENAIRES ══ */}
+        <section className="publications-section">
 
-  {/* CAROUSEL */}
-  <div style={{position:"relative", overflow:"hidden", borderRadius:"16px", background:"linear-gradient(135deg, #00904C, #006B38)", padding:"32px 0"}}>
-
-    {/* Gradient gauche */}
-    <div style={{
-      position:"absolute", left:0, top:0, bottom:0, width:"100px",
-      background:"linear-gradient(90deg,rgba(0,144,76,0.8),transparent)",
-      zIndex:2, pointerEvents:"none"
-    }}/>
-
-    {/* Gradient droite */}
-    <div style={{
-      position:"absolute", right:0, top:0, bottom:0, width:"100px",
-      background:"linear-gradient(-90deg,rgba(0,144,76,0.8),transparent)",
-      zIndex:2, pointerEvents:"none"
-    }}/>
-
-    {/* Piste animée */}
-    <div style={{
-      display:"flex",
-      gap:"16px",
-      animation:"carousel 40s linear infinite",
-      width:"max-content"
-    }}>
-      {[...partenairesAffiches, ...partenairesAffiches].map((p) => (
-
-        /*  CARTE CLIQUABLE PRO */
-        <a
-          key={p.nom}
-          href={p.lien || "#"}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={(e)=>{
-            if(!p.lien){
-              e.preventDefault();
-              alert("Lien indisponible");
-            }
-          }}
-          style={{
-            background:"rgba(255,255,255,0.05)",
-            border:"1px solid rgba(77,201,122,0.15)",
-            borderRadius:"14px",
-            padding:"20px 22px",
-            width:"260px",
-            flexShrink:0,
+          {/* EN-TÊTE CENTRÉ avec logo CCI-BF + phrase */}
+          <div style={{
             display:"flex",
             flexDirection:"column",
-            gap:"12px",
-            textDecoration:"none",
-            cursor:"pointer",
-            transition:"all 0.3s ease"
-          }}
-          onMouseEnter={(e)=>{
-            e.currentTarget.style.transform = "scale(1.05)";
-            e.currentTarget.style.boxShadow = "0 10px 25px rgba(0,0,0,0.4)";
-          }}
-          onMouseLeave={(e)=>{
-            e.currentTarget.style.transform = "scale(1)";
-            e.currentTarget.style.boxShadow = "none";
-          }}
-        >
-
-          {/* HEADER */}
-          <div style={{display:"flex", alignItems:"center", gap:"12px"}}>
-
-            <div style={{
-              width:"52px",
-              height:"52px",
-              borderRadius:"10px",
-              background:"rgba(255,255,255,0.1)",
-              display:"flex",
-              alignItems:"center",
-              justifyContent:"center",
-              fontSize:"26px",
-              flexShrink:0,
-              overflow:"hidden"
-            }}>
-              {p.logo
-                ? <img src={p.logo} alt={p.nom}
-                    style={{width:"100%", height:"100%", objectFit:"contain", padding:"4px"}}/>
-                : p.icone
-              }
-            </div>
-
-            <div>
-              <div style={{
-                fontWeight:800,
-                fontSize:"13px",
-                color:"#fff",
-                lineHeight:1.3
-              }}>
-                {p.nom}
-              </div>
-
-              <div style={{
-                fontSize:"10px",
-                color:"#E1F5E8",
-                fontWeight:600,
-                textTransform:"uppercase",
-                letterSpacing:"0.06em",
-                marginTop:"2px"
-              }}>
-                {p.type}
-              </div>
-            </div>
-          </div>
-
-          {/* DESCRIPTION */}
-          <div style={{
-            fontSize:"12px",
-            color:"#ffffff",
-            lineHeight:1.6
-          }}>
-            {p.contribution}
-          </div>
-
-          {/* BADGE */}
-          <div style={{
-            display:"inline-flex",
             alignItems:"center",
-            gap:"5px",
-            background:"#ffffff",
-            borderRadius:"100px",
-            padding:"3px 10px",
-            width:"fit-content"
+            justifyContent:"center",
+            textAlign:"center",
+            marginBottom:"36px",
+            gap:"14px"
           }}>
-            <span style={{fontSize:"10px"}}>✅</span>
-            <span style={{
-              fontSize:"11px",
-              fontWeight:600,
-              color:"#FFFFFF"
+            {/* Logo CCI-BF */}
+            <img
+              src={logoCCI}
+              alt="Logo CCI-BF"
+              style={{height:"90px", width:"auto", objectFit:"contain"}}
+            />
+
+            {/* Titre section */}
+            <div className="section-title"style={{margin:0,color:"#ED1C24" }}>NOTRE PARTENAIRE OFFICIEL</div>
+             <div className="section-title" style={{margin:0}}>vous pouvez accéder en un clic aux differents sites de nos partenaire qui assurent la fiabilité et l'authenticité des informations</div>
+            {/* Phrase sous le logo */}
+            <div style={{
+              fontSize:"15px",
+              color:"#ffffff",
+              maxWidth:"640px",
+              lineHeight:1.6
             }}>
-              {p.badge}
-            </span>
+              Des institutions de confiance qui assurent la fiabilité et l'authenticité
+              des informations que nous vous fournissons.
+            </div>
           </div>
 
-        </a>
-      ))}
-    </div>
-  </div>
+          {/* CAROUSEL */}
+          <div style={{position:"relative", overflow:"hidden", borderRadius:"16px", background:"linear-gradient(135deg, #00904C, #006B38)", padding:"32px 0"}}>
 
-  {/* Animation */}
-  <style>{`
-    @keyframes carousel {
-      0%   { transform: translateX(0); }
-      100% { transform: translateX(-50%); }
-    }
-  `}</style>
-</section>
+            {/* Gradient gauche */}
+            <div style={{
+              position:"absolute", left:0, top:0, bottom:0, width:"100px",
+              background:"linear-gradient(90deg,rgba(0,144,76,0.8),transparent)",
+              zIndex:2, pointerEvents:"none"
+            }}/>
 
+            {/* Gradient droite */}
+            <div style={{
+              position:"absolute", right:0, top:0, bottom:0, width:"100px",
+              background:"linear-gradient(-90deg,rgba(0,144,76,0.8),transparent)",
+              zIndex:2, pointerEvents:"none"
+            }}/>
+
+            {/* Piste animée */}
+            <div style={{
+              display:"flex",
+              gap:"16px",
+              animation:"carousel 40s linear infinite",
+              width:"max-content"
+            }}>
+              {[...partenairesAffiches, ...partenairesAffiches].map((p, idx) => (
+                <a
+                  key={`${p.nom}-${idx}`}
+                  href={p.lien || "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e)=>{
+                    if(!p.lien){
+                      e.preventDefault();
+                      alert("Lien indisponible");
+                    }
+                  }}
+                  style={{
+                    background:"rgba(255,255,255,0.05)",
+                    border:"1px solid rgba(77,201,122,0.15)",
+                    borderRadius:"14px",
+                    padding:"20px 22px",
+                    width:"260px",
+                    flexShrink:0,
+                    display:"flex",
+                    flexDirection:"column",
+                    gap:"12px",
+                    textDecoration:"none",
+                    cursor:"pointer",
+                    transition:"all 0.3s ease"
+                  }}
+                  onMouseEnter={(e)=>{
+                    e.currentTarget.style.transform = "scale(1.05)";
+                    e.currentTarget.style.boxShadow = "0 10px 25px rgba(0,0,0,0.4)";
+                  }}
+                  onMouseLeave={(e)=>{
+                    e.currentTarget.style.transform = "scale(1)";
+                    e.currentTarget.style.boxShadow = "none";
+                  }}
+                >
+                  {/* HEADER */}
+                  <div style={{display:"flex", alignItems:"center", gap:"12px"}}>
+                    <div style={{
+                      width:"52px",
+                      height:"52px",
+                      borderRadius:"10px",
+                      background:"rgba(255,255,255,0.1)",
+                      display:"flex",
+                      alignItems:"center",
+                      justifyContent:"center",
+                      flexShrink:0,
+                      overflow:"hidden"
+                    }}>
+                      {p.logo
+                        ? <img src={p.logo} alt={p.nom}
+                            style={{width:"100%", height:"100%", objectFit:"contain", padding:"4px"}}/>
+                        : p.icone
+                      }
+                    </div>
+                    <div>
+                      <div style={{fontWeight:800, fontSize:"13px", color:"#fff", lineHeight:1.3}}>
+                        {p.nom}
+                      </div>
+                      <div style={{
+                        fontSize:"10px",
+                        color:"#E1F5E8",
+                        fontWeight:600,
+                        textTransform:"uppercase",
+                        letterSpacing:"0.06em",
+                        marginTop:"2px"
+                      }}>
+                        {p.type}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* DESCRIPTION */}
+                  <div style={{fontSize:"12px", color:"#ffffff", lineHeight:1.6}}>
+                    {p.contribution}
+                  </div>
+
+                  {/* BADGE */}
+                  <div style={{
+                    display:"inline-flex",
+                    alignItems:"center",
+                    gap:"5px",
+                    background:"#ffffff",
+                    borderRadius:"100px",
+                    padding:"3px 10px",
+                    width:"fit-content"
+                  }}>
+                    <span style={{fontSize:"11px", fontWeight:600, color:"#ED1C24"}}>
+                      {p.badge}
+                    </span>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
+        </section>
 
         {/* ══ FORMULES ══ */}
         <section className="packs-section">
@@ -508,6 +504,7 @@ export default function Home() {
             ))}
           </div>
         </section>
+
         {/* ══ FOOTER ══ */}
         <footer className="site-footer">
           <div>
@@ -515,7 +512,6 @@ export default function Home() {
             <div className="footer-copy">Chambre de Commerce et d'Industrie du Burkina Faso</div>
           </div>
           <div className="footer-links">
-            
             <span className="footer-link">Confidentialité</span>
             <span className="footer-link" style={{cursor:"pointer"}} onClick={()=>navigate("/contact")}>Contact</span>
             <span className="footer-link">Support</span>

@@ -540,7 +540,7 @@ body {
   font-size:11px;font-weight:800;letter-spacing:0.18em;
   text-transform:uppercase;color:var(--text-muted);
 }
-.pack-card-home.featured .pack-card-name { color:rgba(255,255,255,0.5); }
+.pack-card-home.featured .pack-card-name { color:rgba(4, 4, 4, 0.5); }
 
 .pack-card-price {
   font-family:'Playfair Display',serif;font-size:30px;
@@ -551,7 +551,7 @@ body {
   font-family:'Plus Jakarta Sans',sans-serif;
   font-size:13px;font-weight:500;color:var(--text-muted);
 }
-.pack-card-home.featured .pack-card-price span { color:rgba(255,255,255,0.4); }
+.pack-card-home.featured .pack-card-price span { color:rgba(7, 7, 7, 0.4); }
 
 .pack-divider { height:1px;background:rgba(34,160,82,0.1); }
 .pack-card-home.featured .pack-divider { background:rgba(255,255,255,0.1); }
@@ -561,7 +561,7 @@ body {
 .feature-ok { color:var(--text-dark); }
 .pack-card-home.featured .feature-ok { color:rgba(255,255,255,0.85); }
 .feature-no { color:var(--text-muted); }
-.pack-card-home.featured .feature-no { color:rgba(255,255,255,0.25); }
+.pack-card-home.featured .feature-no { color:rgba(7, 7, 7, 0.25); }
 
 .btn-outline-pack {
   width:100%;padding:12px;

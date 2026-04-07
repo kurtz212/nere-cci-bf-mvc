@@ -479,7 +479,7 @@ export default function Gestionnaire() {
             </p>
           </div>
           <div style={{ display:"flex", gap:"10px" }}>
-            <input style={{ ...S.input, width:"220px" }} placeholder="🔍 Rechercher..." value={searchDemande} onChange={e=>setSearchDemande(e.target.value)}/>
+            <input style={{ ...S.input, width:"220px" }} placeholder=" Rechercher..." value={searchDemande} onChange={e=>setSearchDemande(e.target.value)}/>
             <button style={S.btn} onClick={chargerDemandes} disabled={demandesLoading}>{demandesLoading?"⏳":"↺"} Actualiser</button>
           </div>
         </div>
@@ -1024,7 +1024,7 @@ export default function Gestionnaire() {
           </div>
           <div style={{ display:"flex", alignItems:"center", gap:"14px" }}>
             <span style={{ background:"rgba(77,201,122,0.12)", color:"#1A7A40", borderRadius:"100px", padding:"4px 12px", fontSize:"11px", fontWeight:700 }}>
-              🟢 Gestionnaire
+               
             </span>
             <div style={{ display:"flex", alignItems:"center", gap:"10px" }}>
               <div style={{ width:"36px", height:"36px", borderRadius:"10px",

@@ -95,8 +95,8 @@ export default function Recherche() {
 
   const cardHovered = {
     ...cardBase,
-    background: "#00904C",
-    border: "1.5px solid #00904C",
+    background: "rgba(255,255,255,0.14)",
+    border: "1.5px solid rgba(201,168,76,0.7)",
     transform: "translateY(-6px) scale(1.03)",
     boxShadow: "0 20px 50px rgba(0,0,0,0.35)",
   };
@@ -152,27 +152,27 @@ export default function Recherche() {
           width: 6px;
           height: 6px;
           border-radius: 50%;
-          background: #020202;
+          background: #C9A84C;
           animation: pulse 2s infinite;
         }
 
         .recherche-main-title {
           font-size: clamp(28px, 4vw, 48px);
           font-weight: 900;
-          color: #070707;
+          color: #ffffff;
           line-height: 1.2;
           margin: 0 0 16px;
           letter-spacing: -0.02em;
         }
 
         .recherche-main-title em {
-          color: #ED1C24;
+          color: #C9A84C;
           font-style: normal;
         }
 
         .recherche-subtitle {
           font-size: 16px;
-          color: rgba(4, 4, 4, 0.72);
+          color: rgba(255,255,255,0.72);
           line-height: 1.7;
           margin: 0;
         }
@@ -194,7 +194,7 @@ export default function Recherche() {
 
         .choice-desc {
           font-size: 13px;
-          color: rgba(5, 5, 5, 0.65);
+          color: rgba(255,255,255,0.65);
           text-align: center;
           line-height: 1.6;
           max-width: 240px;
@@ -206,7 +206,7 @@ export default function Recherche() {
           gap: 6px;
           font-size: 13px;
           font-weight: 700;
-          color: #080808;
+          color: #C9A84C;
           letter-spacing: 0.04em;
           margin-top: 4px;
           transition: gap 0.2s;
@@ -221,8 +221,8 @@ export default function Recherche() {
           top: -12px;
           left: 50%;
           transform: translateX(-50%);
-         
-          color: #050505;
+          background: #C9A84C;
+          color: #1a1a1a;
           font-size: 11px;
           font-weight: 800;
           padding: 3px 14px;
@@ -338,7 +338,10 @@ export default function Recherche() {
 
           {/* Titre + description */}
           <div className="recherche-title-block">
-           
+            <div className="recherche-badge">
+              <span className="badge-dot"/>
+              Moteur de recherche NERE
+            </div>
             <h1 className="recherche-main-title">
               Trouvez une entreprise<br/>au <em>Burkina Faso</em>
             </h1>
@@ -360,11 +363,21 @@ export default function Recherche() {
               }}
               onMouseEnter={() => setHovered("multi")}
               onMouseLeave={() => setHovered(null)}
-              onClick={() => navigate("/demande-document") /* à définir */}
+              onClick={() => navigate("/recherche-multicritere")}
             >
-              <div className="choice-tag"></div>
+              <div className="choice-tag">Recommandé</div>
 
-            
+              {/* Icône */}
+              <div style={iconBox("rgba(0,144,76,0.25)")}>
+                <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="4" y="6" width="28" height="3" rx="1.5" fill="#4DCA7A"/>
+                  <rect x="4" y="13" width="20" height="3" rx="1.5" fill="#4DCA7A"/>
+                  <rect x="4" y="20" width="24" height="3" rx="1.5" fill="#4DCA7A"/>
+                  <rect x="4" y="27" width="16" height="3" rx="1.5" fill="#C9A84C"/>
+                  <circle cx="29" cy="28.5" r="4.5" stroke="#4DCA7A" strokeWidth="2"/>
+                  <line x1="32.5" y1="32" x2="35" y2="34.5" stroke="#4DCA7A" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+              </div>
 
               <div className="choice-label">Recherche<br/>multicritère</div>
 
@@ -375,7 +388,7 @@ export default function Recherche() {
               <div className="choice-arrow">
                 Accéder
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d="M2 7h10M8 3l4 4-4 4" stroke="#090909" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M2 7h10M8 3l4 4-4 4" stroke="#C9A84C" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </div>
             </div>
@@ -389,9 +402,17 @@ export default function Recherche() {
               }}
               onMouseEnter={() => setHovered("single")}
               onMouseLeave={() => setHovered(null)}
-              onClick={() => navigate("/") /* à définir */}
+              onClick={() => navigate("/RechercheEntreprise") /* à définir */}
             >
-             
+              {/* Icône */}
+              <div style={iconBox("rgba(201,168,76,0.2)")}>
+                <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="16" cy="16" r="10" stroke="#C9A84C" strokeWidth="2.2"/>
+                  <line x1="23.5" y1="23.5" x2="32" y2="32" stroke="#C9A84C" strokeWidth="2.2" strokeLinecap="round"/>
+                  <line x1="16" y1="11" x2="16" y2="21" stroke="#C9A84C" strokeWidth="1.8" strokeLinecap="round"/>
+                  <line x1="11" y1="16" x2="21" y2="16" stroke="#C9A84C" strokeWidth="1.8" strokeLinecap="round"/>
+                </svg>
+              </div>
 
               <div className="choice-label">Recherche par<br/>un critère</div>
 
@@ -402,12 +423,20 @@ export default function Recherche() {
               <div className="choice-arrow">
                 Accéder
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d="M2 7h10M8 3l4 4-4 4" stroke="#0d0d0d" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M2 7h10M8 3l4 4-4 4" stroke="#C9A84C" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </div>
             </div>
 
           </div>{/* fin cards-row */}
+
+          {/* lien retour discret */}
+          <div
+            style={{fontSize:"13px", color:"rgba(255,255,255,0.45)", cursor:"pointer", marginTop:"-16px"}}
+            onClick={()=>navigate("/")}
+          >
+            ← Retour à l'accueil
+          </div>
 
         </div>{/* fin recherche-hero */}
 

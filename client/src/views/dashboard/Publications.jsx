@@ -180,7 +180,9 @@ export default function Publications() {
           <div className="dash-nav-links">
             <span className="dash-nav-link" onClick={() => navigate("/")}>Accueil</span>
             <span className="dash-nav-link active">Publications</span>
-            
+             <span className="nav-link" onClick={()=>navigate("/rechercheacc")}>Recherche</span>
+            <span className="nav-link" onClick={()=>navigate("/Contact")}>Contact</span>
+            <span className="nav-link" onClick={()=>navigate("/Chat")}>Chat</span>
           </div>
           <div className="dash-nav-actions">
             {user ? (
@@ -198,23 +200,28 @@ export default function Publications() {
         </nav>
 
         {/* ── BANNIÈRE VISITEUR ── */}
-        {isVisiteur && (
-          <div style={{
-            background: "linear-gradient(90deg, var(--green-deep), var(--green-mid))",
-            padding: "14px 48px",
-            display: "flex", alignItems: "center", justifyContent: "space-between",
-            borderBottom: "3px solid var(--green-light)",
-            flexWrap: "wrap", gap: "12px",
-          }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <span style={{ fontSize: "20px" }}></span>
-              <span style={{ color: "#fff", fontSize: "14px", fontWeight: 600 }}>
-                Contenu masqué — inscrivez-vous pour accéder aux informations complètes
-              </span>
-            </div>
-          
-          </div>
-        )}
+       {isVisiteur && (
+  <div
+    style={{
+      background: "rgba(237, 28, 36, 40)",
+      padding: "14px 48px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      borderBottom: "3px solid var(--green-light)",
+      flexWrap: "wrap",
+      gap: "12px",
+    }}
+  >
+    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+      <span style={{ fontSize: "20px" }}></span>
+      <span style={{ color: "#fff", fontSize: "14px", fontWeight: 600 }}>
+        Contenu masqué — inscrivez-vous pour accéder aux informations complètes
+      </span>
+    </div>
+  </div>
+)}
+
 
         {/* ── HERO ── */}
         <div className="pub-page-hero">
