@@ -90,18 +90,32 @@ export default function Connexion() {
       </div>
 
       <div className="auth-wrapper">
-        {/* NAVBAR MINI */}
-        <nav className="auth-navbar">
-          <div className="auth-logo" onClick={() => navigate("/")}>
-            NERE <span>CCI-BF</span>
-          </div>
-          <div className="auth-nav-right">
-            Pas encore de compte ?{" "}
-            <span className="auth-link" onClick={() => navigate("/inscription")}>
-              S'inscrire
-            </span>
-          </div>
-        </nav>
+       <nav className="auth-navbar">
+
+  {/* LOGO */}
+  <div className="auth-logo" onClick={() => navigate("/")}>
+   
+  </div>
+
+  {/* LIENS */}
+  <div className="nav-links">
+    <span className="nav-link active" onClick={()=>navigate("/")}>Accueil</span>
+    <span className="nav-link" onClick={()=>navigate("/publications")}>Publications</span>
+    <span className="nav-link" onClick={()=>navigate("/rechercheacc")}>Recherche</span>
+    <span className="nav-link" onClick={()=>navigate("/Contact")}>Contact</span>
+    <span className="nav-link" onClick={()=>navigate("/Chat")}>Chat</span>
+  </div>
+
+  {/* DROITE */}
+  <div className="auth-nav-right">
+    Pas encore de compte ?{" "}
+    <span className="auth-link" style={{ color: "white" }} onClick={() => navigate("/inscription")}>
+      S'inscrire
+    </span>
+  </div>
+
+</nav>
+
 
         <div className="auth-container">
 
@@ -143,24 +157,24 @@ export default function Connexion() {
               </div>
 
               <button className="btn-auth-outline" onClick={() => navigate("/inscription")}>
-                Créer un compte gratuit
+                Créer un compte 
               </button>
 
               {/* Info packs */}
               <div className="login-packs-hint">
-                <div className="packs-hint-title">Formules disponibles</div>
+                <div className="packs-hint-title">Formules à crediter votre compte</div>
                 <div className="packs-hint-row">
                   <div className="pack-hint-item">
-                    <div className="pack-hint-name">Basic</div>
-                    <div className="pack-hint-price">15 000 FCFA/an</div>
+                    <div className="pack-hint-name">Pack 1</div>
+                    <div className="pack-hint-price">5 000 FCFA</div>
                   </div>
                   <div className="pack-hint-item featured">
-                    <div className="pack-hint-name">Pro ⭐</div>
-                    <div className="pack-hint-price">35 000 FCFA/an</div>
+                    <div className="pack-hint-name">Pack 2</div>
+                    <div className="pack-hint-price">10.000 FCFA</div>
                   </div>
                   <div className="pack-hint-item">
-                    <div className="pack-hint-name">Premium</div>
-                    <div className="pack-hint-price">75 000 FCFA/an</div>
+                    <div className="pack-hint-name">Pack 3</div>
+                    <div className="pack-hint-price">15.000 FCFA ou plus</div>
                   </div>
                 </div>
               </div>
@@ -170,7 +184,7 @@ export default function Connexion() {
           {/* ── MODE : MOT DE PASSE OUBLIÉ ── */}
           {mode === "forgot" && (
             <div className="auth-card login-card">
-              <div className="auth-card-icon">🔑</div>
+              <div className="auth-card-icon"></div>
               <div className="auth-card-header">
                 <h1 className="auth-title">Mot de passe oublié</h1>
                 <p className="auth-subtitle">
@@ -178,7 +192,7 @@ export default function Connexion() {
                 </p>
               </div>
 
-              {error && <div className="auth-error">⚠️ {error}</div>}
+              {error && <div className="auth-error"> {error}</div>}
 
               <form onSubmit={handleForgot} className="auth-form">
                 <div className="form-field">
@@ -203,7 +217,7 @@ export default function Connexion() {
           {/* ── MODE : LIEN ENVOYÉ ── */}
           {mode === "forgot-sent" && (
             <div className="auth-card verify-card">
-              <div className="verify-icon">✉️</div>
+              <div className="verify-icon"></div>
               <h2 className="auth-title">Email envoyé !</h2>
               <p className="verify-desc">
                 Un lien de réinitialisation a été envoyé à{" "}

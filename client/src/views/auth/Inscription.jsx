@@ -110,10 +110,18 @@ export default function Inscription() {
 
       <div className="auth-wrapper">
         <nav className="auth-navbar">
-          <div className="auth-logo" onClick={() => navigate("/")}>NERE <span>CCI-BF</span></div>
+          <div className="nav-links" style={{color:"#00904C", display:"flex", alignItems:"center", gap:"25px", marginLeft:"100px"}}>
+            <span className="nav-link active" onClick={()=>navigate("/")}>Accueil</span>
+            <span className="nav-link" onClick={()=>navigate("/publications")}>Publications</span>
+                 <span className="nav-link" onClick={()=>navigate("/rechercheacc")}>Recherche</span>
+            <span className="nav-link" onClick={()=>navigate("/Contact")}>Contact</span>
+            <span className="nav-link" onClick={()=>navigate("/Chat")}>Chat</span>
+          </div>
           <div className="auth-nav-right">
             Déjà un compte ?{" "}
-            <span className="auth-link" onClick={() => navigate("/connexion")}>Se connecter</span>
+            <span className="auth-link" style={{ color: "#ffffff" }} onClick={() => navigate("/connexion")}>
+              Se connecter
+            </span>
           </div>
         </nav>
 

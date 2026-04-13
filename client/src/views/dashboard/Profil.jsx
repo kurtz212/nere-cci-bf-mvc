@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../styles/dashboard.css";
-
+import logoNERE from "../../assets/nere.jpg";
 const ACTIVITES = [
   { value: "commerce_gros",            label: "Commerce de gros" },
   { value: "commerce_detail",          label: "Commerce de détail" },
@@ -221,7 +221,20 @@ export default function Profil() {
 
         {/* NAVBAR */}
         <nav className="dash-navbar">
-          <div className="dash-logo" onClick={() => navigate("/")}>NERE <span>CCI-BF</span></div>
+                 <div style={{ display:"flex", alignItems:"center", gap:"12px" }}>
+                   <img src={logoNERE} alt="NERE"
+                     style={{ height:"60px", width:"auto", borderRadius:"6px", flexShrink:0 }}/>
+                   <div style={{ display:"flex", flexDirection:"column", lineHeight:1.4 }}>
+                     <span style={{ fontSize:"11px", fontWeight:800, color:"#fff",
+                       letterSpacing:"0.06em", textTransform:"uppercase" }}>Fichier NERE</span>
+                     <span style={{ fontSize:"10px", color:"rgba(255,255,255,0.85)" }}>
+                       Registre national des entreprises<br/>Du Burkina Faso
+                     </span>
+                   </div>
+                 </div>
+       
+                 
+          <div className="dash-logo" onClick={() => navigate("/")}></div>
           <div className="dash-nav-links">
             <span className="dash-nav-link" onClick={() => navigate("/")}>Accueil</span>
             <span className="dash-nav-link" onClick={() => navigate("/publications")}>Publications</span>

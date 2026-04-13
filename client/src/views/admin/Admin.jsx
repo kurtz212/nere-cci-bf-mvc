@@ -7,13 +7,7 @@ const API = "http://localhost:5000/api";
 // ═══════════════════════════════════════
 // DONNÉES MOCK
 // ═══════════════════════════════════════
-const MOCK_USERS = [
-  { id:1, nom:"Traoré", prenom:"Ibrahim",  email:"i.traore@gmail.com",    type:"entreprise",    role:"subscriber", pack:"PRO",     statut:"actif",    date:"12 Jan 2025" },
-  { id:2, nom:"Ouédraogo", prenom:"Aminata",email:"a.ouedraogo@bf.org",   type:"administration",role:"subscriber", pack:"PREMIUM", statut:"actif",    date:"18 Jan 2025" },
-  { id:3, nom:"Sawadogo", prenom:"Salif",  email:"s.sawadogo@gmail.com",  type:"etudiant",      role:"visitor",    pack:"–",       statut:"en attente",date:"02 Fév 2025" },
-  { id:4, nom:"Compaoré", prenom:"Fatima", email:"f.compaore@univ-bf.edu",type:"etudiant",      role:"subscriber", pack:"BASIC",   statut:"actif",    date:"14 Fév 2025" },
-  { id:5, nom:"Barry",    prenom:"Hamidou",email:"h.barry@sahel-agro.com",type:"entreprise",    role:"visitor",    pack:"–",       statut:"suspendu", date:"28 Fév 2025" },
-];
+
 
 const CATS_PUB = ["Rapport","Étude","Classement","Note technique","Communiqué"];
 
@@ -253,7 +247,7 @@ export default function Admin() {
         await chargerPartenaires();
         setShowFormPart(false);
         setEditPart(null);
-        setFormPart({ nom:"", type:"", contribution:"", badge:"", icone:"🏛️", actif:true });
+        setFormPart({ nom:"", type:"", contribution:"", badge:"",  actif:true });
       } else {
         setPartError(data.message || "Erreur.");
       }
@@ -542,7 +536,7 @@ export default function Admin() {
   // ═══════════════════════════════════════
   const S = {
     wrap:   { display:"flex", minHeight:"100vh", fontFamily:"'Plus Jakarta Sans',sans-serif", background:"#F5FAF7" },
-    side:   { width: sidebarOpen ? "240px" : "64px", background:"#00904C", flexShrink:0,
+    side:   { width: sidebarOpen ? "240px" : "64px", background:"#FFFFFF", flexShrink:0,
               display:"flex", flexDirection:"column", transition:"width 0.25s ease",
               overflow:"hidden", position:"sticky", top:0, height:"100vh" },
     main:   { flex:1, display:"flex", flexDirection:"column", overflow:"auto" },
@@ -592,11 +586,11 @@ export default function Admin() {
     <div>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", flexWrap:"wrap", gap:"16px", marginBottom:"24px" }}>
         <div>
-          <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:"22px",
-            color:"#00904C", margin:0 }}>Vue d'ensemble</h2>
+        <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:"22px",
+          color:"#00904C", margin:0 }}>Vue d'ensemble</h2>
           <p style={{ color:"#00904C", fontSize:"13px", marginTop:"4px" }}>
-            Aujourd'hui — {new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}
-          </p>
+          Aujourd'hui — {new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}
+        </p>
         </div>
         <button style={{ ...S.btn, whiteSpace:"nowrap" }}
           onClick={() => { setSection('utilisateurs'); setShowUserForm(true); }}>
@@ -828,10 +822,10 @@ export default function Admin() {
           <button style={S.btn} onClick={() => setShowUserForm(true)}>
             + Nouveau gestionnaire
           </button>
-          <input style={{ ...S.input, width:"260px" }}
+        <input style={{ ...S.input, width:"260px" }}
             placeholder=" Rechercher un utilisateur..."
-            value={searchUser}
-            onChange={e => setSearchUser(e.target.value)}/>
+          value={searchUser}
+          onChange={e => setSearchUser(e.target.value)}/>
         </div>
       </div>
 
@@ -971,8 +965,8 @@ export default function Admin() {
                           color:u.role === 'manager' ? "#CC3333" : "#0A3D1F",
                           fontSize:"12px", fontWeight:700, cursor:"pointer" }}>
                         {u.role === 'manager' ? "Retirer gestionnaire" : "Attribuer gestionnaire"}
-                      </button>
-                    )}
+                  </button>
+                )}
                     {u.role !== 'admin' && (
                       <button onClick={() => activerDesactiverUtilisateur(u.id, u.statut !== 'actif')}
                         style={{ padding:"6px 10px", borderRadius:"8px", border:"none",
@@ -980,20 +974,20 @@ export default function Admin() {
                           color:u.statut === 'actif' ? "#CC6600" : "#0A3D1F",
                           fontSize:"12px", fontWeight:700, cursor:"pointer" }}>
                         {u.statut === 'actif' ? "Suspendre" : "Réactiver"}
-                      </button>
-                    )}
+                  </button>
+                )}
                     {u.role !== 'admin' && (
                       <button onClick={() => supprimerUtilisateur(u.id)}
                         style={{ padding:"6px 10px", borderRadius:"8px", border:"none",
                           background:"#FFF0F0", color:"#CC3333",
                           fontSize:"12px", fontWeight:700, cursor:"pointer" }}>
                         Supprimer
-                      </button>
+                </button>
                     )}
-                  </div>
+                </div>
                 </td>
               </tr>
-            ))}
+        ))}
           </tbody>
         </table>
       </div>
@@ -1017,7 +1011,7 @@ export default function Admin() {
         </div>
         <button style={S.btn} onClick={() => {
           setEditPart(null);
-          setFormPart({ nom:"", type:"", contribution:"", badge:"", icone:"🏛️", actif:true });
+          setFormPart({ nom:"", type:"", contribution:"", badge:"",  actif:true });
           setShowFormPart(true);
         }}>+ Ajouter un partenaire</button>
       </div>
@@ -1115,7 +1109,7 @@ export default function Admin() {
               <tr key={p._id} style={{ borderBottom:"1px solid #E2EDE6",
                 background: i%2===0 ? "#fff" : "#FAFCFB",
                 opacity: p.actif ? 1 : 0.5 }}>
-                <td style={{ padding:"12px 14px", fontSize:"24px" }}>{p.icone}</td>
+                <td style={{ padding:"12px 14px", fontSize:"24px" }}></td>
                 <td style={{ padding:"12px 14px", fontWeight:700, color:"#0A3D1F" }}>
                   {p.nom}
                 </td>
@@ -1139,7 +1133,7 @@ export default function Admin() {
                     <button onClick={() => {
                         setEditPart(p);
                         setFormPart({ nom:p.nom, type:p.type, contribution:p.contribution,
-                          badge:p.badge, icone:p.icone, actif:p.actif });
+                          badge:p.badge, actif:p.actif });
                         setShowFormPart(true);
                       }}
                       style={{ padding:"5px 10px", borderRadius:"7px",
@@ -1174,15 +1168,15 @@ export default function Admin() {
 
   const renderActivites = () => {
     return (
-      <div>
-        <div style={{ marginBottom:"24px" }}>
-          <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:"22px",
+    <div>
+      <div style={{ marginBottom:"24px" }}>
+        <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:"22px",
             color:"#0A3D1F", margin:0 }}>Journal d'activités</h2>
-          <p style={{ color:"#6B9A7A", fontSize:"13px", marginTop:"4px" }}>
-            Toutes les actions enregistrées sur la plateforme
-          </p>
-        </div>
-        <div style={S.card}>
+        <p style={{ color:"#6B9A7A", fontSize:"13px", marginTop:"4px" }}>
+          Toutes les actions enregistrées sur la plateforme
+        </p>
+      </div>
+      <div style={S.card}>
           {activitesLoading ? (
             <div style={{ padding:"18px 0", color:"#6B9A7A", fontSize:"13px" }}>
               Chargement des activités...
@@ -1196,23 +1190,23 @@ export default function Admin() {
               Aucune activité récente enregistrée.
             </div>
           ) : activites.map((a,i) => (
-            <div key={a.id} style={{ display:"flex", gap:"14px", padding:"14px 0",
+          <div key={a.id} style={{ display:"flex", gap:"14px", padding:"14px 0",
               borderBottom: i < activites.length-1 ? "1px solid #E2EDE6" : "none" }}>
-              <div style={{ width:"40px", height:"40px", borderRadius:"10px",
-                background:"#F0F8F3", display:"flex", alignItems:"center",
-                justifyContent:"center", fontSize:"18px", flexShrink:0 }}>
+            <div style={{ width:"40px", height:"40px", borderRadius:"10px",
+              background:"#F0F8F3", display:"flex", alignItems:"center",
+              justifyContent:"center", fontSize:"18px", flexShrink:0 }}>
                 
-              </div>
-              <div style={{ flex:1 }}>
-                <div style={{ fontSize:"14px", color:"#0A3D1F", lineHeight:1.5,
-                  fontWeight:500 }}>{a.texte}</div>
-                <div style={{ fontSize:"12px", color:"#6B9A7A", marginTop:"3px" }}>{a.heure}</div>
-              </div>
             </div>
-          ))}
-        </div>
+            <div style={{ flex:1 }}>
+                <div style={{ fontSize:"14px", color:"#0A3D1F", lineHeight:1.5,
+                fontWeight:500 }}>{a.texte}</div>
+              <div style={{ fontSize:"12px", color:"#6B9A7A", marginTop:"3px" }}>{a.heure}</div>
+            </div>
+          </div>
+        ))}
       </div>
-    );
+    </div>
+  );
   };
 
   const RENDER = {
@@ -1243,10 +1237,10 @@ export default function Admin() {
           {sidebarOpen && (
             <div>
               <div style={{ fontFamily:"'Playfair Display',serif", fontSize:"17px",
-                fontWeight:900, color:"#ffffff" }}>
-                NERE <span style={{ color:"#00904C" }}>Admin</span>
+                fontWeight:900, color:"#00904C" }}>
+                NERE <span style={{ color:"#090909" }}>Admin</span>
               </div>
-              <div style={{ fontSize:"10px", color:"rgba(255, 255, 255, 0.86)",
+              <div style={{ fontSize:"10px", color:"rgba(12, 12, 12, 0.86)",
                 marginTop:"2px" }}>CCI-BF · Backoffice</div>
             </div>
           )}
@@ -1271,7 +1265,7 @@ export default function Admin() {
                 padding: sidebarOpen ? "10px 12px" : "10px",
                 borderRadius:"10px", border:"none", cursor:"pointer",
                 background: section===item.id
-                  ? "#9ae1c0" : "transparent",
+                  ? "#009032" : "transparent",
                 color: section===item.id ? "#070707" : "#070707",
                 fontWeight: section===item.id ? 700 : 500,
                 fontSize:"13px", fontFamily:"inherit",
@@ -1303,7 +1297,7 @@ export default function Admin() {
               justifyContent: sidebarOpen ? "flex-start" : "center",
               padding: sidebarOpen ? "10px 12px" : "10px",
               borderRadius:"10px", border:"none", cursor:"pointer",
-              background:"#b4ecd2",
+              background:"#009032",
               color:"rgba(7, 1, 1, 0.35)",
               fontSize:"13px", fontFamily:"inherit" }}>
             <span style={{ fontSize:"18px" }}></span>

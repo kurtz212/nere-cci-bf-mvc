@@ -424,7 +424,7 @@ export default function Paiement() {
                       <div style={{ background:"rgba(77,201,122,0.06)", border:"1px solid rgba(77,201,122,0.2)",
                         borderRadius:"10px", padding:"20px", marginBottom:"20px" }}>
                         <div style={{ fontWeight:700, fontSize:"14px", color:"#0A3D1F", marginBottom:"12px" }}>
-                          📸 Uploader la photo du reçu
+                           Uploader la photo du reçu
                         </div>
                         <div style={{ marginBottom:"12px" }}>
                           <input type="file" accept="image/*" onChange={handlePhotoRecuUpload}
@@ -465,7 +465,7 @@ export default function Paiement() {
                 )}
 
                 <div style={{ display:"flex", gap:"12px", justifyContent:"center", flexWrap:"wrap" }}>
-                  <button className="btn-save" onClick={() => navigate("/dashboard")}>
+                  <button className="btn-save" onClick={() => navigate("/Profil")}>
                     Mon espace abonné
                   </button>
                   <button className="btn-cancel" onClick={() => navigate("/")}>

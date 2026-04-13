@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../styles/dashboard.css";
-
+import logoNERE from "../../assets/nere.jpg";
 // ── Heures ouvrables : Lun–Ven 8h–17h ──
 function estOuvrable() {
   const now  = new Date();
@@ -150,12 +150,26 @@ export default function Chat() {
       <div style={{ position:"relative", zIndex:1, display:"flex", flexDirection:"column", height:"100vh" }}>
 
         {/* NAVBAR */}
-        <nav className="dash-navbar" style={{ flexShrink:0 }}>
-          <div className="dash-logo" onClick={() => navigate("/")}>NERE <span>CCI-BF</span></div>
+
+        
+       <nav className="dash-navbar">
+                 <div style={{ display:"flex", alignItems:"center", gap:"8px" }}>
+                   <img src={logoNERE} alt="NERE"
+                     style={{ height:"60px", width:"auto", borderRadius:"6px", flexShrink:0 }}/>
+                   <div style={{ display:"flex", flexDirection:"column", lineHeight:1.4 }}>
+                     <span style={{ fontSize:"11px", fontWeight:800, color:"#fff",
+                       letterSpacing:"0.06em", textTransform:"uppercase" }}>Fichier NERE</span>
+                     <span style={{ fontSize:"10px", color:"rgba(255,255,255,0.85)" }}>
+                       Registre national des entreprises<br/>Du Burkina Faso
+                     </span>
+                   </div>
+                 </div>
+       
+      
           <div className="dash-nav-links">
             <span className="dash-nav-link" onClick={() => navigate("/")}>Accueil</span>
             <span className="dash-nav-link" onClick={() => navigate("/contact")}>Contact</span>
-            <span className="nav-link" onClick={()=>navigate("/demande-document")}>Recherche</span>
+
             <span className="dash-nav-link active"> Chat</span>
           </div>
           <div className="dash-nav-actions">

@@ -393,18 +393,15 @@ export default function Recherche() {
               </div>
             </div>
 
-            {/* CARTE 2 — Recherche par un critère */}
-            <div
-              className="choice-card"
-              style={{
-                position: "relative",
-                ...(hovered === "single" ? cardHovered : cardBase)
-              }}
-              onMouseEnter={() => setHovered("single")}
-              onMouseLeave={() => setHovered(null)}
-              onClick={() => navigate("/RechercheEntreprise") /* à définir */}
-            >
-              {/* Icône */}
+            {/* CARTE 2 - route correcte */}
+                <div
+                  className="choice-card"
+                  style={{ position:"relative", ...(hovered==="single" ? cardHovered : cardBase) }}
+                  onMouseEnter={() => setHovered("single")}
+                  onMouseLeave={() => setHovered(null)}
+                  onClick={() => navigate("/recherche-entreprise")}
+                >
+                              {/* Icône */}
               <div style={iconBox("rgba(201,168,76,0.2)")}>
                 <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <circle cx="16" cy="16" r="10" stroke="#C9A84C" strokeWidth="2.2"/>

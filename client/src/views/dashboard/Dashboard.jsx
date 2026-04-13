@@ -72,36 +72,36 @@ export default function Dashboard() {
       fontFamily:"'Plus Jakarta Sans',sans-serif", background:"#F5FAF7" }}>
 
       {/* ── SIDEBAR ── */}
-      <aside style={{ width:"240px", background:"#0A3D1F", flexShrink:0,
+      <aside style={{ width:"240px", background:"#ffffff", flexShrink:0,
         display:"flex", flexDirection:"column", position:"sticky",
         top:0, height:"100vh" }}>
 
         {/* Logo */}
         <div style={{ padding:"20px", borderBottom:"1px solid rgba(255,255,255,0.08)" }}>
           <div style={{ fontFamily:"'Playfair Display',serif", fontSize:"17px",
-            fontWeight:900, color:"#fff", cursor:"pointer" }}
+            fontWeight:900, color:"#ED1C24", cursor:"pointer" }}
             onClick={() => navigate("/")}>
-            NERE <span style={{ color:"#4DC97A" }}>CCI-BF</span>
+            NERE <span style={{ color:"#090909" }}>CCI-BF</span>
           </div>
-          <div style={{ fontSize:"10px", color:"rgba(255,255,255,0.35)", marginTop:"2px" }}>
+          <div style={{ fontSize:"10px", color:"#090909", marginTop:"2px" }}>
             Espace utilisateur
           </div>
         </div>
 
         {/* Avatar */}
-        <div style={{ padding:"20px", borderBottom:"1px solid rgba(255,255,255,0.08)",
+        <div style={{ padding:"20px", borderBottom:"1px solid rgba(7, 7, 7, 0.08)",
           display:"flex", alignItems:"center", gap:"12px" }}>
           <div style={{ width:"40px", height:"40px", borderRadius:"12px",
-            background:"rgba(77,201,122,0.2)", display:"flex", alignItems:"center",
+            background:"rgba(164, 112, 216, 0.2)", display:"flex", alignItems:"center",
             justifyContent:"center", fontWeight:800, fontSize:"16px",
             color:"#4DC97A", flexShrink:0 }}>
             {initiales}
           </div>
           <div>
-            <div style={{ fontWeight:700, fontSize:"13px", color:"#fff" }}>
+            <div style={{ fontWeight:700, fontSize:"13px", color:"#0b0b0b" }}>
               {user.prenom} {user.nom}
             </div>
-            <div style={{ fontSize:"11px", color:"rgba(255,255,255,0.4)" }}>
+            <div style={{ fontSize:"11px", color:"rgba(11, 11, 11, 0.4)" }}>
               {user.role === "admin" ? " Admin" : user.typeCompte || "Utilisateur"}
             </div>
           </div>
@@ -115,7 +115,7 @@ export default function Dashboard() {
               style={{ width:"100%", display:"flex", alignItems:"center",
                 gap:"10px", padding:"10px 12px", borderRadius:"10px",
                 border:"none", cursor:"pointer", background:"transparent",
-                color:"rgba(255,255,255,0.55)", fontWeight:500,
+                color:"#090909", fontWeight:500,
                 fontSize:"13px", fontFamily:"inherit", marginBottom:"4px",
                 transition:"all 0.15s", textAlign:"left" }}>
               <span style={{ fontSize:"18px" }}>{item.icone}</span>
@@ -127,7 +127,7 @@ export default function Dashboard() {
               style={{ width:"100%", display:"flex", alignItems:"center",
                 gap:"10px", padding:"10px 12px", borderRadius:"10px",
                 border:"none", cursor:"pointer",
-                background:"rgba(77,201,122,0.1)",
+                background:"rgba(171, 122, 31, 0.1)",
                 color:"#4DC97A", fontWeight:700,
                 fontSize:"13px", fontFamily:"inherit",
                 marginBottom:"4px", textAlign:"left" }}>
@@ -158,7 +158,7 @@ export default function Dashboard() {
         <div style={{ background:"#fff", borderBottom:"1px solid #E2EDE6",
           padding:"0 28px", height:"60px", display:"flex",
           alignItems:"center", justifyContent:"space-between", flexShrink:0 }}>
-          <div style={{ fontWeight:700, fontSize:"15px", color:"#0A3D1F" }}>
+          <div style={{ fontWeight:700, fontSize:"15px", color:"#3d0a0a" }}>
              Bonjour, {user.prenom} !
           </div>
           <div style={{ fontSize:"13px", color:"#6B9A7A" }}>
@@ -245,7 +245,7 @@ export default function Dashboard() {
               <div style={{ display:"flex", justifyContent:"space-between",
                 alignItems:"center", marginBottom:"16px" }}>
                 <div style={{ fontWeight:700, fontSize:"15px", color:"#0A3D1F" }}>
-                  📄 Mes demandes de documents
+                   Mes demandes de documents
                 </div>
                 <button onClick={() => navigate("/demande-document")}
                   style={{ fontSize:"12px", color:"#4DC97A", background:"none",

@@ -230,7 +230,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="nav-links" style={{display:"flex", alignItems:"center", gap:"25px", marginLeft:"40px"}}>
+          <div className="nav-links" style={{display:"flex", alignItems:"center", gap:"25px", marginLeft:"100px"}}>
             <span className="nav-link active" onClick={()=>navigate("/")}>Accueil</span>
             <span className="nav-link" onClick={()=>navigate("/publications")}>Publications</span>
                  <span className="nav-link" onClick={()=>navigate("/rechercheacc")}>Recherche</span>
@@ -481,9 +481,9 @@ export default function Home() {
               },
               {
                 nom:"Pack 2",
-                prix:"10 000",
+                prix:"15 000",
                 tag:null,
-                description:"Créditez votre compte avec 10 000 FCFA. Déduction directe à chaque requête.",
+                description:"Créditez votre compte avec 15 000 FCFA. Déduction directe à chaque requête.",
                 btn:"btn-primary-pack"
               },
               {

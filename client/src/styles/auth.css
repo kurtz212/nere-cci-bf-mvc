@@ -89,16 +89,39 @@
 
 /* ── NAVBAR ── */
 .auth-navbar {
-  height: 64px;
-  padding: 0 48px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(15px);
-  border-bottom: 1px solid rgba(52, 168, 224, 0.1);
-  animation: slideDown 0.5s ease both;
+  padding: 15px 40px;
+  background: #00904C;
+  color: white;
 }
+
+.nav-links {
+  display: flex;
+  gap: 40px;
+}
+
+.nav-link {
+  cursor: pointer;
+  color: white;
+  font-size: 20px;
+}
+
+.nav-link.active {
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+.auth-nav-right {
+  font-size: 14px;
+}
+
+.auth-link {
+  cursor: pointer;
+  font-weight: bold;
+}
+
 @keyframes slideDown {
   from { transform: translateY(-100%); opacity: 0; }
   to   { transform: translateY(0); opacity: 1; }
@@ -117,7 +140,7 @@
 
 .auth-nav-right {
   font-size: 13px;
-  color: rgba(26, 26, 26, 0.6);
+  color: rgba(7, 7, 7, 0.873);
 }
 
 .auth-link {

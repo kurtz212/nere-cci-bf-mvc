@@ -389,10 +389,9 @@ export default function Recherche() {
               }}
               onMouseEnter={() => setHovered("single")}
               onMouseLeave={() => setHovered(null)}
-              onClick={() => navigate("/") /* à définir */}
+              onClick={() => navigate("/recherche-entreprise") /* à définir */}
             >
-             
-
+  
               <div className="choice-label">Recherche par<br/>un critère</div>
 
               <div className="choice-desc">

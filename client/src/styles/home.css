@@ -187,7 +187,7 @@ body {
 /* Liens nav */
 .nav-links { display: flex; align-items: center; gap: 30px; }
 .nav-link {
-  font-size: 13px; font-weight: 500;
+  font-size: 20px; font-weight: 500;
   color: #FFFFFF;
   cursor: pointer; transition: color 0.2s;
   position: relative; padding-bottom: 2px;
@@ -197,11 +197,25 @@ body {
   width:0;height:2px;background:#00904C;
   transition:width 0.3s;border-radius:1px;
 }
-.nav-link:hover { color: #E6F7EE; }
-.nav-link:hover::after { width: 100%; }
-.nav-link.active { color: #E6F7EE; }
-.nav-link.active::after { width: 100%; }
+.nav-link:hover {
+  color: #FFFFFF;
+}
 
+.nav-link.active {
+  color: #FFFFFF;
+}
+
+/* optionnel : supprimer la barre dessous */
+.nav-link::after {
+  display: none;
+}
+.nav-link,
+.nav-link:hover,
+.nav-link:active,
+.nav-link:focus,
+.nav-link.active {
+  color: #FFFFFF !important;
+}
 .nav-actions { display: flex; gap: 10px; align-items: center; }
 
 /* ── Chip utilisateur connecté ── */
@@ -434,7 +448,7 @@ body {
   background:linear-gradient(90deg,var(--green-mid),var(--green-light));
   transform:scaleX(0);transform-origin:left;transition:transform 0.3s;
 }
-.pub-card:hover { border-color:rgba(34,160,82,0.3);box-shadow:0 12px 40px rgba(10,61,31,0.1);transform:translateY(-4px); }
+.pub-card:hover { border-color:rgba(225, 233, 228, 0.3);box-shadow:0 12px 40px rgba(10,61,31,0.1);transform:translateY(-4px); }
 .pub-card:hover::before { transform:scaleX(1); }
 .pub-card.locked { background:#fafcfb;cursor:default; }
 .pub-card.locked:hover { transform:none;box-shadow:none; }
@@ -475,15 +489,15 @@ body {
 }
 .pub-cta-actions .btn-primary:hover {
   background: var(--green-mid);
-  box-shadow: 0 8px 24px rgba(34,160,82,0.4);
+  box-shadow: 0 4px 16px rgba(255,255,255,0.3);
 }
 .pub-cta-actions .btn-outline {
-  border-color: rgba(34,160,82,0.3);
+  border-color: #ffffff;
   color: var(--text-mid);
 }
 .pub-cta-actions .btn-outline:hover {
   border-color: var(--green-bright);
-  color: var(--green-bright);
+  color: #ffffff;
   background: rgba(34,160,82,0.06);
 }
 
@@ -497,7 +511,7 @@ body {
 }
 .packs-section::before {
   content:'';position:absolute;top:0;left:0;right:0;height:1px;
-  background:linear-gradient(90deg,transparent,rgba(34,160,82,0.3),transparent);
+  background:linear-gradient(90deg,transparent,rgba(160, 147, 34, 0.3),transparent);
 }
 
 .packs-title {
@@ -512,7 +526,7 @@ body {
   border-radius:18px;padding:32px 28px;
   display:flex;flex-direction:column;gap:14px;
   position:relative;transition:all 0.3s;
-  box-shadow:0 2px 12px rgba(10,61,31,0.05);
+  box-shadow:0 2px 12px #1E4D8C;
 }
 .pack-card-home:hover {
   border-color:rgba(34,160,82,0.35);
@@ -671,7 +685,7 @@ body {
 
 /* HOVER EFFET BOUTON */
 .dropdown-item:hover {
-  background: rgba(77,201,122,0.15);
+  background: #FFFFFF;
   padding-left: 18px;
 }
 
@@ -687,5 +701,5 @@ body {
 /* SEPARATOR */
 .dropdown-divider {
   height: 1px;
-  background: rgba(255,255,255,0.08);
+  background: rgba(242, 4, 4, 0.08);
 }

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../styles/dashboard.css";
-
+import logoNERE    from "../../assets/nere.jpg";
 const PUBLICATIONS_MOCK = [
   {
     id: 1, categorie: "Rapport", date: "28 Fév. 2025", accessLevel: 0,
@@ -50,12 +50,10 @@ const ACCESS_LABELS = {
   3: { label: "Premium", color: "#E85555", bg: "rgba(232,85,85,0.1)"  },
 };
 
-// Remplace chaque caractère non-espace par X
 function masquerTout(texte) {
   return texte.replace(/[^\s]/g, "X");
 }
 
-// Garde les 2 premiers mots lisibles, masque le reste
 function masquerPartiel(texte) {
   const mots = texte.split(" ");
   return mots.map((mot, i) => i < 2 ? mot : mot.replace(/[^\s]/g, "X")).join(" ");
@@ -69,13 +67,7 @@ export default function Publications() {
   const [selected, setSelected]   = useState(null);
   const [pubs, setPubs]           = useState(PUBLICATIONS_MOCK);
   const [loading, setLoading]     = useState(true);
-  const [showForm, setShowForm]   = useState(false);
-  const [editPub, setEditPub]     = useState(null);
-  const [formPub, setFormPub]     = useState({ titre:"", cat:"Rapport", contenu:"", statut:"brouillon" });
-  const [pubError, setPubError]   = useState("");
-  const [pubSaving, setPubSaving] = useState(false);
-
-  const canEdit = user && ["admin","manager"].includes(user.role);
+  const [menuOpen, setMenuOpen]   = useState(false);
 
   const getToken = () => localStorage.getItem("token");
 
@@ -109,86 +101,137 @@ export default function Publications() {
     }
   };
 
-  const sauvegarderPub = async () => {
-    if (!formPub.titre.trim()) {
-      setPubError("Le titre est obligatoire.");
-      return;
-    }
-    setPubError("");
-    setPubSaving(true);
-    try {
-      const url    = editPub ? `http://localhost:5000/api/publications/${editPub.id}` : "http://localhost:5000/api/publications";
-      const method = editPub ? "PUT" : "POST";
-      const res = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${getToken()}`,
-        },
-        body: JSON.stringify({
-          titre: formPub.titre,
-          categorie: formPub.cat,
-          contenu: formPub.contenu,
-          statut: formPub.statut,
-        }),
-      });
-      const data = await res.json();
-      if (!data.success) {
-        setPubError(data.message || "Erreur lors de la sauvegarde.");
-      } else {
-        await chargerPubs();
-        setShowForm(false);
-        setEditPub(null);
-        setFormPub({ titre:"", cat:"Rapport", contenu:"", statut:"brouillon" });
-      }
-    } catch (err) {
-      setPubError("Serveur indisponible.");
-    } finally {
-      setPubSaving(false);
-    }
-  };
-
   useEffect(() => {
     const u = localStorage.getItem("user");
     if (u) setUser(JSON.parse(u));
     chargerPubs();
   }, []);
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setUser(null);
+    setMenuOpen(false);
+  };
+
+  const initiales = user
+    ? `${user.prenom?.[0] || ""}${user.nom?.[0] || ""}`.toUpperCase()
+    : "";
+
   const isVisiteur = !user;
   const packLevel  = user ? 1 : 0;
 
   const pubsFiltrees = pubs.filter((p) => {
-    const matchCat = filtre === "Toutes" || p.categorie === filtre;
+    const matchCat    = filtre === "Toutes" || p.categorie === filtre;
     const matchSearch = p.titre.toLowerCase().includes(recherche.toLowerCase()) ||
                         (p.tags || []).some(t => t.toLowerCase().includes(recherche.toLowerCase()));
     return matchCat && matchSearch;
   });
 
   return (
-    <div style={{ minHeight: "100vh", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <div style={{ minHeight: "100vh", fontFamily: "Arial, Helvetica, sans-serif" }}>
 
-      {/* ── FOND BLANC ── */}
+      {/* ── FOND ── */}
       <div className="dash-bg">
         <div className="grid" />
       </div>
 
       <div style={{ position: "relative", zIndex: 1 }}>
 
-        {/* ── NAVBAR ── */}
+        {/* ══ NAVBAR ══ */}
         <nav className="dash-navbar">
-          <div className="dash-logo" onClick={() => navigate("/")}>NERE <span>CCI-BF</span></div>
+
+      <div className="dash-logo">
+  <img src={logoNERE} alt="NERE" />
+  <div style={{ display:"flex", flexDirection:"column", gap:"2px" }}>
+    <span style={{ fontSize:"11px", fontWeight:800, letterSpacing:"0.06em", textTransform:"uppercase", color:"#fff" }}>
+      Fichier NERE
+    </span>
+    <span style={{ fontSize:"10px", color:"rgba(255,255,255,0.85)", lineHeight:1.4 }}>
+      Registre national des entreprises<br/>Du Burkina Faso
+    </span>
+  </div>
+</div>
+          {/* LIENS */}
           <div className="dash-nav-links">
             <span className="dash-nav-link" onClick={() => navigate("/")}>Accueil</span>
             <span className="dash-nav-link active">Publications</span>
-             <span className="nav-link" onClick={()=>navigate("/rechercheacc")}>Recherche</span>
-            <span className="nav-link" onClick={()=>navigate("/Contact")}>Contact</span>
-            <span className="nav-link" onClick={()=>navigate("/Chat")}>Chat</span>
+            <span className="dash-nav-link" onClick={() => navigate("/rechercheacc")}>Recherche</span>
+            <span className="dash-nav-link" onClick={() => navigate("/contact")}>Contact</span>
+            <span className="dash-nav-link" onClick={() => navigate("/chat")}>Chat</span>
           </div>
+
+          {/* ACTIONS */}
           <div className="dash-nav-actions">
             {user ? (
-              <div className="user-chip" onClick={() => navigate("/profil")}>
-                <div className="user-avatar">{user.prenom?.[0]}{user.nom?.[0]}</div>
-                <span>{user.prenom} {user.nom}</span>
+              <div style={{ position: "relative" }}>
+                <div className="user-chip" onClick={() => setMenuOpen(o => !o)}>
+                  <div className="user-avatar">{initiales}</div>
+                  <span>{user.prenom} {user.nom}</span>
+                  <span style={{ fontSize: "10px", opacity: 0.5, marginLeft: "2px" }}>▾</span>
+                </div>
+                {menuOpen && (
+                  <>
+                    <div style={{ position: "fixed", inset: 0, zIndex: 50 }} onClick={() => setMenuOpen(false)} />
+                    <div style={{
+                      position: "absolute", zIndex: 9999,
+                      background: "#00904C",
+                      top: "calc(100% + 8px)", right: 0,
+                      borderRadius: "12px",
+                      border: "1px solid rgba(255,255,255,0.15)",
+                      minWidth: "200px",
+                      overflow: "hidden",
+                      boxShadow: "0 10px 30px rgba(0,0,0,0.25)"
+                    }} onClick={e => e.stopPropagation()}>
+                      <div style={{ padding: "16px", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+                        <div style={{ fontWeight: 700, color: "#fff", fontSize: "14px" }}>{user.prenom} {user.nom}</div>
+                        <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.6)" }}>{user.email || "—"}</div>
+                        <div style={{ fontSize: "11px", color: "#4DC97A", marginTop: "4px", fontWeight: 600 }}>
+                          {user.role === "admin" ? "Administrateur" : "Pack · Actif"}
+                        </div>
+                      </div>
+                      {[
+                        { label: "Mon Profil",      path: "/profil" },
+                        { label: "Mon Abonnement",  path: "/paiement" },
+                        { label: "Historique",      path: "/profil" },
+                        { label: "Sécurité",        path: "/profil" },
+                        { label: "Notifications",   path: "/profil" },
+                      ].map(item => (
+                        <div key={item.label}
+                          style={{ padding: "11px 16px", color: "rgba(255,255,255,0.85)", fontSize: "13px", cursor: "pointer" }}
+                          onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
+                          onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                          onClick={() => { navigate(item.path); setMenuOpen(false); }}>
+                          {item.label}
+                        </div>
+                      ))}
+                      {user.role === "admin" && (
+                        <div style={{ padding: "11px 16px", color: "rgba(255,255,255,0.85)", fontSize: "13px", cursor: "pointer" }}
+                          onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
+                          onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                          onClick={() => { navigate("/admin"); setMenuOpen(false); }}>
+                          Tableau de bord
+                        </div>
+                      )}
+                      {user.role === "manager" && (
+                        <div style={{ padding: "11px 16px", color: "rgba(255,255,255,0.85)", fontSize: "13px", cursor: "pointer" }}
+                          onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
+                          onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                          onClick={() => { navigate("/gestionnaire"); setMenuOpen(false); }}>
+                          Tableau de bord
+                        </div>
+                      )}
+                      <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)" }}>
+                        <div style={{ padding: "11px 16px", color: "#FF6B6B", fontSize: "13px", cursor: "pointer", fontWeight: 600 }}
+                          onMouseEnter={e => e.currentTarget.style.background = "rgba(255,107,107,0.1)"}
+                          onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                          onClick={handleLogout}>
+                          Déconnexion
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             ) : (
               <>
@@ -201,27 +244,37 @@ export default function Publications() {
 
         {/* ── BANNIÈRE VISITEUR ── */}
        {isVisiteur && (
-  <div
-    style={{
-      background: "rgba(237, 28, 36, 40)",
-      padding: "14px 48px",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      borderBottom: "3px solid var(--green-light)",
-      flexWrap: "wrap",
-      gap: "12px",
-    }}
-  >
-    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-      <span style={{ fontSize: "20px" }}></span>
-      <span style={{ color: "#fff", fontSize: "14px", fontWeight: 600 }}>
-        Contenu masqué — inscrivez-vous pour accéder aux informations complètes
-      </span>
+  <div style={{
+    background: "rgba(237,28,36,0.85)",
+    padding: "10px 0",
+    borderBottom: "3px solid var(--green-light)",
+    overflow: "hidden",
+    whiteSpace: "nowrap",
+  }}>
+    <div style={{
+      display: "inline-block",
+      animation: "defilement 18s linear infinite",
+      color: "#fff",
+      fontSize: "14px",
+      fontWeight: 600,
+    }}>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+      Contenu masqué — inscrivez-vous pour accéder aux informations complètes
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+      Contenu masqué — inscrivez-vous pour accéder aux informations complètes
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+      Contenu masqué — inscrivez-vous pour accéder aux informations complètes
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     </div>
+
+    <style>{`
+      @keyframes defilement {
+        0%   { transform: translateX(100vw); }
+        100% { transform: translateX(-100%); }
+      }
+    `}</style>
   </div>
 )}
-
 
         {/* ── HERO ── */}
         <div className="pub-page-hero">
@@ -272,7 +325,6 @@ export default function Publications() {
                 className={`pub-page-card ${locked || isVisiteur ? "locked" : ""}`}
                 onClick={() => !locked && !isVisiteur && setSelected(pub)}
               >
-                {/* Badge accès */}
                 <div className="pub-access-badge"
                   style={{ background: access.bg, color: access.color, border: `1px solid ${access.color}44` }}>
                   {locked || isVisiteur ? " " : " "}{access.label}
@@ -280,55 +332,40 @@ export default function Publications() {
 
                 <div className="pub-card-cat">{pub.categorie}</div>
 
-                {/* Date masquée */}
                 <div className="pub-card-date" style={isVisiteur ? { fontFamily: "monospace" } : {}}>
                   {isVisiteur ? masquerTout(pub.date) : pub.date}
                 </div>
 
-                {/* Titre : 2 premiers mots lisibles, reste en XXXXX */}
                 <div className="pub-card-title" style={isVisiteur ? { fontFamily: "monospace", letterSpacing: "0.03em" } : {}}>
                   {isVisiteur ? masquerPartiel(pub.titre) : pub.titre}
                 </div>
 
-                {/* Corps selon statut */}
                 {isVisiteur ? (
-                  /* ─── VISITEUR : tout masqué ─── */
                   <>
                     <div className="pub-card-extrait" style={{
-                      fontFamily: "monospace",
-                      letterSpacing: "0.04em",
-                      color: "var(--text-muted)",
-                      userSelect: "none",
-                      lineHeight: "1.8",
+                      fontFamily: "monospace", letterSpacing: "0.04em",
+                      color: "var(--text-muted)", userSelect: "none", lineHeight: "1.8",
                     }}>
                       {masquerTout(pub.extrait)}
                     </div>
-
                     <div className="pub-card-footer" style={{ marginTop: "auto" }}>
                       <div className="pub-card-tags">
                         {pub.tags.map((t, i) => (
                           <span key={i} className="pub-tag" style={{
-                            fontFamily: "monospace",
-                            letterSpacing: "0.05em",
-                            color: "var(--text-muted)",
+                            fontFamily: "monospace", letterSpacing: "0.05em", color: "var(--text-muted)",
                           }}>
                             {masquerTout(t)}
                           </span>
                         ))}
                       </div>
                     </div>
-
-                    <button
-                      className="btn-upgrade"
+                    <button className="btn-upgrade"
                       style={{ marginTop: "14px", width: "100%", padding: "10px" }}
-                      onClick={e => { e.stopPropagation(); navigate("/inscription"); }}
-                    >
-                       S'inscrire pour lire
+                      onClick={e => { e.stopPropagation(); navigate("/inscription"); }}>
+                      S'inscrire pour lire
                     </button>
                   </>
-
                 ) : locked ? (
-                  /* ─── CONNECTÉ MAIS PACK INSUFFISANT ─── */
                   <div className="pub-card-locked-msg">
                     <div className="lock-icon"></div>
                     <div>Réservé aux abonnés <strong>{access.label}</strong></div>
@@ -337,16 +374,14 @@ export default function Publications() {
                       S'abonner
                     </button>
                   </div>
-
                 ) : (
-                  /* ─── CONNECTÉ ET ACCÈS OK ─── */
                   <>
                     <div className="pub-card-extrait">{pub.extrait}</div>
                     <div className="pub-card-footer">
                       <div className="pub-card-tags">
                         {pub.tags.map(t => <span key={t} className="pub-tag">{t}</span>)}
                       </div>
-                      <span className="pub-card-read">Lire </span>
+                      <span className="pub-card-read">Lire →</span>
                     </div>
                   </>
                 )}
@@ -355,7 +390,7 @@ export default function Publications() {
           })}
         </div>
 
-        {/* ── MODAL LECTURE (connectés seulement) ── */}
+        {/* ── MODAL ── */}
         {selected && !isVisiteur && (
           <div className="modal-overlay" onClick={() => setSelected(null)}>
             <div className="modal-content" onClick={e => e.stopPropagation()}>
@@ -376,9 +411,9 @@ export default function Publications() {
         )}
 
         {/* ── FOOTER ── */}
-         <footer className="dash-footer">
+        <footer className="dash-footer">
           <span>CCI-BF — Chambre de Commerce et d'Industrie du Burkina Faso</span>
-          <div style={{display:"flex",gap:"20px"}}>
+          <div style={{ display: "flex", gap: "20px" }}>
             <span>Tarifs officiels CCI-BF</span>
             <span>+226 25 30 61 22</span>
           </div>

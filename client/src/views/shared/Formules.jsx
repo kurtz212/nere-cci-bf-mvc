@@ -107,7 +107,7 @@ export default function Formules() {
 
   return (
     <div style={{ minHeight:"100vh", fontFamily:"'Plus Jakarta Sans',sans-serif",
-      background:"#0A3D1F", overflow:"hidden", position:"relative" }}>
+      background:"#00904C", overflow:"hidden", position:"relative" }}>
 
       {/* Fond animé */}
       <div className="home-bg">
@@ -168,13 +168,13 @@ export default function Formules() {
           <div style={{position:"fixed",inset:0,zIndex:1000,
             background:"rgba(0,0,0,0.7)",display:"flex",
             alignItems:"center",justifyContent:"center",padding:"20px"}}>
-            <div style={{background:"#0F3D20",border:"1px solid rgba(212,168,48,0.3)",
+            <div style={{background:"#c1a81a",border:"1px solid rgba(212,168,48,0.3)",
               borderRadius:"20px",padding:"40px",maxWidth:"420px",width:"100%",
               textAlign:"center"}}>
               <div style={{fontSize:"40px",marginBottom:"16px"}}></div>
               <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:"22px",
-                color:"#fff",marginBottom:"8px"}}>Pack 3 — Montant flexible</h3>
-              <p style={{color:"rgba(255,255,255,0.5)",fontSize:"13px",
+                color:"#0b0b0b",marginBottom:"8px"}}>Pack 3 — Montant flexible</h3>
+              <p style={{color:"rgba(8, 8, 8, 0.5)",fontSize:"13px",
                 lineHeight:1.7,marginBottom:"24px"}}>
                 Saisissez le montant à créditer sur votre compte.<br/>
                 Montant personnalisé.
@@ -420,7 +420,7 @@ export default function Formules() {
         {/* FAQ */}
         <div style={{ padding:"48px", maxWidth:"700px", margin:"0 auto" }}>
           <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:"28px",
-            color:"#fff", textAlign:"center", marginBottom:"32px" }}>
+            color:"#", textAlign:"center", marginBottom:"32px" }}>
             Questions fréquentes
           </h2>
           {[
@@ -459,8 +459,8 @@ export default function Formules() {
           <div style={{ display:"flex", gap:"14px", justifyContent:"center" }}>
             <button onClick={() => navigate("/chat")} style={{
               padding:"14px 32px", borderRadius:"12px",
-              background:"linear-gradient(135deg, #4DC97A, #1A7A40)",
-              color:"#0A3D1F", fontWeight:800, fontSize:"15px",
+              background:"#ffffff",
+              color:"#00904CF", fontWeight:800, fontSize:"15px",
               border:"none", cursor:"pointer", fontFamily:"inherit" }}>
               Contacter un agent
             </button>

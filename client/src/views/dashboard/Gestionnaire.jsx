@@ -57,7 +57,7 @@ function ManagerLogin({ onSuccess }) {
   return (
     <div style={{
       minHeight:"100vh",
-      background:"#00904C",
+      background:"#",
       display:"flex", alignItems:"center", justifyContent:"center",
       fontFamily:"'Plus Jakarta Sans',sans-serif", position:"relative", overflow:"hidden",
     }}>
@@ -330,8 +330,8 @@ export default function Gestionnaire() {
     card:     { background:"#fff", borderRadius:"16px", border:"1px solid #EAF0EB", padding:"24px", boxShadow:"0 2px 16px #00904C" },
     btn:      { padding:"10px 20px", borderRadius:"10px", background:"#00904C", color:"#fff", border:"none", fontWeight:700, fontSize:"13px", cursor:"pointer", fontFamily:"inherit", transition:"all 0.15s" },
     btnGhost: { padding:"10px 20px", borderRadius:"10px", background:"transparent", color:"#00904C", border:"1.5px solid #C8DDD0", fontWeight:700, fontSize:"13px", cursor:"pointer", fontFamily:"inherit" },
-    input:    { width:"100%", padding:"11px 14px", borderRadius:"10px", border:"1.5px solid #E2EDE6", fontSize:"13px", fontFamily:"inherit", outline:"none", boxSizing:"border-box", color:"#1A2E1F", background:"#FAFCFB" },
-    textarea: { width:"100%", padding:"11px 14px", borderRadius:"10px", border:"1.5px solid #E2EDE6", fontSize:"13px", fontFamily:"inherit", outline:"none", boxSizing:"border-box", color:"#1A2E1F", resize:"vertical", minHeight:"120px", background:"#FAFCFB" },
+    input:    { width:"100%", padding:"11px 14px", borderRadius:"10px", border:"1.5px solid #E2EDE6", fontSize:"13px", fontFamily:"inherit", outline:"none", boxSizing:"border-box", color:"#070707", background:"#FAFCFB" },
+    textarea: { width:"100%", padding:"11px 14px", borderRadius:"10px", border:"1.5px solid #E2EDE6", fontSize:"13px", fontFamily:"inherit", outline:"none", boxSizing:"border-box", color:"#0b0b0b", resize:"vertical", minHeight:"120px", background:"#FAFCFB" },
     label:    { display:"block", fontSize:"11px", fontWeight:700, color:"#6B9A7A", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:"7px" },
   };
 
@@ -371,7 +371,7 @@ export default function Gestionnaire() {
         <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:"24px", color:"#0A3D1F", margin:"0 0 6px" }}>
           Bonjour, {managerUser?.prenom} 
         </h2>
-        <p style={{ color:"#6B9A7A", fontSize:"13px", margin:0 }}>
+        <p style={{ color:"#0b0b0b", fontSize:"13px", margin:0 }}>
           {new Date().toLocaleDateString("fr-FR",{ weekday:"long", day:"numeric", month:"long", year:"numeric" })}
         </p>
       </div>
@@ -387,7 +387,7 @@ export default function Gestionnaire() {
             </div>
             <div>
               <div style={{ fontFamily:"'Playfair Display',serif", fontSize:"28px", fontWeight:900, color:k.color, lineHeight:1 }}>{k.val}</div>
-              <div style={{ fontSize:"12px", color:"#6B9A7A", fontWeight:600, marginTop:"4px" }}>{k.label}</div>
+              <div style={{ fontSize:"12px", color:"#060606", fontWeight:600, marginTop:"4px" }}>{k.label}</div>
             </div>
           </div>
         ))}
@@ -479,7 +479,7 @@ export default function Gestionnaire() {
             </p>
           </div>
           <div style={{ display:"flex", gap:"10px" }}>
-            <input style={{ ...S.input, width:"220px" }} placeholder=" Rechercher..." value={searchDemande} onChange={e=>setSearchDemande(e.target.value)}/>
+            <input style={{ ...S.input, width:"220px" }} placeholder="🔍 Rechercher..." value={searchDemande} onChange={e=>setSearchDemande(e.target.value)}/>
             <button style={S.btn} onClick={chargerDemandes} disabled={demandesLoading}>{demandesLoading?"⏳":"↺"} Actualiser</button>
           </div>
         </div>
@@ -949,27 +949,27 @@ export default function Gestionnaire() {
     <div style={{ display:"flex", minHeight:"100vh", fontFamily:"'Plus Jakarta Sans',sans-serif", background:"#F2F7F3" }}>
 
       {/* SIDEBAR */}
-      <aside style={{ width:sidebarOpen?"250px":"70px", background:"#00904C",
+      <aside style={{ width:sidebarOpen?"250px":"70px", background:"#ffffff",
         flexShrink:0, display:"flex", flexDirection:"column", transition:"width 0.25s ease",
         overflow:"hidden", position:"sticky", top:0, height:"100vh",
         boxShadow:"4px 0 20px rgba(0,0,0,0.15)" }}>
 
         <div style={{ padding:sidebarOpen?"24px 20px 20px":"24px 14px 20px",
-          borderBottom:"1px solid rgba(255,255,255,0.06)",
+          borderBottom:"1px solid rgba(8, 8, 8, 0.06)",
           display:"flex", alignItems:"center", justifyContent:"space-between" }}>
           {sidebarOpen && (
             <div>
-              <div style={{ fontFamily:"'Playfair Display',serif", fontSize:"18px", fontWeight:900, color:"#fff" }}>
-                NERE <span style={{ color:"#4DC97A" }}>Gestion</span>
+              <div style={{ fontFamily:"'Playfair Display',serif", fontSize:"18px", fontWeight:900, color:"#ED1C24" }}>
+                NERE <span style={{ color:"#0a0a0a" }}>Gestion</span>
               </div>
-              <div style={{ fontSize:"10px", color:"#ffffff", marginTop:"3px", textTransform:"uppercase", letterSpacing:"0.08em" }}>
+              <div style={{ fontSize:"10px", color:"#090909", marginTop:"3px", textTransform:"uppercase", letterSpacing:"0.08em" }}>
                 CCI-BF · Gestionnaire
               </div>
             </div>
           )}
-          <button onClick={()=>setSidebar(o=>!o)} style={{ background:"rgba(255,255,255,0.06)", border:"none",
+          <button onClick={()=>setSidebar(o=>!o)} style={{ background:"rgba(6, 6, 6, 0.06)", border:"none",
             borderRadius:"8px", width:"32px", height:"32px", flexShrink:0,
-            color:"rgba(255,255,255,0.35)", cursor:"pointer", fontSize:"13px" }}>
+            color:"rgba(6, 6, 6, 0.35)", cursor:"pointer", fontSize:"13px" }}>
             {sidebarOpen?"◀":"▶"}
           </button>
         </div>
@@ -982,8 +982,8 @@ export default function Gestionnaire() {
                 width:"100%", display:"flex", alignItems:"center",
                 gap:sidebarOpen?"12px":"0", justifyContent:sidebarOpen?"flex-start":"center",
                 padding:sidebarOpen?"11px 14px":"11px", borderRadius:"12px", border:"none",
-                cursor:"pointer", background:active?"#77bca5":"transparent",
-                color:active?"#050d08":"rgba(255,255,255,0.45)",
+                cursor:"pointer", background:active?"#00904C":"transparent",
+                color:active?"#050d08":"rgba(5, 5, 5, 0.45)",
                 fontWeight:active?700:500, fontSize:"13px", fontFamily:"inherit",
                 marginBottom:"4px", transition:"all 0.15s", position:"relative",
               }}>
@@ -1005,7 +1005,7 @@ export default function Gestionnaire() {
           <button onClick={()=>navigate("/")} style={{ width:"100%", display:"flex", alignItems:"center",
             gap:sidebarOpen?"12px":"0", justifyContent:sidebarOpen?"flex-start":"center",
             padding:sidebarOpen?"10px 14px":"10px", borderRadius:"10px", border:"none",
-            cursor:"pointer", background:"#77bca5", color:"#ffffff",
+            cursor:"pointer", background:"#00904C", color:"#090909",
             fontSize:"13px", fontFamily:"inherit" }}>
             <span style={{ fontSize:"18px" }}></span>
             {sidebarOpen && <span>Voir le site</span>}
@@ -1024,7 +1024,7 @@ export default function Gestionnaire() {
           </div>
           <div style={{ display:"flex", alignItems:"center", gap:"14px" }}>
             <span style={{ background:"rgba(77,201,122,0.12)", color:"#1A7A40", borderRadius:"100px", padding:"4px 12px", fontSize:"11px", fontWeight:700 }}>
-               
+              🟢 Gestionnaire
             </span>
             <div style={{ display:"flex", alignItems:"center", gap:"10px" }}>
               <div style={{ width:"36px", height:"36px", borderRadius:"10px",

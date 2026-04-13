@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../styles/dashboard.css";
+import logoNERE from "../../assets/nere.jpg";
 
 const TYPES_REQUETES = [
   {
@@ -106,7 +107,6 @@ function ModalDetail({ demande, onClose }) {
   if (!demande) return null;
   const typ = TYPES_REQUETES.find(t => t.id === demande.typeRequete);
   const sc  = STATUT_COLORS[demande.statut] || STATUT_COLORS["en_attente"];
-
   return (
     <div style={{ position:"fixed", inset:0, zIndex:1000,
       background:"rgba(0,0,0,0.55)", display:"flex",
@@ -115,8 +115,6 @@ function ModalDetail({ demande, onClose }) {
       <div style={{ background:"#fff", borderRadius:"20px", padding:"36px",
         maxWidth:"560px", width:"100%", maxHeight:"85vh", overflowY:"auto" }}
         onClick={e => e.stopPropagation()}>
-
-        {/* En-tête */}
         <div style={{ display:"flex", justifyContent:"space-between",
           alignItems:"flex-start", marginBottom:"24px" }}>
           <div>
@@ -124,8 +122,9 @@ function ModalDetail({ demande, onClose }) {
               textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:"6px" }}>
               Réf. {demande._id?.slice(-6).toUpperCase() || "—"}
             </div>
-            <h3 style={{ fontFamily:"'Playfair Display',serif", fontSize:"22px",
-              color:"#0A3D1F", margin:0 }}>{typ?.label || demande.typeRequete}</h3>
+            <h3 style={{ fontSize:"22px", color:"#0A3D1F", margin:0, fontWeight:800 }}>
+              {typ?.label || demande.typeRequete}
+            </h3>
           </div>
           <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:"8px" }}>
             <span style={{ background:sc.bg, color:sc.color,
@@ -134,138 +133,93 @@ function ModalDetail({ demande, onClose }) {
               {sc.label}
             </span>
             <button onClick={onClose} style={{ background:"none", border:"none",
-              cursor:"pointer", fontSize:"20px", color:"#999", lineHeight:1 }}>✕</button>
+              cursor:"pointer", fontSize:"20px", color:"#999" }}>✕</button>
           </div>
         </div>
-
-        {/* Infos principales */}
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"12px",
-          marginBottom:"20px" }}>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"12px", marginBottom:"20px" }}>
           {[
             { label:"Date", value: demande.createdAt
               ? new Date(demande.createdAt).toLocaleDateString("fr-FR",
-                  { day:"2-digit", month:"long", year:"numeric" })
-              : "—" },
+                  { day:"2-digit", month:"long", year:"numeric" }) : "—" },
             { label:"Sous-type", value: typ?.sousTypes?.find(s => s.value === demande.sousType)?.label || "—" },
             { label:"Quantité", value: demande.quantite ? `${demande.quantite} ${typ?.unite || ""}(s)` : "—" },
             { label:"Montant estimé", value: formaterMontant(demande.montantEstime) },
             { label:"Contact", value: demande.contact || "—" },
             { label:"Téléphone", value: demande.telephone || "—" },
           ].map(({ label, value }) => (
-            <div key={label} style={{ background:"#F7FAF8", borderRadius:"10px",
-              padding:"12px 14px" }}>
+            <div key={label} style={{ background:"#F7FAF8", borderRadius:"10px", padding:"12px 14px" }}>
               <div style={{ fontSize:"10px", fontWeight:700, color:"#6B9A7A",
-                textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:"4px" }}>
-                {label}
-              </div>
+                textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:"4px" }}>{label}</div>
               <div style={{ fontSize:"14px", fontWeight:600, color:"#0A3D1F" }}>{value}</div>
             </div>
           ))}
         </div>
-
-        {/* Critères */}
-        {(demande.regions?.length > 0 || demande.activites?.length > 0 ||
-          demande.formesJuridiques?.length > 0 || demande.tranches?.length > 0) && (
-          <div style={{ marginBottom:"20px" }}>
-            <div style={{ fontSize:"11px", fontWeight:700, color:"#6B9A7A",
-              textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:"10px" }}>
-              Critères de sélection
-            </div>
-            <div style={{ display:"flex", flexWrap:"wrap", gap:"6px" }}>
-              {demande.regions?.map(r => (
-                <span key={r} style={{ background:"#E8F5EE", color:"#1A7A40",
-                  border:"1px solid rgba(34,160,82,0.2)", borderRadius:"100px",
-                  padding:"3px 10px", fontSize:"11px", fontWeight:600 }}>{r}</span>
-              ))}
-              {demande.activites?.map(a => (
-                <span key={a} style={{ background:"#E8F5EE", color:"#1A7A40",
-                  border:"1px solid rgba(34,160,82,0.2)", borderRadius:"100px",
-                  padding:"3px 10px", fontSize:"11px", fontWeight:600 }}>
-                  {ACTIVITES.find(x => x.value === a)?.label || a}
-                </span>
-              ))}
-              {demande.formesJuridiques?.map(f => (
-                <span key={f} style={{ background:"#E8F5EE", color:"#1A7A40",
-                  border:"1px solid rgba(34,160,82,0.2)", borderRadius:"100px",
-                  padding:"3px 10px", fontSize:"11px", fontWeight:600 }}>{f}</span>
-              ))}
-              {demande.tranches?.map(t => (
-                <span key={t} style={{ background:"#E8F5EE", color:"#1A7A40",
-                  border:"1px solid rgba(34,160,82,0.2)", borderRadius:"100px",
-                  padding:"3px 10px", fontSize:"11px", fontWeight:600 }}>
-                  {TRANCHES_EFFECTIF.find(x => x.value === t)?.label || t}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Villes */}
-        {demande.villes && (
-          <div style={{ marginBottom:"16px" }}>
-            <div style={{ fontSize:"10px", fontWeight:700, color:"#6B9A7A",
-              textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:"4px" }}>
-              Villes / Provinces
-            </div>
-            <div style={{ fontSize:"13px", color:"#333" }}>{demande.villes}</div>
-          </div>
-        )}
-
-        {/* Description */}
         {demande.description && (
-          <div style={{ background:"#F7FAF8", borderRadius:"10px",
-            padding:"14px", marginBottom:"20px" }}>
+          <div style={{ background:"#F7FAF8", borderRadius:"10px", padding:"14px", marginBottom:"20px" }}>
             <div style={{ fontSize:"10px", fontWeight:700, color:"#6B9A7A",
-              textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:"6px" }}>
-              Description
-            </div>
-            <p style={{ fontSize:"13px", color:"#333", lineHeight:1.6, margin:0 }}>
-              {demande.description}
-            </p>
+              textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:"6px" }}>Description</div>
+            <p style={{ fontSize:"13px", color:"#333", lineHeight:1.6, margin:0 }}>{demande.description}</p>
           </div>
         )}
-
         <button onClick={onClose} style={{ width:"100%", padding:"12px",
-          background:"#0A3D1F", color:"#fff", border:"none", borderRadius:"10px",
-          fontWeight:700, fontSize:"14px", cursor:"pointer", fontFamily:"inherit" }}>
-          Fermer
-        </button>
+          background:"#00904C", color:"#fff", border:"none", borderRadius:"10px",
+          fontWeight:700, fontSize:"14px", cursor:"pointer" }}>Fermer</button>
       </div>
     </div>
   );
 }
 
 export default function DemandeDocument() {
-  const [solde, setSolde] = useState(null);
+  const [solde, setSolde]             = useState(null);
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [coutRequete, setCoutRequete] = useState(0);
-  const [resultat, setResultat] = useState(null);
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("user") || "null");
+
+  const [user, setUser]       = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [onglet, setOnglet]   = useState("nouvelle");
   const [etape, setEtape]     = useState(1);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  /* ── États "Mes demandes" ── */
-  const [demandes, setDemandes]             = useState([]);
+  const [demandes, setDemandes]               = useState([]);
   const [demandesLoading, setDemandesLoading] = useState(false);
   const [demandesErreur, setDemandesErreur]   = useState("");
   const [demandeDetail, setDemandeDetail]     = useState(null);
   const [annulationId, setAnnulationId]       = useState(null);
   const [relanceId, setRelanceId]             = useState(null);
-  const [actionMessage, setActionMessage]     = useState({ id: null, texte: "", type: "" });
+  const [actionMessage, setActionMessage]     = useState({ id:null, texte:"", type:"" });
   const [filtreStatut, setFiltreStatut]       = useState("tous");
 
   const [form, setForm] = useState({
     typeRequete:"", sousType:"", quantite:"",
     regions:[], villes:"", activites:[],
     formesJuridiques:[], tranches:[],
-    description:"", contact: user?.email||"", telephone: user?.telephone||"",
-    confirmationDescription: "",
+    description:"", contact:"", telephone:"",
+    confirmationDescription:"",
   });
 
-  /* ── Chargement des demandes depuis l'API ── */
+  useEffect(() => {
+    const u = localStorage.getItem("user");
+    if (u) {
+      const parsed = JSON.parse(u);
+      setUser(parsed);
+      setForm(f => ({ ...f, contact: parsed.email || "", telephone: parsed.telephone || "" }));
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setUser(null);
+    setMenuOpen(false);
+    navigate("/");
+  };
+
+  const initiales = user
+    ? `${user.prenom?.[0] || ""}${user.nom?.[0] || ""}`.toUpperCase()
+    : "";
+
   const chargerDemandes = useCallback(async () => {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -273,137 +227,108 @@ export default function DemandeDocument() {
     setDemandesErreur("");
     try {
       const res  = await fetch("http://localhost:5000/api/demandes/mes-demandes", {
-        headers: { "Authorization": `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
-      if (data.success) {
-        setDemandes(data.data || []);
-      } else {
-        setDemandesErreur(data.message || "Impossible de charger vos demandes.");
-      }
-    } catch (e) {
+      if (data.success) setDemandes(data.data || []);
+      else setDemandesErreur(data.message || "Impossible de charger vos demandes.");
+    } catch {
       setDemandesErreur("Serveur inaccessible. Vérifiez votre connexion.");
     }
     setDemandesLoading(false);
   }, []);
 
-  /* Charger dès qu'on bascule sur l'onglet historique */
   useEffect(() => {
     if (onglet === "historique") chargerDemandes();
   }, [onglet, chargerDemandes]);
 
-  /* ── Annuler une demande ── */
   const annulerDemande = async (id) => {
     if (!window.confirm("Confirmer l'annulation de cette demande ?")) return;
     setAnnulationId(id);
     const token = localStorage.getItem("token");
     try {
       const res  = await fetch(`http://localhost:5000/api/demandes/${id}/annuler`, {
-        method: "PUT",
-        headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
+        method:"PUT", headers:{ Authorization:`Bearer ${token}`, "Content-Type":"application/json" },
       });
       const data = await res.json();
       if (data.success) {
-        setActionMessage({ id, texte: "Demande annulée avec succès.", type: "succes" });
+        setActionMessage({ id, texte:"Demande annulée avec succès.", type:"succes" });
         chargerDemandes();
       } else {
-        setActionMessage({ id, texte: data.message || "Annulation impossible.", type: "erreur" });
+        setActionMessage({ id, texte:data.message || "Annulation impossible.", type:"erreur" });
       }
-    } catch (e) {
-      setActionMessage({ id, texte: "Erreur serveur lors de l'annulation.", type: "erreur" });
+    } catch {
+      setActionMessage({ id, texte:"Erreur serveur lors de l'annulation.", type:"erreur" });
     }
     setAnnulationId(null);
-    setTimeout(() => setActionMessage({ id: null, texte: "", type: "" }), 4000);
+    setTimeout(() => setActionMessage({ id:null, texte:"", type:"" }), 4000);
   };
 
-  /* ── Relancer une demande ── */
   const relancerDemande = async (demande) => {
     setRelanceId(demande._id);
     const token = localStorage.getItem("token");
     try {
       const res  = await fetch(`http://localhost:5000/api/demandes/${demande._id}/relancer`, {
-        method: "POST",
-        headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
+        method:"POST", headers:{ Authorization:`Bearer ${token}`, "Content-Type":"application/json" },
       });
       const data = await res.json();
       if (data.success) {
-        setActionMessage({ id: demande._id, texte: "Demande relancée. Un agent vous recontactera.", type: "succes" });
+        setActionMessage({ id:demande._id, texte:"Demande relancée. Un agent vous recontactera.", type:"succes" });
         chargerDemandes();
       } else {
-        setActionMessage({ id: demande._id, texte: data.message || "Relance impossible.", type: "erreur" });
+        setActionMessage({ id:demande._id, texte:data.message || "Relance impossible.", type:"erreur" });
       }
-    } catch (e) {
-      setActionMessage({ id: demande._id, texte: "Erreur serveur lors de la relance.", type: "erreur" });
+    } catch {
+      setActionMessage({ id:demande._id, texte:"Erreur serveur lors de la relance.", type:"erreur" });
     }
     setRelanceId(null);
-    setTimeout(() => setActionMessage({ id: null, texte: "", type: "" }), 4000);
+    setTimeout(() => setActionMessage({ id:null, texte:"", type:"" }), 4000);
   };
 
   const toggleArr = (field, val) => setForm(f => ({
-    ...f,
-    [field]: f[field].includes(val) ? f[field].filter(v=>v!==val) : [...f[field], val],
+    ...f, [field]: f[field].includes(val) ? f[field].filter(v => v !== val) : [...f[field], val],
   }));
 
-  const typeObj = TYPES_REQUETES.find(t => t.id === form.typeRequete);
-  const montant = typeObj?.prix && form.quantite
-    ? typeObj.prix * parseInt(form.quantite || 0) : null;
+  const typeObj  = TYPES_REQUETES.find(t => t.id === form.typeRequete);
+  const montant  = typeObj?.prix && form.quantite ? typeObj.prix * parseInt(form.quantite || 0) : null;
   const nbCriteres = form.regions.length + form.activites.length +
     form.formesJuridiques.length + form.tranches.length;
 
-  /* Demandes filtrées */
   const demandesFiltrees = filtreStatut === "tous"
-    ? demandes
-    : demandes.filter(d => d.statut === filtreStatut);
+    ? demandes : demandes.filter(d => d.statut === filtreStatut);
 
   const soumettre = async () => {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
       const deductRes = await fetch("http://localhost:5000/api/abonnements/deduire", {
-        method: "POST",
-        headers: { "Content-Type":"application/json", "Authorization":`Bearer ${token}` },
-        body: JSON.stringify({
-          typeRequete:  form.typeRequete,
-          quantite:     form.quantite || 1,
-          description:  `Requête ${form.typeRequete} - ${form.sousType}`,
-        }),
+        method:"POST",
+        headers:{ "Content-Type":"application/json", Authorization:`Bearer ${token}` },
+        body: JSON.stringify({ typeRequete:form.typeRequete, quantite:form.quantite||1,
+          description:`Requête ${form.typeRequete} - ${form.sousType}` }),
       });
       const deductData = await deductRes.json();
-
-      if (!deductData.success && deductData.code === 'SOLDE_INSUFFISANT') {
+      if (!deductData.success && deductData.code === "SOLDE_INSUFFISANT") {
         setCoutRequete(deductData.cout);
         setShowUpgrade(true);
         setLoading(false);
         return;
       }
-      if (deductData.success) {
-        setSolde(s => s ? { ...s, solde: deductData.data.solde } : null);
-      }
+      if (deductData.success) setSolde(s => s ? { ...s, solde:deductData.data.solde } : null);
 
-      const res = await fetch("http://localhost:5000/api/demandes", {
-        method:  "POST",
-        headers: { "Content-Type":"application/json", "Authorization":`Bearer ${token}` },
+      await fetch("http://localhost:5000/api/demandes", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json", Authorization:`Bearer ${token}` },
         body: JSON.stringify({
-          typeRequete:      form.typeRequete,
-          sousType:         form.sousType,
-          quantite:         form.quantite,
-          regions:          form.regions,
-          villes:           form.villes,
-          activites:        form.activites,
-          formesJuridiques: form.formesJuridiques,
-          tranches:         form.tranches,
-          description:      form.description,
-          contact:          form.contact,
-          telephone:        form.telephone,
-          montantEstime:    montant,
+          typeRequete:form.typeRequete, sousType:form.sousType, quantite:form.quantite,
+          regions:form.regions, villes:form.villes, activites:form.activites,
+          formesJuridiques:form.formesJuridiques, tranches:form.tranches,
+          description:form.description, contact:form.contact, telephone:form.telephone,
+          montantEstime:montant,
         }),
       });
-      const data = await res.json();
-      setEtape(4);
       setSuccess(true);
-      if (!data.success) console.warn("API warning:", data.message);
-    } catch(e) {
-      setEtape(4);
+    } catch {
       setSuccess(true);
     } finally {
       setLoading(false);
@@ -411,11 +336,14 @@ export default function DemandeDocument() {
   };
 
   const reset = () => {
-    setSuccess(false); setEtape(1);
-    setForm({ typeRequete:"", sousType:"", quantite:"", regions:[], villes:"",
+    setSuccess(false);
+    setEtape(1);
+    setForm({
+      typeRequete:"", sousType:"", quantite:"", regions:[], villes:"",
       activites:[], formesJuridiques:[], tranches:[],
       description:"", contact:user?.email||"", telephone:user?.telephone||"",
-      confirmationDescription:"" });
+      confirmationDescription:"",
+    });
   };
 
   const PACKS_UPGRADE = [
@@ -425,13 +353,14 @@ export default function DemandeDocument() {
   ];
 
   if (!user) return (
-    <div style={{minHeight:"100vh",background:"#F5FAF7",display:"flex",alignItems:"center",
-      justifyContent:"center",fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
-      <div style={{textAlign:"center"}}>
-        <div style={{fontSize:"48px",marginBottom:"16px"}}></div>
-        <h2 style={{color:"#0A3D1F"}}>Accès réservé aux abonnés</h2>
-        <button onClick={()=>navigate("/connexion")} className="btn-save" style={{marginTop:"16px"}}>
-          Se connecter</button>
+    <div style={{ minHeight:"100vh", background:"#F5FAF7", display:"flex",
+      alignItems:"center", justifyContent:"center", fontFamily:"Arial, sans-serif" }}>
+      <div style={{ textAlign:"center" }}>
+        <div style={{ fontSize:"48px", marginBottom:"16px" }}>🔒</div>
+        <h2 style={{ color:"#0A3D1F" }}>Accès réservé aux abonnés</h2>
+        <button onClick={() => navigate("/connexion")} className="btn-save" style={{ marginTop:"16px" }}>
+          Se connecter
+        </button>
       </div>
     </div>
   );
@@ -445,68 +374,143 @@ export default function DemandeDocument() {
     </span>
   );
 
-  const SectionCritere = ({ icon, titre, sous, children }) => (
+  const SectionCritere = ({ titre, sous, children }) => (
     <div style={{ background:"var(--off-white)", borderRadius:"12px",
       border:"1px solid var(--border)", padding:"20px" }}>
       <div style={{ display:"flex", alignItems:"center", gap:"8px", marginBottom:"14px" }}>
-        <span style={{fontSize:"18px"}}>{icon}</span>
-        <span style={{fontWeight:700,fontSize:"14px",color:"var(--text-dark)"}}>{titre}</span>
-        {sous && <span style={{fontSize:"11px",color:"var(--text-muted)"}}>{sous}</span>}
+        <span style={{ fontWeight:700, fontSize:"14px", color:"var(--text-dark)" }}>{titre}</span>
+        {sous && <span style={{ fontSize:"11px", color:"var(--text-muted)" }}>{sous}</span>}
       </div>
       {children}
     </div>
   );
 
   return (
-    <div style={{minHeight:"100vh",fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
+    <div style={{ minHeight:"100vh", fontFamily:"Arial, Helvetica, sans-serif" }}>
+      <style>{`* { font-family: Arial, Helvetica, sans-serif !important; }`}</style>
       <div className="dash-bg"><div className="grid"/></div>
-      <div style={{position:"relative",zIndex:1}}>
+      <div style={{ position:"relative", zIndex:1 }}>
 
-        {/* NAVBAR */}
+        {/* ══ NAVBAR ══ */}
         <nav className="dash-navbar">
-          <div className="dash-logo" onClick={()=>navigate("/")}>NERE <span>CCI-BF</span></div>
-          <div className="dash-nav-links">
-            <span className="dash-nav-link" onClick={()=>navigate("/")}>Accueil</span>
-            <span className="dash-nav-link active">Demande</span>
-            <span className="dash-nav-link" onClick={()=>navigate("/chat")}>Chat</span>
+          <div style={{ display:"flex", alignItems:"center", gap:"12px" }}>
+            <img src={logoNERE} alt="NERE"
+              style={{ height:"60px", width:"auto", borderRadius:"6px", flexShrink:0 }}/>
+            <div style={{ display:"flex", flexDirection:"column", lineHeight:1.4 }}>
+              <span style={{ fontSize:"11px", fontWeight:800, color:"#fff",
+                letterSpacing:"0.06em", textTransform:"uppercase" }}>Fichier NERE</span>
+              <span style={{ fontSize:"10px", color:"rgba(255,255,255,0.85)" }}>
+                Registre national des entreprises<br/>Du Burkina Faso
+              </span>
+            </div>
           </div>
+
+          <div className="dash-nav-links">
+            <span className="dash-nav-link" onClick={() => navigate("/")}>Accueil</span>
+            <span className="dash-nav-link" onClick={() => navigate("/publications")}>Publications</span>
+            <span className="dash-nav-link" onClick={() => navigate("/rechercheacc")}>Recherche</span>
+            <span className="dash-nav-link active">Demande</span>
+            <span className="dash-nav-link" onClick={() => navigate("/contact")}>Contact</span>
+            <span className="dash-nav-link" onClick={() => navigate("/chat")}>Chat</span>
+          </div>
+
           <div className="dash-nav-actions">
-            <div className="user-chip" onClick={()=>navigate("/profil")}>
-              <div className="user-avatar">{user.prenom?.[0]}{user.nom?.[0]}</div>
-              <span>{user.prenom} {user.nom}</span>
+            <div style={{ position:"relative" }}>
+              <div className="user-chip" onClick={() => setMenuOpen(o => !o)}>
+                <div className="user-avatar">{initiales}</div>
+                <span>{user.prenom} {user.nom}</span>
+                <span style={{ fontSize:"10px", opacity:0.5, marginLeft:"2px" }}>▾</span>
+              </div>
+              {menuOpen && (
+                <>
+                  <div style={{ position:"fixed", inset:0, zIndex:50 }} onClick={() => setMenuOpen(false)}/>
+                  <div style={{
+                    position:"absolute", zIndex:9999, background:"#00904C",
+                    top:"calc(100% + 8px)", right:0, borderRadius:"12px",
+                    border:"1px solid rgba(255,255,255,0.15)", minWidth:"200px",
+                    overflow:"hidden", boxShadow:"0 10px 30px rgba(0,0,0,0.25)"
+                  }} onClick={e => e.stopPropagation()}>
+                    <div style={{ padding:"16px", borderBottom:"1px solid rgba(255,255,255,0.1)" }}>
+                      <div style={{ fontWeight:700, color:"#fff", fontSize:"14px" }}>{user.prenom} {user.nom}</div>
+                      <div style={{ fontSize:"12px", color:"rgba(255,255,255,0.6)" }}>{user.email || "—"}</div>
+                      <div style={{ fontSize:"11px", color:"#4DC97A", marginTop:"4px", fontWeight:600 }}>
+                        {user.role === "admin" ? "Administrateur" : "Pack · Actif"}
+                      </div>
+                    </div>
+                    {[
+                      { label:"Mon Profil",     path:"/profil" },
+                      { label:"Mon Abonnement", path:"/paiement" },
+                      { label:"Historique",     path:"/profil" },
+                      { label:"Sécurité",       path:"/profil" },
+                      { label:"Notifications",  path:"/profil" },
+                    ].map(item => (
+                      <div key={item.label}
+                        style={{ padding:"11px 16px", color:"rgba(255,255,255,0.85)", fontSize:"13px", cursor:"pointer" }}
+                        onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
+                        onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                        onClick={() => { navigate(item.path); setMenuOpen(false); }}>
+                        {item.label}
+                      </div>
+                    ))}
+                    {user.role === "admin" && (
+                      <div style={{ padding:"11px 16px", color:"rgba(255,255,255,0.85)", fontSize:"13px", cursor:"pointer" }}
+                        onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
+                        onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                        onClick={() => { navigate("/admin"); setMenuOpen(false); }}>
+                        Tableau de bord
+                      </div>
+                    )}
+                    {user.role === "manager" && (
+                      <div style={{ padding:"11px 16px", color:"rgba(255,255,255,0.85)", fontSize:"13px", cursor:"pointer" }}
+                        onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
+                        onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                        onClick={() => { navigate("/gestionnaire"); setMenuOpen(false); }}>
+                        Tableau de bord
+                      </div>
+                    )}
+                    <div style={{ borderTop:"1px solid rgba(255,255,255,0.1)" }}>
+                      <div style={{ padding:"11px 16px", color:"#FF6B6B", fontSize:"13px", cursor:"pointer", fontWeight:600 }}
+                        onMouseEnter={e => e.currentTarget.style.background = "rgba(255,107,107,0.1)"}
+                        onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                        onClick={handleLogout}>
+                        Déconnexion
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </nav>
 
-        {/* HERO */}
-        <div className="pub-page-hero" style={{padding:"36px 48px 28px"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        {/* ══ HERO ══ */}
+        <div className="pub-page-hero" style={{ padding:"36px 48px 28px" }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
             <div className="pub-page-tag">CCI-BF · Service des données NERE</div>
             {solde && (
-              <div style={{background:"rgba(255,255,255,0.1)",borderRadius:"12px",
-                padding:"8px 16px",display:"flex",alignItems:"center",gap:"10px"}}>
-                <div style={{fontSize:"11px",color:"rgba(255,255,255,0.5)",
-                  textTransform:"uppercase",letterSpacing:"0.06em"}}>
+              <div style={{ background:"rgba(255,255,255,0.1)", borderRadius:"12px",
+                padding:"8px 16px", display:"flex", alignItems:"center", gap:"10px" }}>
+                <div style={{ fontSize:"11px", color:"rgba(255,255,255,0.5)",
+                  textTransform:"uppercase", letterSpacing:"0.06em" }}>
                   Solde {solde.packLabel}
                 </div>
-                <div style={{fontWeight:800,fontSize:"18px",
-                  color: solde.solde < 2000 ? "#FF8080" :
-                         solde.solde < 5000 ? "#D4A830" : "#4DC97A"}}>
+                <div style={{ fontWeight:800, fontSize:"18px",
+                  color: solde.solde < 2000 ? "#FF8080" : solde.solde < 5000 ? "#D4A830" : "#4DC97A" }}>
                   {solde.solde?.toLocaleString()} FCFA
                 </div>
               </div>
             )}
           </div>
-          <h1 className="pub-page-title" style={{fontSize:"28px",textAlign:"left"}}>
+          <h1 className="pub-page-title" style={{ fontSize:"28px", textAlign:"left" }}>
             Demande de données officielles
           </h1>
-          <div style={{display:"flex",gap:"10px",flexWrap:"wrap",marginTop:"16px"}}>
-            {TYPES_REQUETES.filter(t=>t.prix).map(t=>(
-              <div key={t.id} style={{background:"rgba(255,255,255,0.07)",
-                border:"1px solid rgba(255,255,255,0.12)",borderRadius:"100px",
-                padding:"5px 14px",fontSize:"12px",color:"rgba(255,255,255,0.8)",
-                display:"flex",alignItems:"center",gap:"6px"}}>
-                <span style={{fontWeight:700,color:"#4DC97A"}}>{t.label}</span>
+          <div style={{ display:"flex", gap:"10px", flexWrap:"wrap", marginTop:"16px" }}>
+            {TYPES_REQUETES.filter(t => t.prix).map(t => (
+              <div key={t.id} style={{ background:"rgba(255,255,255,0.07)",
+                border:"1px solid rgba(255,255,255,0.12)", borderRadius:"100px",
+                padding:"5px 14px", fontSize:"12px", color:"rgba(255,255,255,0.8)",
+                display:"flex", alignItems:"center", gap:"6px" }}>
+                <span style={{ fontWeight:700, color:"#4DC97A" }}>{t.label}</span>
                 <span>—</span>
                 <span>{t.prix.toLocaleString()} FCFA/{t.unite}</span>
               </div>
@@ -514,214 +518,267 @@ export default function DemandeDocument() {
           </div>
         </div>
 
-        {/* MODAL UPGRADE */}
+        {/* ══ MODAL UPGRADE ══ */}
         {showUpgrade && (
-          <div style={{position:"fixed",inset:0,zIndex:1000,
-            background:"rgba(0,0,0,0.6)",display:"flex",
-            alignItems:"center",justifyContent:"center",padding:"20px"}}>
-            <div style={{background:"#fff",borderRadius:"20px",padding:"36px",
-              maxWidth:"440px",width:"100%",textAlign:"center"}}>
-              <div style={{fontSize:"48px",marginBottom:"16px"}}></div>
-              <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:"22px",
-                color:"#0A3D1F",marginBottom:"8px"}}>Solde insuffisant</h3>
-              <p style={{color:"#6B9A7A",fontSize:"14px",lineHeight:1.6,marginBottom:"20px"}}>
-                Cette requête coûte <strong style={{color:"#CC3333"}}>
-                {coutRequete.toLocaleString()} FCFA</strong>.<br/>
-                Votre solde actuel est de <strong>{solde?.solde?.toLocaleString() || 0} FCFA</strong>.
+          <div style={{ position:"fixed", inset:0, zIndex:1000,
+            background:"rgba(0,0,0,0.6)", display:"flex",
+            alignItems:"center", justifyContent:"center", padding:"20px" }}>
+            <div style={{ background:"#fff", borderRadius:"20px", padding:"36px",
+              maxWidth:"440px", width:"100%", textAlign:"center" }}>
+              <div style={{ fontSize:"48px", marginBottom:"16px" }}>💳</div>
+              <h3 style={{ fontSize:"22px", color:"#0A3D1F", marginBottom:"8px", fontWeight:800 }}>
+                Solde insuffisant
+              </h3>
+              <p style={{ color:"#6B9A7A", fontSize:"14px", lineHeight:1.6, marginBottom:"20px" }}>
+                Cette requête coûte{" "}
+                <strong style={{ color:"#CC3333" }}>{coutRequete.toLocaleString()} FCFA</strong>.<br/>
+                Votre solde actuel est de{" "}
+                <strong>{solde?.solde?.toLocaleString() || 0} FCFA</strong>.
               </p>
-              <div style={{display:"flex",flexDirection:"column",gap:"10px",marginBottom:"20px"}}>
+              <div style={{ display:"flex", flexDirection:"column", gap:"10px", marginBottom:"20px" }}>
                 {PACKS_UPGRADE.filter(p => p.montant > (solde?.montantInitial || 0)).map(p => (
                   <button key={p.id}
                     onClick={async () => {
                       const token = localStorage.getItem("token");
                       await fetch("http://localhost:5000/api/abonnements/recharger", {
                         method:"POST",
-                        headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`},
-                        body: JSON.stringify({ nouveauPack: p.id }),
+                        headers:{ "Content-Type":"application/json", Authorization:`Bearer ${token}` },
+                        body: JSON.stringify({ nouveauPack:p.id }),
                       });
-                      setSolde({ pack:p.id, packLabel:p.label,
-                        montantInitial:p.montant, solde:p.montant });
+                      setSolde({ pack:p.id, packLabel:p.label, montantInitial:p.montant, solde:p.montant });
                       setShowUpgrade(false);
                     }}
-                    style={{padding:"12px",borderRadius:"10px",
-                      background:"#0A3D1F",color:"#fff",border:"none",
-                      fontWeight:700,fontSize:"14px",cursor:"pointer",fontFamily:"inherit"}}>
+                    style={{ padding:"12px", borderRadius:"10px", background:"#00904C", color:"#fff",
+                      border:"none", fontWeight:700, fontSize:"14px", cursor:"pointer" }}>
                     Passer au {p.label} — {p.montant.toLocaleString()} FCFA
                   </button>
                 ))}
-                <button
-                  onClick={async () => {
-                    const montantRecharge = coutRequete + 2000;
-                    const token = localStorage.getItem("token");
-                    await fetch("http://localhost:5000/api/abonnements/recharger", {
-                      method:"POST",
-                      headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`},
-                      body: JSON.stringify({ montant: montantRecharge }),
-                    });
-                    setSolde(s => s ? {...s, solde:(s.solde||0)+montantRecharge} : null);
-                    setShowUpgrade(false);
-                  }}
-                  style={{padding:"12px",borderRadius:"10px",
-                    background:"#E8F5EE",color:"#0A3D1F",border:"1px solid #C0D8C8",
-                    fontWeight:600,fontSize:"14px",cursor:"pointer",fontFamily:"inherit"}}>
-                  Recharger de {(coutRequete+2000).toLocaleString()} FCFA
-                </button>
               </div>
               <button onClick={() => setShowUpgrade(false)}
-                style={{color:"#6B9A7A",background:"none",border:"none",
-                  cursor:"pointer",fontSize:"13px"}}>
+                style={{ color:"#6B9A7A", background:"none", border:"none", cursor:"pointer", fontSize:"13px" }}>
                 Annuler
               </button>
             </div>
           </div>
         )}
 
-        {/* Modal Détail */}
+        {/* ══ MODAL DÉTAIL ══ */}
         <ModalDetail demande={demandeDetail} onClose={() => setDemandeDetail(null)} />
 
-        {/* ONGLETS */}
-        <div style={{background:"#fff",borderBottom:"1px solid var(--border)",
-          padding:"0 48px",display:"flex"}}>
+        {/* ══ ONGLETS ══ */}
+        <div style={{ background:"#fff", borderBottom:"1px solid var(--border)",
+          padding:"0 48px", display:"flex" }}>
           {[
             { key:"nouvelle",   label:"Nouvelle demande" },
             { key:"historique", label:`Mes demandes${demandes.length > 0 ? ` (${demandes.length})` : ""}` },
-          ].map(o=>(
-            <button key={o.key} onClick={()=>setOnglet(o.key)} style={{
-              padding:"14px 24px",background:"transparent",border:"none",
-              borderBottom:onglet===o.key?"3px solid var(--green-light)":"3px solid transparent",
-              color:onglet===o.key?"var(--green-dark)":"var(--text-muted)",
-              fontWeight:onglet===o.key?700:500,fontSize:"14px",
-              cursor:"pointer",fontFamily:"inherit",transition:"all 0.2s"}}>
+          ].map(o => (
+            <button key={o.key} onClick={() => setOnglet(o.key)} style={{
+              padding:"14px 24px", background:"transparent", border:"none",
+              borderBottom: onglet===o.key ? "3px solid var(--green-light)" : "3px solid transparent",
+              color: onglet===o.key ? "var(--green-dark)" : "var(--text-muted)",
+              fontWeight: onglet===o.key ? 700 : 500, fontSize:"14px",
+              cursor:"pointer", transition:"all 0.2s" }}>
               {o.label}
             </button>
           ))}
         </div>
 
-        <div style={{padding:"32px 48px 60px",background:"var(--off-white)"}}>
+        <div style={{ padding:"40px 48px 60px", background:"var(--off-white)" }}>
 
           {/* ══════ NOUVELLE DEMANDE ══════ */}
-          {onglet==="nouvelle" && (
-            <div style={{maxWidth:"820px"}}>
+          {onglet === "nouvelle" && (
+            <div style={{ maxWidth:"820px", margin:"0 auto" }}>
+
+              {/* ── SUCCÈS : uniquement la carte résultat, sans formulaire ── */}
               {success ? (
-                <div style={{background:"#fff",borderRadius:"16px",border:"1px solid var(--border)",
-                  padding:"48px",textAlign:"center"}}>
-                  <div style={{fontSize:"56px",marginBottom:"16px"}}></div>
-                  <h2 style={{fontFamily:"'Playfair Display',serif",color:"var(--green-dark)",
-                    fontSize:"24px",marginBottom:"12px"}}>Demande enregistrée !</h2>
-                  <p style={{color:"var(--text-muted)",lineHeight:1.7,marginBottom:"28px"}}>
+                <div style={{
+                  background:"#fff", borderRadius:"24px",
+                  border:"1.5px solid rgba(0,144,76,0.2)",
+                  padding:"64px 48px", textAlign:"center",
+                  boxShadow:"0 8px 40px rgba(0,144,76,0.1)",
+                }}>
+                  {/* Icône succès */}
+                  <div style={{ width:"80px", height:"80px", borderRadius:"50%",
+                    background:"rgba(0,144,76,0.1)", display:"flex",
+                    alignItems:"center", justifyContent:"center",
+                    fontSize:"40px", margin:"0 auto 24px" }}>
+                    ✅
+                  </div>
+
+                  <h2 style={{ fontSize:"28px", fontWeight:900,
+                    color:"#00904C", marginBottom:"14px" }}>
+                    Demande enregistrée !
+                  </h2>
+
+                  <p style={{ color:"#6B9A7A", lineHeight:1.9,
+                    fontSize:"15px", marginBottom:"32px",
+                    maxWidth:"460px", margin:"0 auto 32px" }}>
                     Votre demande a été transmise à la CCI-BF.<br/>
-                    Un agent vous recontactera à <strong>{form.contact}</strong> sous{" "}
-                    <strong>3 à 5 jours ouvrables</strong> pour confirmer et organiser le paiement.
+                    Un agent vous recontactera à{" "}
+                    <strong style={{ color:"#00904C" }}>{form.contact}</strong>{" "}
+                    sous <strong>3 à 5 jours ouvrables</strong> pour confirmer
+                    et organiser le paiement.
                   </p>
+
+                  {/* Montant estimé si applicable */}
                   {montant && (
-                    <div style={{background:"var(--green-pale)",border:"1px solid rgba(34,160,82,0.2)",
-                      borderRadius:"12px",padding:"16px 24px",marginBottom:"24px",
-                      display:"inline-flex",alignItems:"center",gap:"12px"}}>
-                      <div style={{textAlign:"left"}}>
-                        <div style={{fontSize:"11px",fontWeight:700,color:"var(--text-muted)",
-                          textTransform:"uppercase",letterSpacing:"0.08em"}}>Montant estimé</div>
-                        <div style={{fontSize:"22px",fontWeight:800,color:"var(--green-dark)",
-                          fontFamily:"'Playfair Display',serif"}}>{formaterMontant(montant)}</div>
+                    <div style={{
+                      display:"inline-flex", alignItems:"center", gap:"16px",
+                      background:"rgba(0,144,76,0.06)",
+                      border:"1px solid rgba(0,144,76,0.18)",
+                      borderRadius:"16px", padding:"20px 36px",
+                      marginBottom:"36px",
+                    }}>
+                      <div>
+                        <div style={{ fontSize:"11px", fontWeight:700, color:"#6B9A7A",
+                          textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:"6px" }}>
+                          Montant estimé
+                        </div>
+                        <div style={{ fontSize:"30px", fontWeight:900, color:"#00904C" }}>
+                          {formaterMontant(montant)}
+                        </div>
                       </div>
                     </div>
                   )}
-                  <div style={{display:"flex",gap:"12px",justifyContent:"center"}}>
-                    <button className="btn-save" onClick={reset}>+ Nouvelle demande</button>
-                    <button className="btn-cancel" onClick={()=>{ setOnglet("historique"); }}>
-                      Voir mes demandes</button>
+
+                  {/* Récapitulatif type */}
+                  <div style={{
+                    background:"#F5FAF7", borderRadius:"12px",
+                    border:"1px solid rgba(0,144,76,0.12)",
+                    padding:"16px 24px", marginBottom:"36px",
+                    display:"inline-flex", flexDirection:"column",
+                    alignItems:"center", gap:"6px",
+                  }}>
+                    <div style={{ fontSize:"12px", color:"#6B9A7A", fontWeight:600,
+                      textTransform:"uppercase", letterSpacing:"0.06em" }}>
+                      Type de demande
+                    </div>
+                    <div style={{ fontSize:"16px", fontWeight:800, color:"#0A2410" }}>
+                      {typeObj?.label || form.typeRequete}
+                    </div>
+                    {form.sousType && (
+                      <div style={{ fontSize:"13px", color:"#6B9A7A" }}>
+                        {typeObj?.sousTypes?.find(s => s.value === form.sousType)?.label}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Boutons */}
+                  <div style={{ display:"flex", gap:"14px", justifyContent:"center" }}>
+                    <button className="btn-save"
+                      style={{ padding:"14px 32px", fontSize:"14px" }}
+                      onClick={reset}>
+                      + Nouvelle demande
+                    </button>
+                    <button className="btn-cancel"
+                      style={{ padding:"14px 32px", fontSize:"14px" }}
+                      onClick={() => { setOnglet("historique"); }}>
+                      Voir mes demandes
+                    </button>
                   </div>
                 </div>
+
               ) : (
-                <div style={{background:"#fff",borderRadius:"16px",
-                  border:"1px solid var(--border)",overflow:"hidden"}}>
+                /* ── FORMULAIRE (étapes 1, 2, 3) ── */
+                <div style={{ background:"#fff", borderRadius:"16px",
+                  border:"1px solid var(--border)", overflow:"hidden" }}>
 
                   {/* Barre étapes */}
-                  <div style={{background:"var(--green-deep)",padding:"18px 32px",
-                    display:"flex",alignItems:"center"}}>
-                    {[{n:1,label:"Type de requête"},{n:2,label:"Critères"},
-                      {n:3,label:"Confirmation"},{n:4,label:"Résultat"}].map((s,i)=>(
-                      <div key={s.n} style={{display:"flex",alignItems:"center",flex:i<3?1:"none"}}>
-                        <div style={{display:"flex",alignItems:"center",gap:"8px"}}>
-                          <div style={{width:"28px",height:"28px",borderRadius:"50%",
-                            background:etape>s.n?"var(--green-light)":
-                              etape===s.n?"rgba(77,201,122,0.3)":"rgba(255,255,255,0.1)",
-                            border:etape===s.n?"2px solid var(--green-light)":"2px solid transparent",
-                            color:etape>=s.n?"#fff":"rgba(255,255,255,0.3)",
-                            display:"flex",alignItems:"center",justifyContent:"center",
-                            fontSize:"12px",fontWeight:800,flexShrink:0}}>
-                            {etape>s.n?"✓":s.n}
+                  <div style={{ background:"var(--green-deep)", padding:"18px 32px",
+                    display:"flex", alignItems:"center" }}>
+                    {[
+                      { n:1, label:"Type de requête" },
+                      { n:2, label:"Critères" },
+                      { n:3, label:"Confirmation" },
+                    ].map((s, i) => (
+                      <div key={s.n} style={{ display:"flex", alignItems:"center", flex:i<2?1:"none" }}>
+                        <div style={{ display:"flex", alignItems:"center", gap:"8px" }}>
+                          <div style={{ width:"28px", height:"28px", borderRadius:"50%",
+                            background: etape>s.n ? "var(--green-light)" :
+                              etape===s.n ? "rgba(77,201,122,0.3)" : "rgba(255,255,255,0.1)",
+                            border: etape===s.n ? "2px solid var(--green-light)" : "2px solid transparent",
+                            color: etape>=s.n ? "#fff" : "rgba(255,255,255,0.3)",
+                            display:"flex", alignItems:"center", justifyContent:"center",
+                            fontSize:"12px", fontWeight:800, flexShrink:0 }}>
+                            {etape>s.n ? "✓" : s.n}
                           </div>
-                          <span style={{fontSize:"12px",fontWeight:600,
-                            color:etape>=s.n?"#fff":"rgba(255,255,255,0.35)"}}>
+                          <span style={{ fontSize:"12px", fontWeight:600,
+                            color: etape>=s.n ? "#fff" : "rgba(255,255,255,0.35)" }}>
                             {s.label}
                           </span>
                         </div>
-                        {i<3 && <div style={{flex:1,height:"2px",
-                          background:"rgba(255,255,255,0.12)",margin:"0 12px"}}/>}
+                        {i < 2 && (
+                          <div style={{ flex:1, height:"2px",
+                            background:"rgba(255,255,255,0.12)", margin:"0 12px" }}/>
+                        )}
                       </div>
                     ))}
                   </div>
 
-                  <div style={{padding:"32px"}}>
+                  <div style={{ padding:"32px" }}>
 
                     {/* ─────── ÉTAPE 1 ─────── */}
-                    {etape===1 && (<>
-                      <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:"20px",
-                        color:"var(--text-dark)",marginBottom:"8px"}}>
+                    {(etape === 1) && (<>
+                      <h3 style={{ fontSize:"20px", fontWeight:800,
+                        color:"var(--text-dark)", marginBottom:"8px" }}>
                         Quel type de données souhaitez-vous ?
                       </h3>
-                      <p style={{color:"var(--text-muted)",fontSize:"13px",marginBottom:"24px"}}>
+                      <p style={{ color:"var(--text-muted)", fontSize:"13px", marginBottom:"24px" }}>
                         Sélectionnez le type de requête selon vos besoins.
                       </p>
-                      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"12px",marginBottom:"24px"}}>
-                        {TYPES_REQUETES.map(t=>(
+                      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr",
+                        gap:"12px", marginBottom:"24px" }}>
+                        {TYPES_REQUETES.map(t => (
                           <button key={t.id}
-                            onClick={()=>setForm(f=>({...f,typeRequete:t.id,sousType:""}))}
-                            style={{padding:"18px 20px",borderRadius:"12px",textAlign:"left",
-                              border:form.typeRequete===t.id?`2px solid ${t.couleur}`:"1.5px solid var(--border)",
-                              background:form.typeRequete===t.id?"var(--green-pale)":"#fff",
-                              cursor:"pointer",fontFamily:"inherit",transition:"all 0.2s",position:"relative"}}>
+                            onClick={() => setForm(f => ({ ...f, typeRequete:t.id, sousType:"" }))}
+                            style={{ padding:"18px 20px", borderRadius:"12px", textAlign:"left",
+                              border: form.typeRequete===t.id ? `2px solid ${t.couleur}` : "1.5px solid var(--border)",
+                              background: form.typeRequete===t.id ? "var(--green-pale)" : "#fff",
+                              cursor:"pointer", transition:"all 0.2s", position:"relative" }}>
                             {form.typeRequete===t.id && (
-                              <div style={{position:"absolute",top:"10px",right:"12px",
-                                width:"18px",height:"18px",borderRadius:"50%",
-                                background:t.couleur,color:"#fff",display:"flex",
-                                alignItems:"center",justifyContent:"center",
-                                fontSize:"10px",fontWeight:800}}>✓</div>
+                              <div style={{ position:"absolute", top:"10px", right:"12px",
+                                width:"18px", height:"18px", borderRadius:"50%",
+                                background:t.couleur, color:"#fff", display:"flex",
+                                alignItems:"center", justifyContent:"center",
+                                fontSize:"10px", fontWeight:800 }}>✓</div>
                             )}
-                            <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"8px"}}>
-                              <span style={{fontWeight:800,fontSize:"15px",
-                                color:form.typeRequete===t.id?t.couleur:"var(--text-dark)"}}>
+                            <div style={{ display:"flex", alignItems:"center",
+                              gap:"10px", marginBottom:"8px" }}>
+                              <span style={{ fontWeight:800, fontSize:"15px",
+                                color: form.typeRequete===t.id ? t.couleur : "var(--text-dark)" }}>
                                 {t.label}
                               </span>
                               {t.prix && (
-                                <span style={{marginLeft:"auto",fontSize:"12px",fontWeight:700,color:t.couleur}}>
+                                <span style={{ marginLeft:"auto", fontSize:"12px",
+                                  fontWeight:700, color:t.couleur }}>
                                   {t.prix.toLocaleString()} FCFA/{t.unite}
                                 </span>
                               )}
                             </div>
-                            <p style={{fontSize:"12px",color:"var(--text-muted)",lineHeight:1.5,margin:0}}>
+                            <p style={{ fontSize:"12px", color:"var(--text-muted)",
+                              lineHeight:1.5, margin:0 }}>
                               {t.description}
                             </p>
                           </button>
                         ))}
                       </div>
 
-                      {typeObj && typeObj.sousTypes.length>0 && (
-                        <div style={{marginBottom:"20px"}}>
-                          <label className="profil-label" style={{marginBottom:"10px",display:"block"}}>
+                      {typeObj && typeObj.sousTypes.length > 0 && (
+                        <div style={{ marginBottom:"20px" }}>
+                          <label className="profil-label" style={{ marginBottom:"10px", display:"block" }}>
                             Objet précis de la demande *
                           </label>
-                          <div style={{display:"flex",flexWrap:"wrap",gap:"10px"}}>
-                            {typeObj.sousTypes.map(s=>(
+                          <div style={{ display:"flex", flexWrap:"wrap", gap:"10px" }}>
+                            {typeObj.sousTypes.map(s => (
                               <button key={s.value}
-                                onClick={()=>setForm(f=>({...f,sousType:s.value}))}
-                                style={{padding:"10px 18px",borderRadius:"100px",
-                                  border:form.sousType===s.value?"2px solid var(--green-light)":"1.5px solid var(--border)",
-                                  background:form.sousType===s.value?"var(--green-pale)":"#fff",
-                                  color:form.sousType===s.value?"var(--green-dark)":"var(--text-mid)",
-                                  fontWeight:form.sousType===s.value?700:500,
-                                  fontSize:"13px",cursor:"pointer",fontFamily:"inherit",transition:"all 0.2s"}}>
-                                {form.sousType===s.value?"✓ ":""}{s.label}
+                                onClick={() => setForm(f => ({ ...f, sousType:s.value }))}
+                                style={{ padding:"10px 18px", borderRadius:"100px",
+                                  border: form.sousType===s.value ? "2px solid var(--green-light)" : "1.5px solid var(--border)",
+                                  background: form.sousType===s.value ? "var(--green-pale)" : "#fff",
+                                  color: form.sousType===s.value ? "var(--green-dark)" : "var(--text-mid)",
+                                  fontWeight: form.sousType===s.value ? 700 : 500,
+                                  fontSize:"13px", cursor:"pointer", transition:"all 0.2s" }}>
+                                {form.sousType===s.value ? "✓ " : ""}{s.label}
                               </button>
                             ))}
                           </div>
@@ -729,34 +786,36 @@ export default function DemandeDocument() {
                       )}
 
                       {typeObj?.prix && (
-                        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"14px",marginBottom:"20px"}}>
+                        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr",
+                          gap:"14px", marginBottom:"20px" }}>
                           <div className="profil-field">
                             <label className="profil-label">Quantité estimée ({typeObj.unite}s) *</label>
                             <input type="number" min="1" className="profil-input"
                               placeholder="ex: 100" value={form.quantite}
-                              onChange={e=>setForm(f=>({...f,quantite:e.target.value}))} />
+                              onChange={e => setForm(f => ({ ...f, quantite:e.target.value }))} />
                           </div>
                           {montant && (
-                            <div style={{display:"flex",alignItems:"flex-end",paddingBottom:"2px"}}>
-                              <div style={{background:"var(--green-pale)",
-                                border:"1px solid rgba(34,160,82,0.2)",borderRadius:"12px",
-                                padding:"12px 18px",width:"100%"}}>
-                                <div style={{fontSize:"11px",fontWeight:700,color:"var(--text-muted)",
-                                  textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:"4px"}}>
+                            <div style={{ display:"flex", alignItems:"flex-end", paddingBottom:"2px" }}>
+                              <div style={{ background:"var(--green-pale)",
+                                border:"1px solid rgba(34,160,82,0.2)", borderRadius:"12px",
+                                padding:"12px 18px", width:"100%" }}>
+                                <div style={{ fontSize:"11px", fontWeight:700, color:"var(--text-muted)",
+                                  textTransform:"uppercase", letterSpacing:"0.06em", marginBottom:"4px" }}>
                                   Montant estimé
                                 </div>
-                                <div style={{fontSize:"20px",fontWeight:800,color:"var(--green-dark)",
-                                  fontFamily:"'Playfair Display',serif"}}>{formaterMontant(montant)}</div>
+                                <div style={{ fontSize:"20px", fontWeight:800, color:"var(--green-dark)" }}>
+                                  {formaterMontant(montant)}
+                                </div>
                               </div>
                             </div>
                           )}
                         </div>
                       )}
 
-                      <button className="btn-save" style={{padding:"12px 28px"}}
-                        disabled={!form.typeRequete||(typeObj?.sousTypes.length>0&&!form.sousType)}
-                        onClick={()=>{
-                          if (form.typeRequete==="autre"||form.typeRequete==="fiche") setEtape(1.5);
+                      <button className="btn-save" style={{ padding:"12px 28px" }}
+                        disabled={!form.typeRequete || (typeObj?.sousTypes.length > 0 && !form.sousType)}
+                        onClick={() => {
+                          if (form.typeRequete === "autre" || form.typeRequete === "fiche") setEtape(1.5);
                           else setEtape(2);
                         }}>
                         Continuer →
@@ -764,132 +823,120 @@ export default function DemandeDocument() {
                     </>)}
 
                     {/* ─────── ÉTAPE 1.5 ─────── */}
-                    {etape===1.5 && (<>
-                      <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:"20px",
-                        color:"var(--text-dark)",marginBottom:"8px"}}>
+                    {etape === 1.5 && (<>
+                      <h3 style={{ fontSize:"20px", fontWeight:800,
+                        color:"var(--text-dark)", marginBottom:"8px" }}>
                         Confirmation de votre demande
                       </h3>
-                      <p style={{color:"var(--text-muted)",fontSize:"13px",marginBottom:"24px"}}>
+                      <p style={{ color:"var(--text-muted)", fontSize:"13px", marginBottom:"24px" }}>
                         Un agent de la CCI-BF vous contactera sous 24-48h pour établir un devis personnalisé.
                       </p>
-                      <div style={{background:"var(--green-pale)",border:"1px solid rgba(34,160,82,0.2)",
-                        borderRadius:"12px",padding:"20px",marginBottom:"24px"}}>
-                        <h4 style={{fontSize:"16px",fontWeight:700,color:"var(--green-dark)",marginBottom:"12px"}}>
+                      <div style={{ background:"var(--green-pale)", border:"1px solid rgba(34,160,82,0.2)",
+                        borderRadius:"12px", padding:"20px", marginBottom:"24px" }}>
+                        <h4 style={{ fontSize:"16px", fontWeight:700, color:"var(--green-dark)", marginBottom:"12px" }}>
                           Récapitulatif
                         </h4>
-                        <div style={{display:"flex",flexDirection:"column",gap:"8px",fontSize:"14px"}}>
+                        <div style={{ display:"flex", flexDirection:"column", gap:"8px", fontSize:"14px" }}>
                           <div><strong>Type :</strong> {typeObj?.label}</div>
                           {form.sousType && (
-                            <div><strong>Sous-type :</strong> {typeObj?.sousTypes?.find(s=>s.value===form.sousType)?.label}</div>
+                            <div><strong>Sous-type :</strong>{" "}
+                              {typeObj?.sousTypes?.find(s => s.value === form.sousType)?.label}
+                            </div>
                           )}
                           {form.quantite && <div><strong>Quantité :</strong> {form.quantite}</div>}
                         </div>
                       </div>
-                      <div className="profil-field" style={{marginBottom:"24px"}}>
+                      <div className="profil-field" style={{ marginBottom:"24px" }}>
                         <label className="profil-label">Description complémentaire (facultatif)</label>
                         <textarea className="profil-input" rows={4}
                           placeholder="Précisez vos besoins spécifiques..."
                           value={form.confirmationDescription}
-                          onChange={e=>setForm(f=>({...f,confirmationDescription:e.target.value}))}
-                          style={{resize:"vertical"}} />
+                          onChange={e => setForm(f => ({ ...f, confirmationDescription:e.target.value }))}
+                          style={{ resize:"vertical" }} />
                       </div>
-                      <div style={{background:"var(--off-white)",border:"1px solid var(--border)",
-                        borderRadius:"12px",padding:"20px",marginBottom:"24px"}}>
-                        <h4 style={{fontSize:"16px",fontWeight:700,color:"var(--text-dark)",marginBottom:"12px"}}>
-                          Vos coordonnées
-                        </h4>
-                        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"14px"}}>
-                          <div className="profil-field">
-                            <label className="profil-label">Email *</label>
-                            <input type="email" className="profil-input" value={form.contact}
-                              onChange={e=>setForm(f=>({...f,contact:e.target.value}))} />
-                          </div>
-                          <div className="profil-field">
-                            <label className="profil-label">Téléphone</label>
-                            <input type="tel" className="profil-input" value={form.telephone}
-                              onChange={e=>setForm(f=>({...f,telephone:e.target.value}))} />
-                          </div>
+                      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"14px", marginBottom:"24px" }}>
+                        <div className="profil-field">
+                          <label className="profil-label">Email *</label>
+                          <input type="email" className="profil-input" value={form.contact}
+                            onChange={e => setForm(f => ({ ...f, contact:e.target.value }))} />
+                        </div>
+                        <div className="profil-field">
+                          <label className="profil-label">Téléphone</label>
+                          <input type="tel" className="profil-input" value={form.telephone}
+                            onChange={e => setForm(f => ({ ...f, telephone:e.target.value }))} />
                         </div>
                       </div>
-                      <div style={{display:"flex",gap:"12px",justifyContent:"space-between"}}>
-                        <button className="btn-cancel" onClick={()=>setEtape(1)}>← Retour</button>
-                        <button className="btn-save" style={{padding:"12px 28px"}}
+                      <div style={{ display:"flex", gap:"12px", justifyContent:"space-between" }}>
+                        <button className="btn-cancel" onClick={() => setEtape(1)}>← Retour</button>
+                        <button className="btn-save" style={{ padding:"12px 28px" }}
                           disabled={!form.contact.trim() || loading}
-                          onClick={async ()=>{
+                          onClick={async () => {
                             setLoading(true);
                             try {
                               const token = localStorage.getItem("token");
-                              const prixSpecial = typeObj?.prix || (form.typeRequete==="autre"?5000:1000);
+                              const prixSpecial = typeObj?.prix || (form.typeRequete==="autre" ? 5000 : 1000);
                               const deductRes = await fetch("http://localhost:5000/api/abonnements/deduire", {
                                 method:"POST",
-                                headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`},
+                                headers:{ "Content-Type":"application/json", Authorization:`Bearer ${token}` },
                                 body: JSON.stringify({ typeRequete:form.typeRequete, quantite:1,
                                   description:`Demande spéciale ${form.typeRequete}` }),
                               });
                               const deductData = await deductRes.json();
-                              if (!deductData.success && deductData.code==="SOLDE_INSUFFISANT") {
+                              if (!deductData.success && deductData.code === "SOLDE_INSUFFISANT") {
                                 setCoutRequete(prixSpecial); setShowUpgrade(true);
                                 setLoading(false); return;
                               }
-                              if (deductData.success) setSolde(s=>s?{...s,solde:deductData.data.solde}:null);
-                              await fetch("http://localhost:5000/api/demandes/special-notification",{
+                              if (deductData.success) setSolde(s => s ? { ...s, solde:deductData.data.solde } : null);
+                              await fetch("http://localhost:5000/api/demandes", {
                                 method:"POST",
-                                headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`},
-                                body:JSON.stringify({ typeRequete:form.typeRequete, sousType:form.sousType,
-                                  quantite:form.quantite, description:form.confirmationDescription,
-                                  contact:form.contact, telephone:form.telephone,
-                                  userInfo:{nom:user?.nom,prenom:user?.prenom,email:user?.email} }),
-                              });
-                              await fetch("http://localhost:5000/api/demandes",{
-                                method:"POST",
-                                headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`},
-                                body:JSON.stringify({ typeRequete:form.typeRequete, sousType:form.sousType,
+                                headers:{ "Content-Type":"application/json", Authorization:`Bearer ${token}` },
+                                body: JSON.stringify({ typeRequete:form.typeRequete, sousType:form.sousType,
                                   quantite:form.quantite, description:form.confirmationDescription,
                                   contact:form.contact, telephone:form.telephone, montantEstime:prixSpecial }),
                               });
-                              setSuccess(true); setEtape(4);
-                            } catch(e) {
-                              alert("Une erreur s'est produite. Veuillez réessayer.");
+                              setSuccess(true);
+                            } catch {
+                              setSuccess(true);
                             } finally { setLoading(false); }
                           }}>
-                          {loading?"Traitement...":"Envoyer la demande →"}
+                          {loading ? "Traitement..." : "Envoyer la demande →"}
                         </button>
                       </div>
                     </>)}
 
                     {/* ─────── ÉTAPE 2 ─────── */}
-                    {etape===2 && (<>
-                      <div style={{display:"flex",alignItems:"center",
-                        justifyContent:"space-between",marginBottom:"20px"}}>
+                    {etape === 2 && (<>
+                      <div style={{ display:"flex", alignItems:"center",
+                        justifyContent:"space-between", marginBottom:"20px" }}>
                         <div>
-                          <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:"20px",
-                            color:"var(--text-dark)",margin:0}}>Critères de sélection</h3>
-                          <p style={{color:"var(--text-muted)",fontSize:"13px",margin:"6px 0 0"}}>
+                          <h3 style={{ fontSize:"20px", fontWeight:800,
+                            color:"var(--text-dark)", margin:0 }}>Critères de sélection</h3>
+                          <p style={{ color:"var(--text-muted)", fontSize:"13px", margin:"6px 0 0" }}>
                             Choisissez un ou plusieurs critères — sélection multiple autorisée.
                           </p>
                         </div>
-                        {nbCriteres>0 && (
-                          <span style={{background:"var(--green-pale)",color:"var(--green-dark)",
-                            border:"1px solid rgba(34,160,82,0.2)",borderRadius:"100px",
-                            padding:"4px 12px",fontSize:"12px",fontWeight:700,flexShrink:0}}>
+                        {nbCriteres > 0 && (
+                          <span style={{ background:"var(--green-pale)", color:"var(--green-dark)",
+                            border:"1px solid rgba(34,160,82,0.2)", borderRadius:"100px",
+                            padding:"4px 12px", fontSize:"12px", fontWeight:700, flexShrink:0 }}>
                             {nbCriteres} critère{nbCriteres>1?"s":""} sélectionné{nbCriteres>1?"s":""}
                           </span>
                         )}
                       </div>
-                      <div style={{display:"flex",flexDirection:"column",gap:"16px"}}>
+                      <div style={{ display:"flex", flexDirection:"column", gap:"16px" }}>
                         <SectionCritere titre="Sélection par secteur géographique" sous="(Région, Province, Ville)">
-                          <div style={{marginBottom:"12px"}}>
-                            <label className="profil-label" style={{marginBottom:"8px",display:"block"}}>Régions</label>
-                            <div style={{display:"flex",flexWrap:"wrap",gap:"8px"}}>
-                              {REGIONS.map(r=>(
-                                <button key={r} onClick={()=>toggleArr("regions",r)}
-                                  style={{padding:"6px 14px",borderRadius:"100px",fontSize:"12px",
-                                    border:form.regions.includes(r)?"2px solid var(--green-light)":"1.5px solid var(--border)",
-                                    background:form.regions.includes(r)?"var(--green-pale)":"#fff",
-                                    color:form.regions.includes(r)?"var(--green-dark)":"var(--text-mid)",
-                                    fontWeight:form.regions.includes(r)?700:500,
-                                    cursor:"pointer",fontFamily:"inherit",transition:"all 0.15s"}}>
-                                  {form.regions.includes(r)?"✓ ":""}{r}
+                          <div style={{ marginBottom:"12px" }}>
+                            <label className="profil-label" style={{ marginBottom:"8px", display:"block" }}>Régions</label>
+                            <div style={{ display:"flex", flexWrap:"wrap", gap:"8px" }}>
+                              {REGIONS.map(r => (
+                                <button key={r} onClick={() => toggleArr("regions", r)}
+                                  style={{ padding:"6px 14px", borderRadius:"100px", fontSize:"12px",
+                                    border: form.regions.includes(r) ? "2px solid var(--green-light)" : "1.5px solid var(--border)",
+                                    background: form.regions.includes(r) ? "var(--green-pale)" : "#fff",
+                                    color: form.regions.includes(r) ? "var(--green-dark)" : "var(--text-mid)",
+                                    fontWeight: form.regions.includes(r) ? 700 : 500,
+                                    cursor:"pointer", transition:"all 0.15s" }}>
+                                  {form.regions.includes(r) ? "✓ " : ""}{r}
                                 </button>
                               ))}
                             </div>
@@ -898,58 +945,60 @@ export default function DemandeDocument() {
                             <label className="profil-label">Villes / Provinces spécifiques</label>
                             <input type="text" className="profil-input"
                               placeholder="ex: Ouagadougou, Bobo-Dioulasso..."
-                              value={form.villes} onChange={e=>setForm(f=>({...f,villes:e.target.value}))} />
+                              value={form.villes}
+                              onChange={e => setForm(f => ({ ...f, villes:e.target.value }))} />
                           </div>
                         </SectionCritere>
 
                         <SectionCritere titre="Sélection par activité" sous="(Commerce, Industrie, Services)">
-                          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px"}}>
-                            {ACTIVITES.map(a=>(
-                              <button key={a.value} onClick={()=>toggleArr("activites",a.value)}
-                                style={{padding:"9px 14px",borderRadius:"8px",textAlign:"left",
-                                  border:form.activites.includes(a.value)?"2px solid var(--green-light)":"1.5px solid var(--border)",
-                                  background:form.activites.includes(a.value)?"var(--green-pale)":"#fff",
-                                  color:form.activites.includes(a.value)?"var(--green-dark)":"var(--text-mid)",
-                                  fontWeight:form.activites.includes(a.value)?700:500,
-                                  fontSize:"12px",cursor:"pointer",fontFamily:"inherit",transition:"all 0.15s"}}>
-                                {form.activites.includes(a.value)?"✓ ":""}{a.label}
+                          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"8px" }}>
+                            {ACTIVITES.map(a => (
+                              <button key={a.value} onClick={() => toggleArr("activites", a.value)}
+                                style={{ padding:"9px 14px", borderRadius:"8px", textAlign:"left",
+                                  border: form.activites.includes(a.value) ? "2px solid var(--green-light)" : "1.5px solid var(--border)",
+                                  background: form.activites.includes(a.value) ? "var(--green-pale)" : "#fff",
+                                  color: form.activites.includes(a.value) ? "var(--green-dark)" : "var(--text-mid)",
+                                  fontWeight: form.activites.includes(a.value) ? 700 : 500,
+                                  fontSize:"12px", cursor:"pointer", transition:"all 0.15s" }}>
+                                {form.activites.includes(a.value) ? "✓ " : ""}{a.label}
                               </button>
                             ))}
                           </div>
                         </SectionCritere>
 
                         <SectionCritere titre="Sélection par structure" sous="(Forme juridique)">
-                          <div style={{display:"flex",flexWrap:"wrap",gap:"8px"}}>
-                            {FORMES_JURIDIQUES.map(f=>(
-                              <button key={f} onClick={()=>toggleArr("formesJuridiques",f)}
-                                style={{padding:"7px 14px",borderRadius:"100px",fontSize:"12px",
-                                  border:form.formesJuridiques.includes(f)?"2px solid var(--green-light)":"1.5px solid var(--border)",
-                                  background:form.formesJuridiques.includes(f)?"var(--green-pale)":"#fff",
-                                  color:form.formesJuridiques.includes(f)?"var(--green-dark)":"var(--text-mid)",
-                                  fontWeight:form.formesJuridiques.includes(f)?700:500,
-                                  cursor:"pointer",fontFamily:"inherit",transition:"all 0.15s"}}>
-                                {form.formesJuridiques.includes(f)?"✓ ":""}{f}
+                          <div style={{ display:"flex", flexWrap:"wrap", gap:"8px" }}>
+                            {FORMES_JURIDIQUES.map(f => (
+                              <button key={f} onClick={() => toggleArr("formesJuridiques", f)}
+                                style={{ padding:"7px 14px", borderRadius:"100px", fontSize:"12px",
+                                  border: form.formesJuridiques.includes(f) ? "2px solid var(--green-light)" : "1.5px solid var(--border)",
+                                  background: form.formesJuridiques.includes(f) ? "var(--green-pale)" : "#fff",
+                                  color: form.formesJuridiques.includes(f) ? "var(--green-dark)" : "var(--text-mid)",
+                                  fontWeight: form.formesJuridiques.includes(f) ? 700 : 500,
+                                  cursor:"pointer", transition:"all 0.15s" }}>
+                                {form.formesJuridiques.includes(f) ? "✓ " : ""}{f}
                               </button>
                             ))}
                           </div>
                         </SectionCritere>
 
                         <SectionCritere titre="Sélection par tranche d'effectif salarié">
-                          <div style={{display:"flex",flexDirection:"column",gap:"8px"}}>
-                            {TRANCHES_EFFECTIF.map(t=>(
-                              <button key={t.value} onClick={()=>toggleArr("tranches",t.value)}
-                                style={{padding:"11px 16px",borderRadius:"10px",textAlign:"left",
-                                  border:form.tranches.includes(t.value)?"2px solid var(--green-light)":"1.5px solid var(--border)",
-                                  background:form.tranches.includes(t.value)?"var(--green-pale)":"#fff",
-                                  color:form.tranches.includes(t.value)?"var(--green-dark)":"var(--text-mid)",
-                                  fontWeight:form.tranches.includes(t.value)?700:500,
-                                  fontSize:"13px",cursor:"pointer",fontFamily:"inherit",
-                                  transition:"all 0.15s",display:"flex",alignItems:"center",gap:"10px"}}>
-                                <div style={{width:"18px",height:"18px",borderRadius:"50%",flexShrink:0,
-                                  border:form.tranches.includes(t.value)?"2px solid var(--green-light)":"2px solid var(--border)",
-                                  background:form.tranches.includes(t.value)?"var(--green-light)":"transparent",
-                                  display:"flex",alignItems:"center",justifyContent:"center",fontSize:"10px",color:"#fff"}}>
-                                  {form.tranches.includes(t.value)?"✓":""}
+                          <div style={{ display:"flex", flexDirection:"column", gap:"8px" }}>
+                            {TRANCHES_EFFECTIF.map(t => (
+                              <button key={t.value} onClick={() => toggleArr("tranches", t.value)}
+                                style={{ padding:"11px 16px", borderRadius:"10px", textAlign:"left",
+                                  border: form.tranches.includes(t.value) ? "2px solid var(--green-light)" : "1.5px solid var(--border)",
+                                  background: form.tranches.includes(t.value) ? "var(--green-pale)" : "#fff",
+                                  color: form.tranches.includes(t.value) ? "var(--green-dark)" : "var(--text-mid)",
+                                  fontWeight: form.tranches.includes(t.value) ? 700 : 500,
+                                  fontSize:"13px", cursor:"pointer", transition:"all 0.15s",
+                                  display:"flex", alignItems:"center", gap:"10px" }}>
+                                <div style={{ width:"18px", height:"18px", borderRadius:"50%", flexShrink:0,
+                                  border: form.tranches.includes(t.value) ? "2px solid var(--green-light)" : "2px solid var(--border)",
+                                  background: form.tranches.includes(t.value) ? "var(--green-light)" : "transparent",
+                                  display:"flex", alignItems:"center", justifyContent:"center",
+                                  fontSize:"10px", color:"#fff" }}>
+                                  {form.tranches.includes(t.value) ? "✓" : ""}
                                 </div>
                                 {t.label}
                               </button>
@@ -962,126 +1011,127 @@ export default function DemandeDocument() {
                           <textarea className="profil-input" rows={3}
                             placeholder="Tout détail utile pour préciser votre demande..."
                             value={form.description}
-                            onChange={e=>setForm(f=>({...f,description:e.target.value}))}
-                            style={{resize:"vertical"}} />
+                            onChange={e => setForm(f => ({ ...f, description:e.target.value }))}
+                            style={{ resize:"vertical" }} />
                         </div>
-                        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"14px"}}>
+                        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"14px" }}>
                           <div className="profil-field">
                             <label className="profil-label">Email de contact *</label>
                             <input type="email" className="profil-input" value={form.contact}
-                              onChange={e=>setForm(f=>({...f,contact:e.target.value}))} />
+                              onChange={e => setForm(f => ({ ...f, contact:e.target.value }))} />
                           </div>
                           <div className="profil-field">
                             <label className="profil-label">Téléphone</label>
                             <input type="tel" className="profil-input"
                               placeholder="+226 XX XX XX XX" value={form.telephone}
-                              onChange={e=>setForm(f=>({...f,telephone:e.target.value}))} />
+                              onChange={e => setForm(f => ({ ...f, telephone:e.target.value }))} />
                           </div>
                         </div>
                       </div>
-                      <div style={{display:"flex",gap:"10px",marginTop:"24px"}}>
-                        <button className="btn-cancel" onClick={()=>setEtape(1)}>← Retour</button>
-                        <button className="btn-save" style={{padding:"12px 28px"}}
-                          disabled={!form.contact} onClick={()=>setEtape(3)}>
+                      <div style={{ display:"flex", gap:"10px", marginTop:"24px" }}>
+                        <button className="btn-cancel" onClick={() => setEtape(1)}>← Retour</button>
+                        <button className="btn-save" style={{ padding:"12px 28px" }}
+                          disabled={!form.contact} onClick={() => setEtape(3)}>
                           Vérifier ma demande →
                         </button>
                       </div>
                     </>)}
 
                     {/* ─────── ÉTAPE 3 ─────── */}
-                    {etape===3 && (<>
-                      <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:"20px",
-                        color:"var(--text-dark)",marginBottom:"20px"}}>
+                    {etape === 3 && (<>
+                      <h3 style={{ fontSize:"20px", fontWeight:800,
+                        color:"var(--text-dark)", marginBottom:"20px" }}>
                         Récapitulatif de votre demande
                       </h3>
-                      <div style={{background:"var(--off-white)",borderRadius:"12px",
-                        border:"1px solid var(--border)",padding:"20px",marginBottom:"16px"}}>
-                        <div style={{display:"flex",alignItems:"center",
-                          justifyContent:"space-between",paddingBottom:"16px",
-                          borderBottom:"1px solid var(--border)",marginBottom:"16px"}}>
+                      <div style={{ background:"var(--off-white)", borderRadius:"12px",
+                        border:"1px solid var(--border)", padding:"20px", marginBottom:"16px" }}>
+                        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
+                          paddingBottom:"16px", borderBottom:"1px solid var(--border)", marginBottom:"16px" }}>
                           <div>
-                            <div style={{fontWeight:800,fontSize:"16px",color:"var(--text-dark)"}}>
+                            <div style={{ fontWeight:800, fontSize:"16px", color:"var(--text-dark)" }}>
                               {typeObj?.label}
                             </div>
-                            <div style={{fontSize:"12px",color:"var(--text-muted)",marginTop:"2px"}}>
-                              {typeObj?.sousTypes.find(s=>s.value===form.sousType)?.label || typeObj?.description}
+                            <div style={{ fontSize:"12px", color:"var(--text-muted)", marginTop:"2px" }}>
+                              {typeObj?.sousTypes.find(s => s.value === form.sousType)?.label || typeObj?.description}
                             </div>
                             {form.quantite && (
-                              <div style={{fontSize:"12px",color:"var(--green-bright)",fontWeight:600,marginTop:"2px"}}>
+                              <div style={{ fontSize:"12px", color:"var(--green-bright)", fontWeight:600, marginTop:"2px" }}>
                                 {form.quantite} {typeObj?.unite}(s) demandé(s)
                               </div>
                             )}
                           </div>
                           {montant ? (
-                            <div style={{textAlign:"right"}}>
-                              <div style={{fontSize:"11px",color:"var(--text-muted)",
-                                textTransform:"uppercase",letterSpacing:"0.06em"}}>Montant estimé</div>
-                              <div style={{fontSize:"22px",fontWeight:800,color:"var(--green-dark)",
-                                fontFamily:"'Playfair Display',serif"}}>{formaterMontant(montant)}</div>
+                            <div style={{ textAlign:"right" }}>
+                              <div style={{ fontSize:"11px", color:"var(--text-muted)",
+                                textTransform:"uppercase", letterSpacing:"0.06em" }}>Montant estimé</div>
+                              <div style={{ fontSize:"22px", fontWeight:800, color:"var(--green-dark)" }}>
+                                {formaterMontant(montant)}
+                              </div>
                             </div>
                           ) : (
-                            <span style={{background:"rgba(212,168,48,0.1)",color:"#D4A830",
-                              border:"1px solid rgba(212,168,48,0.3)",borderRadius:"100px",
-                              padding:"4px 12px",fontSize:"12px",fontWeight:700}}>Sur devis</span>
+                            <span style={{ background:"rgba(212,168,48,0.1)", color:"#D4A830",
+                              border:"1px solid rgba(212,168,48,0.3)", borderRadius:"100px",
+                              padding:"4px 12px", fontSize:"12px", fontWeight:700 }}>Sur devis</span>
                           )}
                         </div>
-                        <div style={{display:"flex",flexDirection:"column",gap:"12px"}}>
-                          {form.regions.length>0 && (
+                        <div style={{ display:"flex", flexDirection:"column", gap:"12px" }}>
+                          {form.regions.length > 0 && (
                             <div>
-                              <div style={{fontSize:"11px",fontWeight:700,color:"var(--text-muted)",
-                                textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:"6px"}}>Régions</div>
-                              <div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>
-                                {form.regions.map(r=><Chip key={r} label={r}/>)}
+                              <div style={{ fontSize:"11px", fontWeight:700, color:"var(--text-muted)",
+                                textTransform:"uppercase", letterSpacing:"0.06em", marginBottom:"6px" }}>Régions</div>
+                              <div style={{ display:"flex", flexWrap:"wrap", gap:"6px" }}>
+                                {form.regions.map(r => <Chip key={r} label={r}/>)}
                               </div>
                             </div>
                           )}
-                          {form.activites.length>0 && (
+                          {form.activites.length > 0 && (
                             <div>
-                              <div style={{fontSize:"11px",fontWeight:700,color:"var(--text-muted)",
-                                textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:"6px"}}>Activités</div>
-                              <div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>
-                                {form.activites.map(a=>(
-                                  <Chip key={a} label={ACTIVITES.find(x=>x.value===a)?.label}/>
+                              <div style={{ fontSize:"11px", fontWeight:700, color:"var(--text-muted)",
+                                textTransform:"uppercase", letterSpacing:"0.06em", marginBottom:"6px" }}>Activités</div>
+                              <div style={{ display:"flex", flexWrap:"wrap", gap:"6px" }}>
+                                {form.activites.map(a => (
+                                  <Chip key={a} label={ACTIVITES.find(x => x.value === a)?.label}/>
                                 ))}
                               </div>
                             </div>
                           )}
-                          {form.formesJuridiques.length>0 && (
+                          {form.formesJuridiques.length > 0 && (
                             <div>
-                              <div style={{fontSize:"11px",fontWeight:700,color:"var(--text-muted)",
-                                textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:"6px"}}>Formes juridiques</div>
-                              <div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>
-                                {form.formesJuridiques.map(f=><Chip key={f} label={f}/>)}
+                              <div style={{ fontSize:"11px", fontWeight:700, color:"var(--text-muted)",
+                                textTransform:"uppercase", letterSpacing:"0.06em", marginBottom:"6px" }}>Formes juridiques</div>
+                              <div style={{ display:"flex", flexWrap:"wrap", gap:"6px" }}>
+                                {form.formesJuridiques.map(f => <Chip key={f} label={f}/>)}
                               </div>
                             </div>
                           )}
-                          {form.tranches.length>0 && (
+                          {form.tranches.length > 0 && (
                             <div>
-                              <div style={{fontSize:"11px",fontWeight:700,color:"var(--text-muted)",
-                                textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:"6px"}}>Tranches d'effectif</div>
-                              <div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>
-                                {form.tranches.map(t=>(
-                                  <Chip key={t} label={TRANCHES_EFFECTIF.find(x=>x.value===t)?.label}/>
+                              <div style={{ fontSize:"11px", fontWeight:700, color:"var(--text-muted)",
+                                textTransform:"uppercase", letterSpacing:"0.06em", marginBottom:"6px" }}>Tranches d'effectif</div>
+                              <div style={{ display:"flex", flexWrap:"wrap", gap:"6px" }}>
+                                {form.tranches.map(t => (
+                                  <Chip key={t} label={TRANCHES_EFFECTIF.find(x => x.value === t)?.label}/>
                                 ))}
                               </div>
                             </div>
                           )}
-                          {nbCriteres===0 && (
-                            <p style={{fontSize:"13px",color:"var(--text-muted)",fontStyle:"italic",margin:0}}>
+                          {nbCriteres === 0 && (
+                            <p style={{ fontSize:"13px", color:"var(--text-muted)", fontStyle:"italic", margin:0 }}>
                               Aucun critère — toutes les données disponibles seront incluses
                             </p>
                           )}
                         </div>
                       </div>
-                      <div style={{background:"var(--green-pale)",border:"1px solid rgba(34,160,82,0.2)",
-                        borderRadius:"10px",padding:"12px 16px",marginBottom:"20px",
-                        fontSize:"13px",color:"var(--text-mid)",lineHeight:1.6}}>
-                        Un agent CCI-BF vous recontactera à <strong>{form.contact}</strong> sous{" "}
+                      <div style={{ background:"var(--green-pale)", border:"1px solid rgba(34,160,82,0.2)",
+                        borderRadius:"10px", padding:"12px 16px", marginBottom:"20px",
+                        fontSize:"13px", color:"var(--text-mid)", lineHeight:1.6 }}>
+                        Un agent CCI-BF vous recontactera à{" "}
+                        <strong>{form.contact}</strong> sous{" "}
                         <strong>3 à 5 jours ouvrables</strong> pour confirmer et organiser le paiement.
                       </div>
-                      <div style={{display:"flex",gap:"10px"}}>
-                        <button className="btn-cancel" onClick={()=>setEtape(2)}>← Modifier</button>
-                        <button className="btn-save" style={{padding:"12px 32px"}}
+                      <div style={{ display:"flex", gap:"10px" }}>
+                        <button className="btn-cancel" onClick={() => setEtape(2)}>← Modifier</button>
+                        <button className="btn-save" style={{ padding:"12px 32px" }}
                           disabled={loading} onClick={soumettre}>
                           {loading
                             ? <><span className="spinner-sm"/>&nbsp;Envoi...</>
@@ -1089,54 +1139,46 @@ export default function DemandeDocument() {
                         </button>
                       </div>
                     </>)}
+
                   </div>
                 </div>
               )}
             </div>
           )}
 
-          {/* ══════ MES DEMANDES (RÉEL) ══════ */}
-          {onglet==="historique" && (
-            <div style={{maxWidth:"820px"}}>
-
-              {/* En-tête + bouton actualiser */}
-              <div style={{display:"flex",justifyContent:"space-between",
-                alignItems:"center",marginBottom:"20px"}}>
+          {/* ══════ MES DEMANDES ══════ */}
+          {onglet === "historique" && (
+            <div style={{ maxWidth:"820px", margin:"0 auto" }}>
+              <div style={{ display:"flex", justifyContent:"space-between",
+                alignItems:"center", marginBottom:"20px" }}>
                 <div>
-                  <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:"22px",
-                    color:"var(--text-dark)",margin:0}}>Mes demandes</h2>
-                  <p style={{color:"var(--text-muted)",fontSize:"13px",margin:"4px 0 0"}}>
+                  <h2 style={{ fontSize:"22px", fontWeight:800,
+                    color:"var(--text-dark)", margin:0 }}>Mes demandes</h2>
+                  <p style={{ color:"var(--text-muted)", fontSize:"13px", margin:"4px 0 0" }}>
                     {demandes.length} demande{demandes.length!==1?"s":""} enregistrée{demandes.length!==1?"s":""}
                   </p>
                 </div>
-                <button className="btn-save" style={{fontSize:"12px",padding:"8px 16px"}}
+                <button className="btn-save" style={{ fontSize:"12px", padding:"8px 16px" }}
                   onClick={chargerDemandes} disabled={demandesLoading}>
                   {demandesLoading ? "Chargement..." : "Actualiser"}
                 </button>
               </div>
 
-              {/* Filtres par statut */}
-              <div style={{display:"flex",gap:"8px",marginBottom:"20px",flexWrap:"wrap"}}>
-                {["tous","en_attente","en_cours","traite","rejete"].map(s=>{
+              <div style={{ display:"flex", gap:"8px", marginBottom:"20px", flexWrap:"wrap" }}>
+                {["tous","en_attente","en_cours","traite","rejete"].map(s => {
                   const sc = STATUT_COLORS[s];
                   return (
-                    <button key={s} onClick={()=>setFiltreStatut(s)}
-                      style={{padding:"6px 14px",borderRadius:"100px",fontSize:"12px",
-                        border: filtreStatut===s
-                          ? `2px solid ${sc?.color || "var(--green-light)"}`
-                          : "1.5px solid var(--border)",
-                        background: filtreStatut===s
-                          ? (sc?.bg || "var(--green-pale)")
-                          : "#fff",
-                        color: filtreStatut===s
-                          ? (sc?.color || "var(--green-dark)")
-                          : "var(--text-mid)",
-                        fontWeight: filtreStatut===s?700:500,
-                        cursor:"pointer",fontFamily:"inherit",transition:"all 0.15s"}}>
-                      {s==="tous" ? "Toutes" : sc?.label}
-                      {s!=="tous" && (
-                        <span style={{marginLeft:"6px",opacity:0.7}}>
-                          ({demandes.filter(d=>d.statut===s).length})
+                    <button key={s} onClick={() => setFiltreStatut(s)}
+                      style={{ padding:"6px 14px", borderRadius:"100px", fontSize:"12px",
+                        border: filtreStatut===s ? `2px solid ${sc?.color || "var(--green-light)"}` : "1.5px solid var(--border)",
+                        background: filtreStatut===s ? (sc?.bg || "var(--green-pale)") : "#fff",
+                        color: filtreStatut===s ? (sc?.color || "var(--green-dark)") : "var(--text-mid)",
+                        fontWeight: filtreStatut===s ? 700 : 500,
+                        cursor:"pointer", transition:"all 0.15s" }}>
+                      {s === "tous" ? "Toutes" : sc?.label}
+                      {s !== "tous" && (
+                        <span style={{ marginLeft:"6px", opacity:0.7 }}>
+                          ({demandes.filter(d => d.statut === s).length})
                         </span>
                       )}
                     </button>
@@ -1144,160 +1186,103 @@ export default function DemandeDocument() {
                 })}
               </div>
 
-              {/* État : chargement */}
               {demandesLoading && (
-                <div style={{textAlign:"center",padding:"60px 0",color:"var(--text-muted)"}}>
-                  <div style={{fontSize:"32px",marginBottom:"12px"}}></div>
-                  <p style={{fontSize:"14px"}}>Chargement de vos demandes...</p>
+                <div style={{ textAlign:"center", padding:"60px 0", color:"var(--text-muted)" }}>
+                  <p style={{ fontSize:"14px" }}>Chargement de vos demandes...</p>
                 </div>
               )}
 
-              {/* État : erreur */}
               {!demandesLoading && demandesErreur && (
-                <div style={{background:"#FFF0F0",border:"1px solid #FFB3B3",borderRadius:"12px",
-                  padding:"20px",textAlign:"center",color:"#CC3333"}}>
-                  <div style={{fontSize:"24px",marginBottom:"8px"}}>⚠️</div>
-                  <p style={{margin:0,fontSize:"14px"}}>{demandesErreur}</p>
-                  <button className="btn-save" style={{marginTop:"12px",fontSize:"12px"}}
+                <div style={{ background:"#FFF0F0", border:"1px solid #FFB3B3",
+                  borderRadius:"12px", padding:"20px", textAlign:"center", color:"#CC3333" }}>
+                  <p style={{ margin:0, fontSize:"14px" }}>{demandesErreur}</p>
+                  <button className="btn-save" style={{ marginTop:"12px", fontSize:"12px" }}
                     onClick={chargerDemandes}>Réessayer</button>
                 </div>
               )}
 
-              {/* État : vide */}
-              {!demandesLoading && !demandesErreur && demandes.length===0 && (
-                <div style={{textAlign:"center",padding:"60px 0",color:"var(--text-muted)"}}>
-                  <div style={{fontSize:"48px",marginBottom:"12px"}}></div>
-                  <p style={{fontSize:"14px",marginBottom:"16px"}}>Aucune demande pour l'instant.</p>
-                  <button className="btn-save" onClick={()=>setOnglet("nouvelle")}>
+              {!demandesLoading && !demandesErreur && demandes.length === 0 && (
+                <div style={{ textAlign:"center", padding:"60px 0", color:"var(--text-muted)" }}>
+                  <div style={{ fontSize:"48px", marginBottom:"12px" }}>📭</div>
+                  <p style={{ fontSize:"14px", marginBottom:"16px" }}>Aucune demande pour l'instant.</p>
+                  <button className="btn-save" onClick={() => setOnglet("nouvelle")}>
                     Faire une demande
                   </button>
                 </div>
               )}
 
-              {/* État : résultats filtrés vides */}
-              {!demandesLoading && !demandesErreur && demandes.length>0 && demandesFiltrees.length===0 && (
-                <div style={{textAlign:"center",padding:"40px 0",color:"var(--text-muted)"}}>
-                  <p style={{fontSize:"14px"}}>Aucune demande avec ce statut.</p>
-                </div>
-              )}
-
-              {/* Liste des demandes */}
-              {!demandesLoading && !demandesErreur && demandesFiltrees.length>0 && (
-                <div style={{display:"flex",flexDirection:"column",gap:"12px"}}>
+              {!demandesLoading && !demandesErreur && demandesFiltrees.length > 0 && (
+                <div style={{ display:"flex", flexDirection:"column", gap:"12px" }}>
                   {demandesFiltrees.map(d => {
                     const sc  = STATUT_COLORS[d.statut] || STATUT_COLORS["en_attente"];
-                    const typ = TYPES_REQUETES.find(t=>t.id===d.typeRequete);
-                    const peutAnnuler = ["en_attente"].includes(d.statut);
+                    const typ = TYPES_REQUETES.find(t => t.id === d.typeRequete);
+                    const peutAnnuler  = ["en_attente"].includes(d.statut);
                     const peutRelancer = ["traite","rejete"].includes(d.statut);
-
                     return (
-                      <div key={d._id} style={{background:"#fff",borderRadius:"14px",
-                        border:"1px solid var(--border)",padding:"20px 24px",
-                        transition:"box-shadow 0.2s"}}>
-
-                        {/* En-tête de la carte */}
-                        <div style={{display:"flex",justifyContent:"space-between",
-                          alignItems:"flex-start",marginBottom:"14px"}}>
+                      <div key={d._id} style={{ background:"#fff", borderRadius:"14px",
+                        border:"1px solid var(--border)", padding:"20px 24px" }}>
+                        <div style={{ display:"flex", justifyContent:"space-between",
+                          alignItems:"flex-start", marginBottom:"14px" }}>
                           <div>
-                            <div style={{fontWeight:700,fontSize:"15px",color:"var(--text-dark)"}}>
+                            <div style={{ fontWeight:700, fontSize:"15px", color:"var(--text-dark)" }}>
                               {typ?.label || d.typeRequete}
                             </div>
-                            <div style={{fontSize:"12px",color:"var(--text-muted)",marginTop:"2px"}}>
+                            <div style={{ fontSize:"12px", color:"var(--text-muted)", marginTop:"2px" }}>
                               {d.createdAt
                                 ? new Date(d.createdAt).toLocaleDateString("fr-FR",
-                                    { day:"2-digit", month:"long", year:"numeric" })
-                                : "—"}
+                                    { day:"2-digit", month:"long", year:"numeric" }) : "—"}
                               {" · "}Réf. <strong>{d._id?.slice(-6).toUpperCase()}</strong>
                             </div>
-                            {d.sousType && (
-                              <div style={{fontSize:"11px",color:"var(--green-dark)",
-                                fontWeight:600,marginTop:"3px"}}>
-                                {typ?.sousTypes?.find(s=>s.value===d.sousType)?.label || d.sousType}
-                              </div>
-                            )}
                           </div>
-                          <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:"6px"}}>
-                            <span style={{background:sc.bg,color:sc.color,
-                              border:`1px solid ${sc.color}33`,borderRadius:"100px",
-                              padding:"4px 12px",fontSize:"11px",fontWeight:700}}>
+                          <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:"6px" }}>
+                            <span style={{ background:sc.bg, color:sc.color,
+                              border:`1px solid ${sc.color}33`, borderRadius:"100px",
+                              padding:"4px 12px", fontSize:"11px", fontWeight:700 }}>
                               {sc.label}
                             </span>
                             {d.montantEstime && (
-                              <span style={{fontSize:"13px",fontWeight:700,color:"var(--green-dark)"}}>
+                              <span style={{ fontSize:"13px", fontWeight:700, color:"var(--green-dark)" }}>
                                 {d.montantEstime.toLocaleString("fr-FR")} FCFA
                               </span>
                             )}
                           </div>
                         </div>
 
-                        {/* Chips critères */}
-                        {(d.regions?.length>0 || d.activites?.length>0 ||
-                          d.formesJuridiques?.length>0 || d.tranches?.length>0) && (
-                          <div style={{display:"flex",flexWrap:"wrap",gap:"6px",marginBottom:"10px"}}>
-                            {d.regions?.map(r=><Chip key={r} label={r}/>)}
-                            {d.activites?.map(a=>(
-                              <Chip key={a} label={ACTIVITES.find(x=>x.value===a)?.label||a}/>
-                            ))}
-                            {d.tranches?.map(t=>(
-                              <Chip key={t} label={TRANCHES_EFFECTIF.find(x=>x.value===t)?.label||t}/>
-                            ))}
-                          </div>
-                        )}
-
-                        {/* Description courte */}
-                        {d.description && (
-                          <p style={{fontSize:"13px",color:"var(--text-muted)",
-                            lineHeight:1.5,margin:"0 0 12px",
-                            overflow:"hidden",display:"-webkit-box",
-                            WebkitLineClamp:2,WebkitBoxOrient:"vertical"}}>
-                            {d.description}
-                          </p>
-                        )}
-
-                        {/* Message action (succès / erreur) */}
-                        {actionMessage.id===d._id && actionMessage.texte && (
-                          <div style={{padding:"10px 14px",borderRadius:"8px",
-                            fontSize:"13px",marginBottom:"12px",
-                            background: actionMessage.type==="succes"?"#E8F5EE":"#FFF0F0",
-                            color: actionMessage.type==="succes"?"#1A7A40":"#CC3333",
-                            border: `1px solid ${actionMessage.type==="succes"?"#C0D8C8":"#FFB3B3"}`}}>
+                        {actionMessage.id === d._id && actionMessage.texte && (
+                          <div style={{ padding:"10px 14px", borderRadius:"8px",
+                            fontSize:"13px", marginBottom:"12px",
+                            background: actionMessage.type==="succes" ? "#E8F5EE" : "#FFF0F0",
+                            color: actionMessage.type==="succes" ? "#1A7A40" : "#CC3333",
+                            border:`1px solid ${actionMessage.type==="succes"?"#C0D8C8":"#FFB3B3"}` }}>
                             {actionMessage.texte}
                           </div>
                         )}
 
-                        {/* Boutons d'action */}
-                        <div style={{display:"flex",gap:"8px",flexWrap:"wrap"}}>
-                          <button
-                            onClick={()=>setDemandeDetail(d)}
-                            style={{padding:"7px 14px",borderRadius:"8px",fontSize:"12px",
-                              fontWeight:600,cursor:"pointer",fontFamily:"inherit",
-                              background:"var(--green-pale)",color:"var(--green-dark)",
-                              border:"1px solid rgba(34,160,82,0.3)",transition:"all 0.15s"}}>
+                        <div style={{ display:"flex", gap:"8px", flexWrap:"wrap" }}>
+                          <button onClick={() => setDemandeDetail(d)}
+                            style={{ padding:"7px 14px", borderRadius:"8px", fontSize:"12px",
+                              fontWeight:600, cursor:"pointer",
+                              background:"var(--green-pale)", color:"var(--green-dark)",
+                              border:"1px solid rgba(34,160,82,0.3)", transition:"all 0.15s" }}>
                             Voir le détail
                           </button>
-
                           {peutRelancer && (
-                            <button
-                              onClick={()=>relancerDemande(d)}
-                              disabled={relanceId===d._id}
-                              style={{padding:"7px 14px",borderRadius:"8px",fontSize:"12px",
-                                fontWeight:600,cursor:"pointer",fontFamily:"inherit",
-                                background:"#EFF6FF",color:"#1E60CC",
+                            <button onClick={() => relancerDemande(d)} disabled={relanceId===d._id}
+                              style={{ padding:"7px 14px", borderRadius:"8px", fontSize:"12px",
+                                fontWeight:600, cursor:"pointer",
+                                background:"#EFF6FF", color:"#1E60CC",
                                 border:"1px solid rgba(30,96,204,0.3)",
-                                opacity:relanceId===d._id?0.6:1,transition:"all 0.15s"}}>
+                                opacity: relanceId===d._id ? 0.6 : 1 }}>
                               {relanceId===d._id ? "Relance..." : "Relancer"}
                             </button>
                           )}
-
                           {peutAnnuler && (
-                            <button
-                              onClick={()=>annulerDemande(d._id)}
-                              disabled={annulationId===d._id}
-                              style={{padding:"7px 14px",borderRadius:"8px",fontSize:"12px",
-                                fontWeight:600,cursor:"pointer",fontFamily:"inherit",
-                                background:"#FFF0F0",color:"#CC3333",
+                            <button onClick={() => annulerDemande(d._id)} disabled={annulationId===d._id}
+                              style={{ padding:"7px 14px", borderRadius:"8px", fontSize:"12px",
+                                fontWeight:600, cursor:"pointer",
+                                background:"#FFF0F0", color:"#CC3333",
                                 border:"1px solid rgba(204,51,51,0.3)",
-                                opacity:annulationId===d._id?0.6:1,transition:"all 0.15s"}}>
+                                opacity: annulationId===d._id ? 0.6 : 1 }}>
                               {annulationId===d._id ? "Annulation..." : "Annuler"}
                             </button>
                           )}
@@ -1311,9 +1296,10 @@ export default function DemandeDocument() {
           )}
         </div>
 
+        {/* ══ FOOTER ══ */}
         <footer className="dash-footer">
           <span>CCI-BF — Chambre de Commerce et d'Industrie du Burkina Faso</span>
-          <div style={{display:"flex",gap:"20px"}}>
+          <div style={{ display:"flex", gap:"20px" }}>
             <span>Tarifs officiels CCI-BF</span>
             <span>+226 25 30 61 22</span>
           </div>
