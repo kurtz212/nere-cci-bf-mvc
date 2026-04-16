@@ -352,18 +352,73 @@ export default function DemandeDocument() {
     { id:"pack3", label:"Pack 3", montant:15000 },
   ];
 
-  if (!user) return (
-    <div style={{ minHeight:"100vh", background:"#F5FAF7", display:"flex",
-      alignItems:"center", justifyContent:"center", fontFamily:"Arial, sans-serif" }}>
-      <div style={{ textAlign:"center" }}>
-        <div style={{ fontSize:"48px", marginBottom:"16px" }}>🔒</div>
-        <h2 style={{ color:"#0A3D1F" }}>Accès réservé aux abonnés</h2>
-        <button onClick={() => navigate("/connexion")} className="btn-save" style={{ marginTop:"16px" }}>
-          Se connecter
-        </button>
+if (!user) return (
+  <>
+    {/* NAVBAR */}
+    <nav className="dash-navbar" style={{ display:"flex", alignItems:"center" }}>
+
+      {/* LOGO À GAUCHE */}
+      <div className="nav-left">
+        <div style={{ display:"flex", alignItems:"center", gap:"8px" }}>
+          <img src={logoNERE} alt="NERE"
+            style={{ height:"80px", width:"auto", borderRadius:"6px", flexShrink:0 }}/>
+          <div style={{ display:"flex", flexDirection:"column", lineHeight:1.4 }}>
+            <span style={{ fontSize:"11px", fontWeight:800, color:"#fff",
+              letterSpacing:"0.06em", textTransform:"uppercase" }}>Fichier NERE</span>
+            <span style={{ fontSize:"10px", color:"rgba(255,255,255,0.85)" }}>
+              Registre national des entreprises<br/>Du Burkina Faso
+            </span>
+          </div>
+        </div>
       </div>
+
+      {/* MENU CENTRÉ */}
+      <div className="dash-nav-links"
+        style={{
+          display:"flex",
+          justifyContent:"center",
+          alignItems:"center",
+          flex:1,
+          gap:"20px"
+        }}>
+        <span className="dash-nav-link" onClick={() => navigate("/")}>Accueil</span>
+        <span className="dash-nav-link" onClick={() => navigate("/contact")}>Contact</span>
+        <span className="dash-nav-link" onClick={() => navigate("/rechercheacc")}>Recherche</span>
+        <span className="dash-nav-link active">Chat</span>
+      </div>
+
+      {/* ESPACE À DROITE POUR ÉQUILIBRER */}
+      <div className="nav-right" style={{ width:"120px" }}></div>
+
+    </nav>
+
+    {/* CONTENU CENTRÉ SUR TOUTE LA PAGE */}
+    <div style={{
+      height:"calc(100vh - 80px)",   // hauteur totale - navbar
+      width:"100%",
+      background:"#F5FAF7",
+      display:"flex",
+      alignItems:"center",
+      justifyContent:"center",
+      flexDirection:"column",
+      textAlign:"center",
+      fontFamily:"Arial, sans-serif"
+    }}>
+      <div style={{ fontSize:"48px", marginBottom:"16px" }}></div>
+      <h2 style={{ color:"#0A3D1F", marginBottom:"16px" }}>Accès réservé aux abonnés</h2>
+
+      <button
+        onClick={() => navigate("/connexion")}
+        className="btn-save"
+        style={{ padding:"10px 20px", fontSize:"16px" }}
+      >
+        Se connecter
+      </button>
     </div>
-  );
+  </>
+);
+
+
 
   const Chip = ({ label }) => (
     <span style={{ background:"var(--green-pale)", color:"var(--green-dark)",
@@ -1130,7 +1185,7 @@ export default function DemandeDocument() {
                         <strong>3 à 5 jours ouvrables</strong> pour confirmer et organiser le paiement.
                       </div>
                       <div style={{ display:"flex", gap:"10px" }}>
-                        <button className="btn-cancel" onClick={() => setEtape(2)}>← Modifier</button>
+                        <button className="btn-cancel" onClick={() => setEtape(2)}> Modifier</button>
                         <button className="btn-save" style={{ padding:"12px 32px" }}
                           disabled={loading} onClick={soumettre}>
                           {loading

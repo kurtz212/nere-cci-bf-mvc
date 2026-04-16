@@ -17,6 +17,7 @@ import AdminRoute          from './components/AdminRoute';
 import RechercheEntreprise from './views/shared/Rechercheentreprise';
 import Contact             from './views/shared/Contact';
 import ChatAdmin           from './views/dashboard/Chatadmin';
+import NotifChat             from './components/NotifChat';
 import RechercheAcc          from './views/dashboard/Rechercheacc';
 import Gestionnaire from "./views/dashboard/Gestionnaire";
 export default function App() {
@@ -33,6 +34,7 @@ export default function App() {
            <Route path="/rechercheacc" element={<Recherche />} />
           <Route path="/demande-document"     element={<DemandeDocument />} />
           <Route path="/chat"                 element={<Chat />} />
+          <Route path="/chatadmin"            element={<ChatAdmin />} />
               <Route path="/rechercheacc"          element={<RechercheAcc />} />
           <Route path="/paiement"             element={<Paiement />} />
           <Route path="/dashboard"            element={<Dashboard />} />

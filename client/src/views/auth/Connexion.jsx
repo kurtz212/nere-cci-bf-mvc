@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "../../styles/auth.css";
-
+import logoNERE from "../../assets/nere.jpg";
 export default function Connexion() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -90,29 +90,46 @@ export default function Connexion() {
       </div>
 
       <div className="auth-wrapper">
-       <nav className="auth-navbar">
-
-  {/* LOGO */}
-  <div className="auth-logo" onClick={() => navigate("/")}>
-   
+      <nav className="dash-navbar" style={{
+  display:"flex",
+  alignItems:"center",
+  justifyContent:"space-between",
+  padding:"0 20px"
+}}>
+  
+  {/* LOGO À GAUCHE */}
+  <div className="nav-left" style={{ width:"250px" }}>
+    <div style={{ display:"flex", alignItems:"center", gap:"12px" }}>
+      <img src={logoNERE} alt="NERE"
+        style={{ height:"80px", width:"auto", borderRadius:"6px", flexShrink:0 }}/>
+      <div style={{ display:"flex", flexDirection:"column", lineHeight:1.4 }}>
+        <span style={{ fontSize:"11px", fontWeight:800, color:"#fff",
+          letterSpacing:"0.06em", textTransform:"uppercase" }}>Fichier NERE</span>
+        <span style={{ fontSize:"10px", color:"rgba(255,255,255,0.85)" }}>
+          Registre national des entreprises<br/>Du Burkina Faso
+        </span>
+      </div>
+    </div>
   </div>
 
-  {/* LIENS */}
-  <div className="nav-links">
-    <span className="nav-link active" onClick={()=>navigate("/")}>Accueil</span>
-    <span className="nav-link" onClick={()=>navigate("/publications")}>Publications</span>
-    <span className="nav-link" onClick={()=>navigate("/rechercheacc")}>Recherche</span>
-    <span className="nav-link" onClick={()=>navigate("/Contact")}>Contact</span>
-    <span className="nav-link" onClick={()=>navigate("/Chat")}>Chat</span>
+  {/* 🔥 MENU CENTRÉ */}
+  <div className="dash-nav-links" style={{
+    display:"flex",
+    justifyContent:"center",
+    alignItems:"center",
+    flex:1,
+    gap:"18px",
+    color:"#ffffff"
+  }}>
+    <span className="dash-nav-link" onClick={() => navigate("/")}>Accueil</span>
+    <span className="dash-nav-link" onClick={() => navigate("/publications")}>Publications</span>
+    <span className="dash-nav-link" onClick={() => navigate("/rechercheacc")}>Recherche</span>
+    <span className="dash-nav-link active">Contact</span>
+    <span className="dash-nav-link" onClick={() => navigate("/chat")}>Chat</span>
   </div>
 
-  {/* DROITE */}
-  <div className="auth-nav-right">
-    Pas encore de compte ?{" "}
-    <span className="auth-link" style={{ color: "white" }} onClick={() => navigate("/inscription")}>
-      S'inscrire
-    </span>
-  </div>
+  {/* ESPACE VIDE POUR ÉQUILIBRER */}
+  <div className="nav-right" style={{ width:"250px" }}></div>
 
 </nav>
 

@@ -210,12 +210,12 @@ export default function Dashboard() {
                 <button onClick={() => navigate("/publications")}
                   style={{ fontSize:"12px", color:"#4DC97A", background:"none",
                     border:"none", cursor:"pointer", fontWeight:600 }}>
-                  Voir tout →
+                  Voir tout 
                 </button>
               </div>
               {loading ? (
                 <div style={{ textAlign:"center", padding:"20px",
-                  color:"#6B9A7A", fontSize:"13px" }}>⏳ Chargement...</div>
+                  color:"#6B9A7A", fontSize:"13px" }}> Chargement...</div>
               ) : pubs.length === 0 ? (
                 <div style={{ textAlign:"center", padding:"20px",
                   color:"#6B9A7A", fontSize:"13px" }}>Aucune publication</div>

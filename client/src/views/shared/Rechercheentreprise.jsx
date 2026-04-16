@@ -1,552 +1,905 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../styles/dashboard.css";
-import logoNERE from "../../assets/nere.jpg";
 
-const ENTREPRISES_MOCK = [
-  { id:1, nom:"SOCOGEB SARL", raisonSociale:"SOCOGEB", rccm:"RCCM-BF-OUA-2020-B-1111", ifu:"IFU-BF-001234", ville:"Ouagadougou" },
-  { id:2, nom:"AGRO-BF SA",   raisonSociale:"AGRO-BF", rccm:"RCCM-BF-BOB-2021-B-2222", ifu:"IFU-BF-005678", ville:"Bobo-Dioulasso" },
+const TYPES_REQUETES = [
+  {
+    id: "liste", label: "Liste", icon: "📋",
+    prix: 250, unite: "adresse",
+    description: "Liste d'entreprises ou d'associations professionnelles",
+    sousTypes: [
+      { value: "liste_entreprises",  label: "Liste d'entreprises" },
+      { value: "liste_associations", label: "Liste d'associations professionnelles" },
+    ],
+    couleur: "#4DC97A",
+  },
+  {
+    id: "detail", label: "Détails", icon: "🔍",
+    prix: null, unite: null,
+    description: "Informations détaillées sur entreprises, associations ou flux commerciaux",
+    sousTypes: [
+      { value: "detail_entreprises",  label: "Détails entreprises" },
+      { value: "detail_associations", label: "Détails associations professionnelles" },
+    ],
+    couleur: "#22A052",
+  },
+  {
+    id: "statistique", label: "Statistiques", icon: "📊",
+    prix: 5000, unite: "statistique",
+    description: "Statistiques sur entreprises, associations, importations et exportations",
+    sousTypes: [
+      { value: "stat_entreprises",  label: "Statistiques entreprises" },
+      { value: "stat_associations", label: "Statistiques associations professionnelles" },
+      { value: "stat_importations", label: "Statistiques importations" },
+      { value: "stat_exportations", label: "Statistiques exportations" },
+    ],
+    couleur: "#1A7A40",
+  },
+  {
+    id: "fiche", label: "Fiche", icon: "📄",
+    prix: 1000, unite: "fiche",
+    description: "Fiche complète d'une entreprise ou association professionnelle",
+    sousTypes: [
+      { value: "fiche_entreprise",  label: "Fiche entreprise" },
+      { value: "fiche_association", label: "Fiche association professionnelle" },
+    ],
+    couleur: "#0F5C2E",
+  },
+  {
+    id: "autre", label: "Autre", icon: "✉️",
+    prix: null, unite: null,
+    description: "Toute autre demande spécifique — un agent vous recontactera",
+    sousTypes: [],
+    couleur: "#D4A830",
+  },
 ];
 
-export default function RechercheEntreprise() {
+const REGIONS = [
+  "Centre","Hauts-Bassins","Est","Nord","Boucle du Mouhoun",
+  "Sahel","Sud-Ouest","Centre-Nord","Centre-Est","Centre-Ouest",
+  "Plateau-Central","Centre-Sud","Cascades",
+];
+
+const ACTIVITES = [
+  { value: "commerce_gros",            label: "Commerce de gros" },
+  { value: "commerce_detail",          label: "Commerce de détail" },
+  { value: "industrie_agroalimentaire",label: "Industrie agro-alimentaire" },
+  { value: "industrie_textile",        label: "Industrie textile" },
+  { value: "industrie_metallurgie",    label: "Industrie métallurgie / métal" },
+  { value: "industrie_papier",         label: "Industrie papier / imprimerie" },
+  { value: "artisanat",                label: "Artisanat" },
+  { value: "agrobusiness_elevage",     label: "Agrobusiness — Élevage" },
+  { value: "agrobusiness_agriculture", label: "Agrobusiness — Agriculture" },
+  { value: "service_banque",           label: "Services — Banque & Finance" },
+  { value: "service_etude",            label: "Services — Bureau d'études" },
+  { value: "service_enseignement",     label: "Services — Enseignement" },
+  { value: "service_sante",            label: "Services — Santé" },
+  { value: "service_transport",        label: "Services — Transport & Logistique" },
+];
+
+const FORMES_JURIDIQUES = [
+  "SA","SARL","SNC","SCS","GIE","EI","Coopérative","Association","ONG",
+];
+
+const TRANCHES_EFFECTIF = [
+  { value: "1-9",    label: "1 à 9 employés (Micro-entreprise)" },
+  { value: "10-49",  label: "10 à 49 employés (Petite entreprise)" },
+  { value: "50-199", label: "50 à 199 employés (Moyenne entreprise)" },
+  { value: "200-499",label: "200 à 499 employés (Grande entreprise)" },
+  { value: "500+",   label: "500 employés et plus" },
+];
+
+const STATUT_COLORS = {
+  en_attente: { bg:"rgba(212,168,48,0.1)",  color:"#D4A830", label:"En attente" },
+  en_cours:   { bg:"rgba(34,160,82,0.1)",   color:"#22A052", label:"En cours" },
+  traite:     { bg:"rgba(26,122,64,0.12)",  color:"#1A7A40", label:"Traité" },
+  rejete:     { bg:"rgba(232,85,85,0.1)",   color:"#E85555", label:"Rejeté" },
+};
+
+const DEMANDES_MOCK = [
+  { id:"R001", typeRequete:"liste", sousType:"liste_entreprises", statut:"en_cours",
+    date:"05 Mar. 2025", criteres:{ regions:["Centre","Hauts-Bassins"],
+    activites:["commerce_gros"], tranches:["50-199"] },
+    quantite:120, montantEstime:30000, description:"Liste pour prospection commerciale." },
+  { id:"R002", typeRequete:"fiche", sousType:"fiche_entreprise", statut:"traite",
+    date:"18 Fév. 2025", criteres:{ regions:["Centre"], activites:[], tranches:[] },
+    quantite:1, montantEstime:1000, description:"Fiche complète SOCOGEB SARL." },
+];
+
+function formaterMontant(m) {
+  if (!m) return "Sur devis";
+  return m.toLocaleString("fr-FR") + " FCFA";
+}
+
+export default function DemandeDocument() {
   const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem("user") || "null");
+  const [onglet, setOnglet]   = useState("nouvelle");
+  const [etape, setEtape]     = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [form, setForm] = useState({
+    typeRequete:"", sousType:"", quantite:"",
+    regions:[], villes:"", activites:[],
+    formesJuridiques:[], tranches:[],
+    description:"", contact: user?.email||"", telephone: user?.telephone||"",
+  });
 
-  const [user, setUser]           = useState(null);
-  const [menuOpen, setMenuOpen]   = useState(false);
-  const [checked, setChecked]     = useState(false); // vrai quand la vérif auth est faite
+  const toggleArr = (field, val) => setForm(f => ({
+    ...f,
+    [field]: f[field].includes(val) ? f[field].filter(v=>v!==val) : [...f[field], val],
+  }));
 
-  const [onglet, setOnglet]       = useState("recherche");
-  const [loading, setLoading]     = useState(false);
-  const [resultats, setResultats] = useState([]);
-  const [form, setForm]           = useState({ rccm:"", ifu:"", raisonSociale:"" });
+  const typeObj = TYPES_REQUETES.find(t => t.id === form.typeRequete);
+  const montant = typeObj?.prix && form.quantite
+    ? typeObj.prix * parseInt(form.quantite || 0) : null;
+  const nbCriteres = form.regions.length + form.activites.length +
+    form.formesJuridiques.length + form.tranches.length;
 
-  const [historique, setHistorique]           = useState([]);
-  const [histoLoading, setHistoLoading]       = useState(false);
-  const [histoErreur, setHistoErreur]         = useState("");
-  const [replayLoadingId, setReplayLoadingId] = useState(null);
-  const [replayMessage, setReplayMessage]     = useState({ id:null, texte:"", type:"" });
-
-  /* ── Vérification connexion ── */
-  useEffect(() => {
-    const u = localStorage.getItem("user");
-    const token = localStorage.getItem("token");
-    if (u && token) {
-      setUser(JSON.parse(u));
-    } else {
-      // Non connecté → redirection vers connexion
-      navigate("/connexion");
-    }
-    setChecked(true);
-  }, [navigate]);
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    setUser(null);
-    setMenuOpen(false);
-    navigate("/");
-  };
-
-  const initiales = user
-    ? `${user.prenom?.[0] || ""}${user.nom?.[0] || ""}`.toUpperCase()
-    : "";
-
-  /* ── Historique ── */
-  const chargerHistorique = useCallback(async () => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
-    setHistoLoading(true);
-    setHistoErreur("");
-    try {
-      const res  = await fetch(
-        "http://localhost:5000/api/searchlogs/mon-historique?type=entreprise&limit=50",
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      const data = await res.json();
-      if (data.success) {
-        setHistorique(data.data || []);
-      } else {
-        setHistoErreur(data.message || "Impossible de charger l'historique.");
-      }
-    } catch {
-      setHistoErreur("Serveur inaccessible. Vérifiez votre connexion.");
-    }
-    setHistoLoading(false);
-  }, []);
-
-  useEffect(() => {
-    if (onglet === "historique") chargerHistorique();
-  }, [onglet, chargerHistorique]);
-
-  /* ── Relancer ── */
-  const relancerRecherche = async (item) => {
-    if (!item?._id) return;
-    setReplayMessage({ id: null, texte: "", type: "" });
-    setReplayLoadingId(item._id);
+  const soumettre = async () => {
+    setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const res   = await fetch(
-        `http://localhost:5000/api/searchlogs/${item._id}/replay`,
-        { method:"POST", headers:{ "Content-Type":"application/json", Authorization:`Bearer ${token}` } }
-      );
-      const data = await res.json();
-      if (data.success) {
-        setReplayMessage({
-          id: item._id,
-          texte: data.updated
-            ? "Modification détectée : nouvelle requête enregistrée et facturée."
-            : "Aucune mise à jour : résultat servi depuis le cache, non facturé.",
-          type: "succes",
-        });
-        chargerHistorique();
-      } else {
-        setReplayMessage({ id: item._id, texte: data.message || "Relance impossible.", type: "erreur" });
-      }
-    } catch {
-      setReplayMessage({ id: item._id, texte: "Erreur serveur lors de la relance.", type: "erreur" });
-    }
-    setReplayLoadingId(null);
-    setTimeout(() => setReplayMessage({ id: null, texte: "", type: "" }), 5000);
-  };
 
-  /* ── Recherche ── */
-  const handleRecherche = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    await new Promise(r => setTimeout(r, 500));
-
-    let res = ENTREPRISES_MOCK;
-    if (form.rccm)          res = res.filter(e => e.rccm.toLowerCase().includes(form.rccm.toLowerCase()));
-    if (form.ifu)           res = res.filter(e => e.ifu.toLowerCase().includes(form.ifu.toLowerCase()));
-    if (form.raisonSociale) res = res.filter(e => e.raisonSociale.toLowerCase().includes(form.raisonSociale.toLowerCase()));
-
-    setResultats(res);
-    setLoading(false);
-
-    const token = localStorage.getItem("token");
-    if (token) {
-      fetch("http://localhost:5000/api/searchlogs", {
+      // 1. Vérifier et déduire le solde
+      const deductRes = await fetch("http://localhost:5000/api/abonnements/deduire", {
         method: "POST",
-        headers: { "Content-Type":"application/json", Authorization:`Bearer ${token}` },
+        headers: { "Content-Type":"application/json", "Authorization":`Bearer ${token}` },
         body: JSON.stringify({
-          type: "entreprise",
-          description: "Recherche entreprise",
-          criteres: form,
-          nbResultats: res.length,
+          typeRequete:  form.typeRequete,
+          quantite:     form.quantite || 1,
+          description:  `Requête ${form.typeRequete} - ${form.sousType}`,
         }),
-      }).catch(() => {});
+      });
+      const deductData = await deductRes.json();
+
+      if (!deductData.success && deductData.code === 'SOLDE_INSUFFISANT') {
+        setCoutRequete(deductData.cout);
+        setShowUpgrade(true);
+        setLoading(false);
+        return;
+      }
+
+      if (deductData.success) {
+        setSolde(s => s ? { ...s, solde: deductData.data.solde } : null);
+      }
+
+      // 2. Enregistrer la demande
+      const res = await fetch("http://localhost:5000/api/demandes", {
+        method:  "POST",
+        headers: {
+          "Content-Type":  "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          typeRequete:      form.typeRequete,
+          sousType:         form.sousType,
+          quantite:         form.quantite,
+          regions:          form.regions,
+          villes:           form.villes,
+          activites:        form.activites,
+          formesJuridiques: form.formesJuridiques,
+          tranches:         form.tranches,
+          description:      form.description,
+          contact:          form.contact,
+          telephone:        form.telephone,
+          montantEstime:    montant,
+        }),
+      });
+      const data = await res.json();
+      const resultatSimule = genererResultatSimule(form, { ...data.data, quantite: form.quantite });
+      setResultat(resultatSimule);
+      setEtape(4);
+      if (!data.success) {
+        console.warn("API warning:", data.message);
+      }
+    } catch(e) {
+      console.warn("API indisponible, résultat local:", e.message);
+      const resultatSimule = genererResultatSimule(form, { quantite: form.quantite });
+      setResultat(resultatSimule);
+      setEtape(4);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleReset = () => {
-    setForm({ rccm:"", ifu:"", raisonSociale:"" });
-    setResultats([]);
+  const reset = () => {
+    setSuccess(false); setEtape(1);
+    setForm({ typeRequete:"", sousType:"", quantite:"", regions:[], villes:"",
+      activites:[], formesJuridiques:[], tranches:[],
+      description:"", contact:user?.email||"", telephone:user?.telephone||"" });
   };
 
-  /* ── Attendre la vérif avant d'afficher quoi que ce soit ── */
-  if (!checked) return null;
+  const PACKS_UPGRADE = [
+    { id:"pack1", label:"Pack 1", montant:5000  },
+    { id:"pack2", label:"Pack 2", montant:10000 },
+    { id:"pack3", label:"Pack 3", montant:15000 },
+  ];
 
-  /* ── Si pas connecté (ne devrait pas arriver grâce au navigate) ── */
-  if (!user) return null;
+
+
+  /* ── Composants internes réutilisables ── */
+  const Chip = ({ label, onRemove }) => (
+    <span style={{ background:"var(--green-pale)", color:"var(--green-dark)",
+      border:"1px solid rgba(34,160,82,0.2)", borderRadius:"100px",
+      padding:"3px 10px", fontSize:"11px", fontWeight:600,
+      display:"inline-flex", alignItems:"center", gap:"5px" }}>
+      {label}
+      {onRemove && <span onClick={onRemove} style={{cursor:"pointer",opacity:0.6}}>✕</span>}
+    </span>
+  );
+
+  const SectionCritere = ({ icon, titre, sous, children }) => (
+    <div style={{ background:"var(--off-white)", borderRadius:"12px",
+      border:"1px solid var(--border)", padding:"20px" }}>
+      <div style={{ display:"flex", alignItems:"center", gap:"8px", marginBottom:"14px" }}>
+        <span style={{fontSize:"18px"}}>{icon}</span>
+        <span style={{fontWeight:700,fontSize:"14px",color:"var(--text-dark)"}}>{titre}</span>
+        {sous && <span style={{fontSize:"11px",color:"var(--text-muted)"}}>{sous}</span>}
+      </div>
+      {children}
+    </div>
+  );
 
   return (
-    <div style={{ minHeight:"100vh", fontFamily:"Arial, Helvetica, sans-serif" }}>
-      <style>{`* { font-family: Arial, Helvetica, sans-serif !important; }`}</style>
-
+    <div style={{minHeight:"100vh",fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
       <div className="dash-bg"><div className="grid"/></div>
-      <div style={{ position:"relative", zIndex:1 }}>
+      <div style={{position:"relative",zIndex:1}}>
 
-        {/* ══ NAVBAR ══ */}
+        {/* NAVBAR */}
         <nav className="dash-navbar">
-
-          {/* Logo + texte */}
-          <div style={{ display:"flex", alignItems:"center", gap:"12px" }}>
-            <img src={logoNERE} alt="NERE"
-              style={{ height:"60px", width:"auto", borderRadius:"6px", flexShrink:0 }}/>
-            <div style={{ display:"flex", flexDirection:"column", lineHeight:1.4 }}>
-              <span style={{ fontSize:"11px", fontWeight:800, color:"#ffffff",
-                letterSpacing:"0.06em", textTransform:"uppercase" }}>
-                Fichier NERE
-              </span>
-              <span style={{ fontSize:"10px", color:"rgba(255,255,255,0.85)" }}>
-                Registre national des entreprises<br/>Du Burkina Faso
-              </span>
-            </div>
-          </div>
-
-          {/* Liens */}
+          <div className="dash-logo" onClick={()=>navigate("/")}>NERE <span>CCI-BF</span></div>
           <div className="dash-nav-links">
-            <span className="dash-nav-link" onClick={() => navigate("/")}>Accueil</span>
-            <span className="dash-nav-link" onClick={() => navigate("/publications")}>Publications</span>
-            <span className="dash-nav-link active" onClick={() => navigate("/rechercheacc")}>Recherche</span>
-            <span className="dash-nav-link" onClick={() => navigate("/contact")}>Contact</span>
-            <span className="dash-nav-link" onClick={() => navigate("/chat")}>Chat</span>
+            <span className="dash-nav-link" onClick={()=>navigate("/")}>Accueil</span>
+            <span className="dash-nav-link" onClick={()=>navigate("/recherche")}>Recherche</span>
+            <span className="dash-nav-link active">Demande</span>
+            <span className="dash-nav-link" onClick={()=>navigate("/chat")}>💬 Chat</span>
           </div>
-
-          {/* Actions utilisateur */}
           <div className="dash-nav-actions">
-            <div style={{ position:"relative" }}>
-              <div className="user-chip" onClick={() => setMenuOpen(o => !o)}>
-                <div className="user-avatar">{initiales}</div>
-                <span>{user.prenom} {user.nom}</span>
-                <span style={{ fontSize:"10px", opacity:0.5, marginLeft:"2px" }}>▾</span>
-              </div>
-              {menuOpen && (
-                <>
-                  <div style={{ position:"fixed", inset:0, zIndex:50 }} onClick={() => setMenuOpen(false)}/>
-                  <div style={{
-                    position:"absolute", zIndex:9999, background:"#00904C",
-                    top:"calc(100% + 8px)", right:0, borderRadius:"12px",
-                    border:"1px solid rgba(255,255,255,0.15)", minWidth:"200px",
-                    overflow:"hidden", boxShadow:"0 10px 30px rgba(0,0,0,0.25)"
-                  }} onClick={e => e.stopPropagation()}>
-                    <div style={{ padding:"16px", borderBottom:"1px solid rgba(255,255,255,0.1)" }}>
-                      <div style={{ fontWeight:700, color:"#fff", fontSize:"14px" }}>{user.prenom} {user.nom}</div>
-                      <div style={{ fontSize:"12px", color:"rgba(255,255,255,0.6)" }}>{user.email || "—"}</div>
-                      <div style={{ fontSize:"11px", color:"#4DC97A", marginTop:"4px", fontWeight:600 }}>
-                        {user.role === "admin" ? "Administrateur" : "Pack · Actif"}
-                      </div>
-                    </div>
-                    {[
-                      { label:"Mon Profil",     path:"/profil" },
-                      { label:"Mon Abonnement", path:"/paiement" },
-                      { label:"Historique",     path:"/profil" },
-                      { label:"Sécurité",       path:"/profil" },
-                      { label:"Notifications",  path:"/profil" },
-                    ].map(item => (
-                      <div key={item.label}
-                        style={{ padding:"11px 16px", color:"rgba(255,255,255,0.85)", fontSize:"13px", cursor:"pointer" }}
-                        onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
-                        onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-                        onClick={() => { navigate(item.path); setMenuOpen(false); }}>
-                        {item.label}
-                      </div>
-                    ))}
-                    {user.role === "admin" && (
-                      <div style={{ padding:"11px 16px", color:"rgba(255,255,255,0.85)", fontSize:"13px", cursor:"pointer" }}
-                        onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
-                        onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-                        onClick={() => { navigate("/admin"); setMenuOpen(false); }}>
-                        Tableau de bord
-                      </div>
-                    )}
-                    {user.role === "manager" && (
-                      <div style={{ padding:"11px 16px", color:"rgba(255,255,255,0.85)", fontSize:"13px", cursor:"pointer" }}
-                        onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
-                        onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-                        onClick={() => { navigate("/gestionnaire"); setMenuOpen(false); }}>
-                        Tableau de bord
-                      </div>
-                    )}
-                    <div style={{ borderTop:"1px solid rgba(255,255,255,0.1)" }}>
-                      <div style={{ padding:"11px 16px", color:"#FF6B6B", fontSize:"13px", cursor:"pointer", fontWeight:600 }}
-                        onMouseEnter={e => e.currentTarget.style.background = "rgba(255,107,107,0.1)"}
-                        onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-                        onClick={handleLogout}>
-                        Déconnexion
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
+            <div className="user-chip" onClick={()=>navigate("/profil")}>
+              <div className="user-avatar">{user.prenom?.[0]}{user.nom?.[0]}</div>
+              <span>{user.prenom} {user.nom}</span>
             </div>
           </div>
         </nav>
 
-        {/* ══ HERO ══ */}
-        <div className="pub-page-hero" style={{ padding:"36px 48px 28px" }}>
-          <div className="pub-page-tag">Registre NERE</div>
-          <h1 className="pub-page-title" style={{ fontSize:"28px", textAlign:"left" }}>
-            Recherche d'entreprise
+        {/* HERO avec tarifs */}
+        <div className="pub-page-hero" style={{padding:"36px 48px 28px"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+            <div className="pub-page-tag">CCI-BF · Service des données NERE</div>
+            {solde && (
+              <div style={{background:"rgba(255,255,255,0.1)",borderRadius:"12px",
+                padding:"8px 16px",display:"flex",alignItems:"center",gap:"10px"}}>
+                <div style={{fontSize:"11px",color:"rgba(255,255,255,0.5)",
+                  textTransform:"uppercase",letterSpacing:"0.06em"}}>
+                  Solde {solde.packLabel}
+                </div>
+                <div style={{fontWeight:800,fontSize:"18px",
+                  color: solde.solde < 2000 ? "#FF8080" :
+                         solde.solde < 5000 ? "#D4A830" : "#4DC97A"}}>
+                  {solde.solde?.toLocaleString()} FCFA
+                </div>
+              </div>
+            )}
+          </div>
+          <h1 className="pub-page-title" style={{fontSize:"28px",textAlign:"left"}}>
+            Demande de données officielles
           </h1>
-          <p style={{ color:"#6B9A7A", fontSize:"14px", marginTop:"8px" }}>
-            Trouvez les entreprises selon vos critères : RCCM, IFU, Raison sociale
-          </p>
-        </div>
-
-        {/* ══ CONTENU ══ */}
-        <div style={{ padding:"24px 48px", maxWidth:"1200px", margin:"0 auto" }}>
-
-          {/* ONGLETS */}
-          <div style={{ display:"flex", gap:"1px", marginBottom:"24px",
-            borderBottom:"1px solid rgba(0,144,76,0.15)" }}>
-            {[
-              { key:"recherche",  label:"Recherche simple" },
-              { key:"historique", label:`Mes recherches${historique.length > 0 ? ` (${historique.length})` : ""}` },
-            ].map(t => (
-              <button key={t.key} onClick={() => setOnglet(t.key)} style={{
-                padding:"12px 20px", fontSize:"13px", fontWeight:600,
-                background:"transparent", border:"none",
-                color: onglet === t.key ? "#00904C" : "rgba(0,0,0,0.45)",
-                borderBottom: onglet === t.key ? "2px solid #00904C" : "2px solid transparent",
-                cursor:"pointer", transition:"all 0.2s",
-              }}>
-                {t.label}
-              </button>
+          <div style={{display:"flex",gap:"10px",flexWrap:"wrap",marginTop:"16px"}}>
+            {TYPES_REQUETES.filter(t=>t.prix).map(t=>(
+              <div key={t.id} style={{background:"rgba(255,255,255,0.07)",
+                border:"1px solid rgba(255,255,255,0.12)",borderRadius:"100px",
+                padding:"5px 14px",fontSize:"12px",color:"rgba(255,255,255,0.8)",
+                display:"flex",alignItems:"center",gap:"6px"}}>
+                <span>{t.icon}</span>
+                <span style={{fontWeight:700,color:"#4DC97A"}}>{t.label}</span>
+                <span>—</span>
+                <span>{t.prix.toLocaleString()} FCFA/{t.unite}</span>
+              </div>
             ))}
           </div>
+        </div>
 
-          {/* ══ ONGLET RECHERCHE ══ */}
-          {onglet === "recherche" && (
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 350px", gap:"24px" }}>
-
-              {/* FORMULAIRE */}
-              <div style={{
-                background:"#fff", border:"1px solid rgba(0,144,76,0.15)",
-                borderRadius:"16px", padding:"28px",
-                boxShadow:"0 2px 12px rgba(0,144,76,0.06)"
-              }}>
-                <h2 style={{ fontSize:"16px", fontWeight:800, color:"#0A2410", marginBottom:"24px" }}>
-                  Critères de recherche
-                </h2>
-                <form onSubmit={handleRecherche}>
-                  {[
-                    { key:"rccm",          label:"RCCM",          placeholder:"RCCM-BF-..." },
-                    { key:"ifu",           label:"IFU",           placeholder:"IFU-BF-..." },
-                    { key:"raisonSociale", label:"Raison sociale", placeholder:"Nom de l'entreprise..." },
-                  ].map(f => (
-                    <div key={f.key} style={{ marginBottom:"18px" }}>
-                      <label style={{ fontSize:"11px", fontWeight:700, color:"#6B9A7A",
-                        textTransform:"uppercase", letterSpacing:"0.08em",
-                        display:"block", marginBottom:"6px" }}>
-                        {f.label}
-                      </label>
-                      <input
-                        value={form[f.key]}
-                        onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))}
-                        placeholder={f.placeholder}
-                        style={{
-                          width:"100%", padding:"11px 14px",
-                          background:"#F5FAF7", border:"1.5px solid rgba(0,144,76,0.2)",
-                          borderRadius:"8px", color:"#0A2410", fontSize:"13px",
-                          boxSizing:"border-box", outline:"none", transition:"border-color 0.2s",
-                        }}
-                        onFocus={e => e.target.style.borderColor = "#00904C"}
-                        onBlur={e  => e.target.style.borderColor = "rgba(0,144,76,0.2)"}
-                      />
-                    </div>
-                  ))}
-                  <div style={{ display:"flex", gap:"10px", marginTop:"24px" }}>
-                    <button type="submit" disabled={loading} style={{
-                      flex:1, padding:"12px", background:"#00904C", color:"#fff",
-                      border:"none", borderRadius:"10px", cursor:"pointer",
-                      fontSize:"14px", fontWeight:700,
-                      boxShadow:"0 4px 14px rgba(0,144,76,0.3)",
-                      opacity: loading ? 0.7 : 1,
-                    }}>
-                      {loading ? "Recherche en cours..." : " Chercher"}
-                    </button>
-                    <button type="button" onClick={handleReset} style={{
-                      flex:1, padding:"12px", background:"#fff", color:"#6B9A7A",
-                      border:"1.5px solid rgba(0,144,76,0.2)", borderRadius:"10px",
-                      cursor:"pointer", fontSize:"14px", fontWeight:600,
-                    }}>
-                      Réinitialiser
-                    </button>
-                  </div>
-                </form>
+        {/* MODAL UPGRADE */}
+        {showUpgrade && (
+          <div style={{position:"fixed",inset:0,zIndex:1000,
+            background:"rgba(0,0,0,0.6)",display:"flex",
+            alignItems:"center",justifyContent:"center",padding:"20px"}}>
+            <div style={{background:"#fff",borderRadius:"20px",padding:"36px",
+              maxWidth:"440px",width:"100%",textAlign:"center"}}>
+              <div style={{fontSize:"48px",marginBottom:"16px"}}>⚠️</div>
+              <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:"22px",
+                color:"#0A3D1F",marginBottom:"8px"}}>Solde insuffisant</h3>
+              <p style={{color:"#6B9A7A",fontSize:"14px",lineHeight:1.6,marginBottom:"20px"}}>
+                Cette requête coûte <strong style={{color:"#CC3333"}}>
+                {coutRequete.toLocaleString()} FCFA</strong>.<br/>
+                Votre solde actuel est de <strong>{solde?.solde?.toLocaleString() || 0} FCFA</strong>.
+              </p>
+              <div style={{display:"flex",flexDirection:"column",gap:"10px",marginBottom:"20px"}}>
+                {PACKS_UPGRADE.filter(p => p.montant > (solde?.montantInitial || 0)).map(p => (
+                  <button key={p.id}
+                    onClick={async () => {
+                      const token = localStorage.getItem("token");
+                      await fetch("http://localhost:5000/api/abonnements/recharger", {
+                        method:"POST",
+                        headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`},
+                        body: JSON.stringify({ nouveauPack: p.id }),
+                      });
+                      setSolde({ pack:p.id, packLabel:p.label,
+                        montantInitial:p.montant, solde:p.montant });
+                      setShowUpgrade(false);
+                    }}
+                    style={{padding:"12px",borderRadius:"10px",
+                      background:"#0A3D1F",color:"#fff",border:"none",
+                      fontWeight:700,fontSize:"14px",cursor:"pointer",fontFamily:"inherit"}}>
+                    Passer au {p.label} — {p.montant.toLocaleString()} FCFA
+                  </button>
+                ))}
+                <button
+                  onClick={async () => {
+                    const montantRecharge = coutRequete + 2000;
+                    const token = localStorage.getItem("token");
+                    await fetch("http://localhost:5000/api/abonnements/recharger", {
+                      method:"POST",
+                      headers:{"Content-Type":"application/json","Authorization":`Bearer ${token}`},
+                      body: JSON.stringify({ montant: montantRecharge }),
+                    });
+                    setSolde(s => s ? {...s, solde:(s.solde||0)+montantRecharge} : null);
+                    setShowUpgrade(false);
+                  }}
+                  style={{padding:"12px",borderRadius:"10px",
+                    background:"#E8F5EE",color:"#0A3D1F",border:"1px solid #C0D8C8",
+                    fontWeight:600,fontSize:"14px",cursor:"pointer",fontFamily:"inherit"}}>
+                  Recharger de {(coutRequete+2000).toLocaleString()} FCFA
+                </button>
               </div>
+              <button onClick={() => setShowUpgrade(false)}
+                style={{color:"#6B9A7A",background:"none",border:"none",
+                  cursor:"pointer",fontSize:"13px"}}>
+                Annuler
+              </button>
+            </div>
+          </div>
+        )}
 
-              {/* RÉSULTATS */}
-              <div>
-                {resultats.length === 0 && !loading && (
-                  <div style={{
-                    background:"#fff", border:"1px solid rgba(0,144,76,0.12)",
-                    borderRadius:"16px", padding:"40px 24px",
-                    textAlign:"center", color:"#6B9A7A", fontSize:"13px",
-                    boxShadow:"0 2px 12px rgba(0,144,76,0.04)"
-                  }}>
-                    <div style={{ fontSize:"36px", marginBottom:"12px" }}></div>
-                    Lancez une recherche pour voir les résultats
-                  </div>
-                )}
+        {/* ONGLETS */}
+        <div style={{background:"#fff",borderBottom:"1px solid var(--border)",
+          padding:"0 48px",display:"flex"}}>
+          {[{key:"nouvelle",label:"📝 Nouvelle demande"},
+            {key:"historique",label:`📋 Mes demandes (${DEMANDES_MOCK.length})`}]
+            .map(o=>(
+            <button key={o.key} onClick={()=>setOnglet(o.key)} style={{
+              padding:"14px 24px",background:"transparent",border:"none",
+              borderBottom:onglet===o.key?"3px solid var(--green-light)":"3px solid transparent",
+              color:onglet===o.key?"var(--green-dark)":"var(--text-muted)",
+              fontWeight:onglet===o.key?700:500,fontSize:"14px",
+              cursor:"pointer",fontFamily:"inherit",transition:"all 0.2s"}}>
+              {o.label}
+            </button>
+          ))}
+        </div>
 
-                {resultats.length > 0 && (
-                  <div>
-                    <div style={{ fontSize:"12px", color:"#6B9A7A",
-                      marginBottom:"12px", fontWeight:600 }}>
-                      {resultats.length} résultat{resultats.length > 1 ? "s" : ""} trouvé{resultats.length > 1 ? "s" : ""}
+        <div style={{padding:"32px 48px 60px",background:"var(--off-white)"}}>
+
+          {/* ══════ NOUVELLE DEMANDE ══════ */}
+          {onglet==="nouvelle" && (
+            <div style={{maxWidth:"820px"}}>
+              {success ? (
+                <div style={{background:"#fff",borderRadius:"16px",border:"1px solid var(--border)",
+                  padding:"48px",textAlign:"center"}}>
+                  <div style={{fontSize:"56px",marginBottom:"16px"}}>✅</div>
+                  <h2 style={{fontFamily:"'Playfair Display',serif",color:"var(--green-dark)",
+                    fontSize:"24px",marginBottom:"12px"}}>Demande enregistrée !</h2>
+                  <p style={{color:"var(--text-muted)",lineHeight:1.7,marginBottom:"28px"}}>
+                    Votre demande a été transmise à la CCI-BF.<br/>
+                    Un agent vous recontactera à <strong>{form.contact}</strong> sous{" "}
+                    <strong>3 à 5 jours ouvrables</strong> pour confirmer et organiser le paiement.
+                  </p>
+                  {montant && (
+                    <div style={{background:"var(--green-pale)",border:"1px solid rgba(34,160,82,0.2)",
+                      borderRadius:"12px",padding:"16px 24px",marginBottom:"24px",
+                      display:"inline-flex",alignItems:"center",gap:"12px"}}>
+                      <span style={{fontSize:"24px"}}>💰</span>
+                      <div style={{textAlign:"left"}}>
+                        <div style={{fontSize:"11px",fontWeight:700,color:"var(--text-muted)",
+                          textTransform:"uppercase",letterSpacing:"0.08em"}}>Montant estimé</div>
+                        <div style={{fontSize:"22px",fontWeight:800,color:"var(--green-dark)",
+                          fontFamily:"'Playfair Display',serif"}}>{formaterMontant(montant)}</div>
+                      </div>
                     </div>
-                    {resultats.map((ent, i) => (
-                      <div key={i} style={{
-                        background:"#fff", border:"1px solid rgba(0,144,76,0.15)",
-                        borderRadius:"12px", padding:"16px 18px", marginBottom:"10px",
-                        boxShadow:"0 2px 8px rgba(0,144,76,0.05)",
-                        transition:"border-color 0.2s",
-                      }}
-                        onMouseEnter={e => e.currentTarget.style.borderColor = "#00904C"}
-                        onMouseLeave={e => e.currentTarget.style.borderColor = "rgba(0,144,76,0.15)"}>
-                        <div style={{ fontWeight:800, color:"#00904C",
-                          fontSize:"14px", marginBottom:"8px" }}>
-                          {ent.nom}
+                  )}
+                  <div style={{display:"flex",gap:"12px",justifyContent:"center"}}>
+                    <button className="btn-save" onClick={reset}>+ Nouvelle demande</button>
+                    <button className="btn-cancel" onClick={()=>setOnglet("historique")}>
+                      Voir mes demandes</button>
+                  </div>
+                </div>
+              ) : (
+                <div style={{background:"#fff",borderRadius:"16px",
+                  border:"1px solid var(--border)",overflow:"hidden"}}>
+
+                  {/* Barre étapes */}
+                  <div style={{background:"var(--green-deep)",padding:"18px 32px",
+                    display:"flex",alignItems:"center"}}>
+                    {[{n:1,label:"Type de requête"},{n:2,label:"Critères"},
+                      {n:3,label:"Confirmation"},{n:4,label:"Résultat"}].map((s,i)=>(
+                      <div key={s.n} style={{display:"flex",alignItems:"center",
+                        flex:i<3?1:"none"}}>
+                        <div style={{display:"flex",alignItems:"center",gap:"8px"}}>
+                          <div style={{width:"28px",height:"28px",borderRadius:"50%",
+                            background:etape>s.n?"var(--green-light)":
+                              etape===s.n?"rgba(77,201,122,0.3)":"rgba(255,255,255,0.1)",
+                            border:etape===s.n?"2px solid var(--green-light)":"2px solid transparent",
+                            color:etape>=s.n?"#fff":"rgba(255,255,255,0.3)",
+                            display:"flex",alignItems:"center",justifyContent:"center",
+                            fontSize:"12px",fontWeight:800,flexShrink:0}}>
+                            {etape>s.n?"✓":s.n}
+                          </div>
+                          <span style={{fontSize:"12px",fontWeight:600,
+                            color:etape>=s.n?"#fff":"rgba(255,255,255,0.35)"}}>
+                            {s.label}
+                          </span>
                         </div>
-                        <div style={{ fontSize:"12px", color:"#6B9A7A", lineHeight:1.7 }}>
-                          <div>RCCM : {ent.rccm}</div>
-                          <div>IFU : {ent.ifu}</div>
-                          <div>Ville : {ent.ville}</div>
-                        </div>
+                        {i<3 && <div style={{flex:1,height:"2px",
+                          background:"rgba(255,255,255,0.12)",margin:"0 12px"}}/>}
                       </div>
                     ))}
                   </div>
-                )}
-              </div>
+
+                  <div style={{padding:"32px"}}>
+
+                    {/* ─────── ÉTAPE 1 : TYPE ─────── */}
+                    {etape===1 && (<>
+                      <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:"20px",
+                        color:"var(--text-dark)",marginBottom:"8px"}}>
+                        Quel type de données souhaitez-vous ?
+                      </h3>
+                      <p style={{color:"var(--text-muted)",fontSize:"13px",marginBottom:"24px"}}>
+                        Sélectionnez le type de requête selon vos besoins.
+                      </p>
+
+                      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"12px",
+                        marginBottom:"24px"}}>
+                        {TYPES_REQUETES.map(t=>(
+                          <button key={t.id}
+                            onClick={()=>setForm(f=>({...f,typeRequete:t.id,sousType:""}))}
+                            style={{padding:"18px 20px",borderRadius:"12px",textAlign:"left",
+                              border:form.typeRequete===t.id?`2px solid ${t.couleur}`:"1.5px solid var(--border)",
+                              background:form.typeRequete===t.id?"var(--green-pale)":"#fff",
+                              cursor:"pointer",fontFamily:"inherit",transition:"all 0.2s",
+                              position:"relative"}}>
+                            {form.typeRequete===t.id && (
+                              <div style={{position:"absolute",top:"10px",right:"12px",
+                                width:"18px",height:"18px",borderRadius:"50%",
+                                background:t.couleur,color:"#fff",display:"flex",
+                                alignItems:"center",justifyContent:"center",
+                                fontSize:"10px",fontWeight:800}}>✓</div>
+                            )}
+                            <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"8px"}}>
+                              <span style={{fontSize:"22px"}}>{t.icon}</span>
+                              <span style={{fontWeight:800,fontSize:"15px",
+                                color:form.typeRequete===t.id?t.couleur:"var(--text-dark)"}}>
+                                {t.label}
+                              </span>
+                              {t.prix && (
+                                <span style={{marginLeft:"auto",fontSize:"12px",
+                                  fontWeight:700,color:t.couleur}}>
+                                  {t.prix.toLocaleString()} FCFA/{t.unite}
+                                </span>
+                              )}
+                            </div>
+                            <p style={{fontSize:"12px",color:"var(--text-muted)",
+                              lineHeight:1.5,margin:0}}>{t.description}</p>
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Sous-type */}
+                      {typeObj && typeObj.sousTypes.length>0 && (
+                        <div style={{marginBottom:"20px"}}>
+                          <label className="profil-label" style={{marginBottom:"10px",display:"block"}}>
+                            Objet précis de la demande *
+                          </label>
+                          <div style={{display:"flex",flexWrap:"wrap",gap:"10px"}}>
+                            {typeObj.sousTypes.map(s=>(
+                              <button key={s.value}
+                                onClick={()=>setForm(f=>({...f,sousType:s.value}))}
+                                style={{padding:"10px 18px",borderRadius:"100px",
+                                  border:form.sousType===s.value?"2px solid var(--green-light)":"1.5px solid var(--border)",
+                                  background:form.sousType===s.value?"var(--green-pale)":"#fff",
+                                  color:form.sousType===s.value?"var(--green-dark)":"var(--text-mid)",
+                                  fontWeight:form.sousType===s.value?700:500,
+                                  fontSize:"13px",cursor:"pointer",fontFamily:"inherit",transition:"all 0.2s"}}>
+                                {form.sousType===s.value?"✓ ":""}{s.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Quantité + montant estimé */}
+                      {typeObj?.prix && (
+                        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"14px",marginBottom:"20px"}}>
+                          <div className="profil-field">
+                            <label className="profil-label">
+                              Quantité estimée ({typeObj.unite}s) *
+                            </label>
+                            <input type="number" min="1" className="profil-input"
+                              placeholder="ex: 100" value={form.quantite}
+                              onChange={e=>setForm(f=>({...f,quantite:e.target.value}))} />
+                          </div>
+                          {montant && (
+                            <div style={{display:"flex",alignItems:"flex-end",paddingBottom:"2px"}}>
+                              <div style={{background:"var(--green-pale)",
+                                border:"1px solid rgba(34,160,82,0.2)",borderRadius:"12px",
+                                padding:"12px 18px",width:"100%"}}>
+                                <div style={{fontSize:"11px",fontWeight:700,color:"var(--text-muted)",
+                                  textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:"4px"}}>
+                                  Montant estimé
+                                </div>
+                                <div style={{fontSize:"20px",fontWeight:800,color:"var(--green-dark)",
+                                  fontFamily:"'Playfair Display',serif"}}>{formaterMontant(montant)}</div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      <button className="btn-save" style={{padding:"12px 28px"}}
+                        disabled={!form.typeRequete||(typeObj?.sousTypes.length>0&&!form.sousType)}
+                        onClick={()=>setEtape(2)}>
+                        Continuer → Critères de sélection
+                      </button>
+                    </>)}
+
+                    {/* ─────── ÉTAPE 2 : CRITÈRES ─────── */}
+                    {etape===2 && (<>
+                      <div style={{display:"flex",alignItems:"center",
+                        justifyContent:"space-between",marginBottom:"20px"}}>
+                        <div>
+                          <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:"20px",
+                            color:"var(--text-dark)",margin:0}}>Critères de sélection</h3>
+                          <p style={{color:"var(--text-muted)",fontSize:"13px",margin:"6px 0 0"}}>
+                            Choisissez un ou plusieurs critères — sélection multiple autorisée.
+                          </p>
+                        </div>
+                        {nbCriteres>0 && (
+                          <span style={{background:"var(--green-pale)",color:"var(--green-dark)",
+                            border:"1px solid rgba(34,160,82,0.2)",borderRadius:"100px",
+                            padding:"4px 12px",fontSize:"12px",fontWeight:700,flexShrink:0}}>
+                            {nbCriteres} critère{nbCriteres>1?"s":""} sélectionné{nbCriteres>1?"s":""}
+                          </span>
+                        )}
+                      </div>
+
+                      <div style={{display:"flex",flexDirection:"column",gap:"16px"}}>
+
+                        {/* Géographique */}
+                        <SectionCritere icon="🗺️" titre="Sélection par secteur géographique"
+                          sous="(Région, Province, Ville)">
+                          <div style={{marginBottom:"12px"}}>
+                            <label className="profil-label" style={{marginBottom:"8px",display:"block"}}>
+                              Régions
+                            </label>
+                            <div style={{display:"flex",flexWrap:"wrap",gap:"8px"}}>
+                              {REGIONS.map(r=>(
+                                <button key={r} onClick={()=>toggleArr("regions",r)}
+                                  style={{padding:"6px 14px",borderRadius:"100px",fontSize:"12px",
+                                    border:form.regions.includes(r)?"2px solid var(--green-light)":"1.5px solid var(--border)",
+                                    background:form.regions.includes(r)?"var(--green-pale)":"#fff",
+                                    color:form.regions.includes(r)?"var(--green-dark)":"var(--text-mid)",
+                                    fontWeight:form.regions.includes(r)?700:500,
+                                    cursor:"pointer",fontFamily:"inherit",transition:"all 0.15s"}}>
+                                  {form.regions.includes(r)?"✓ ":""}{r}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="profil-field">
+                            <label className="profil-label">Villes / Provinces spécifiques</label>
+                            <input type="text" className="profil-input"
+                              placeholder="ex: Ouagadougou, Bobo-Dioulasso, Koudougou..."
+                              value={form.villes}
+                              onChange={e=>setForm(f=>({...f,villes:e.target.value}))} />
+                          </div>
+                        </SectionCritere>
+
+                        {/* Activité */}
+                        <SectionCritere icon="🏭" titre="Sélection par activité"
+                          sous="(Commerce, Industrie, Services)">
+                          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"8px"}}>
+                            {ACTIVITES.map(a=>(
+                              <button key={a.value} onClick={()=>toggleArr("activites",a.value)}
+                                style={{padding:"9px 14px",borderRadius:"8px",textAlign:"left",
+                                  border:form.activites.includes(a.value)?"2px solid var(--green-light)":"1.5px solid var(--border)",
+                                  background:form.activites.includes(a.value)?"var(--green-pale)":"#fff",
+                                  color:form.activites.includes(a.value)?"var(--green-dark)":"var(--text-mid)",
+                                  fontWeight:form.activites.includes(a.value)?700:500,
+                                  fontSize:"12px",cursor:"pointer",fontFamily:"inherit",transition:"all 0.15s"}}>
+                                {form.activites.includes(a.value)?"✓ ":""}{a.label}
+                              </button>
+                            ))}
+                          </div>
+                        </SectionCritere>
+
+                        {/* Forme juridique */}
+                        <SectionCritere icon="⚖️" titre="Sélection par structure"
+                          sous="(Forme juridique)">
+                          <div style={{display:"flex",flexWrap:"wrap",gap:"8px"}}>
+                            {FORMES_JURIDIQUES.map(f=>(
+                              <button key={f} onClick={()=>toggleArr("formesJuridiques",f)}
+                                style={{padding:"7px 14px",borderRadius:"100px",fontSize:"12px",
+                                  border:form.formesJuridiques.includes(f)?"2px solid var(--green-light)":"1.5px solid var(--border)",
+                                  background:form.formesJuridiques.includes(f)?"var(--green-pale)":"#fff",
+                                  color:form.formesJuridiques.includes(f)?"var(--green-dark)":"var(--text-mid)",
+                                  fontWeight:form.formesJuridiques.includes(f)?700:500,
+                                  cursor:"pointer",fontFamily:"inherit",transition:"all 0.15s"}}>
+                                {form.formesJuridiques.includes(f)?"✓ ":""}{f}
+                              </button>
+                            ))}
+                          </div>
+                        </SectionCritere>
+
+                        {/* Effectif */}
+                        <SectionCritere icon="👥" titre="Sélection par tranche d'effectif salarié">
+                          <div style={{display:"flex",flexDirection:"column",gap:"8px"}}>
+                            {TRANCHES_EFFECTIF.map(t=>(
+                              <button key={t.value} onClick={()=>toggleArr("tranches",t.value)}
+                                style={{padding:"11px 16px",borderRadius:"10px",textAlign:"left",
+                                  border:form.tranches.includes(t.value)?"2px solid var(--green-light)":"1.5px solid var(--border)",
+                                  background:form.tranches.includes(t.value)?"var(--green-pale)":"#fff",
+                                  color:form.tranches.includes(t.value)?"var(--green-dark)":"var(--text-mid)",
+                                  fontWeight:form.tranches.includes(t.value)?700:500,
+                                  fontSize:"13px",cursor:"pointer",fontFamily:"inherit",
+                                  transition:"all 0.15s",display:"flex",alignItems:"center",gap:"10px"}}>
+                                <div style={{width:"18px",height:"18px",borderRadius:"50%",flexShrink:0,
+                                  border:form.tranches.includes(t.value)?"2px solid var(--green-light)":"2px solid var(--border)",
+                                  background:form.tranches.includes(t.value)?"var(--green-light)":"transparent",
+                                  display:"flex",alignItems:"center",justifyContent:"center",fontSize:"10px",color:"#fff"}}>
+                                  {form.tranches.includes(t.value)?"✓":""}
+                                </div>
+                                {t.label}
+                              </button>
+                            ))}
+                          </div>
+                        </SectionCritere>
+
+                        {/* Description + contact */}
+                        <div className="profil-field">
+                          <label className="profil-label">Précisions supplémentaires (facultatif)</label>
+                          <textarea className="profil-input" rows={3}
+                            placeholder="Tout détail utile pour préciser votre demande..."
+                            value={form.description}
+                            onChange={e=>setForm(f=>({...f,description:e.target.value}))}
+                            style={{resize:"vertical"}} />
+                        </div>
+                        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"14px"}}>
+                          <div className="profil-field">
+                            <label className="profil-label">Email de contact *</label>
+                            <input type="email" className="profil-input" value={form.contact}
+                              onChange={e=>setForm(f=>({...f,contact:e.target.value}))} />
+                          </div>
+                          <div className="profil-field">
+                            <label className="profil-label">Téléphone</label>
+                            <input type="tel" className="profil-input"
+                              placeholder="+226 XX XX XX XX" value={form.telephone}
+                              onChange={e=>setForm(f=>({...f,telephone:e.target.value}))} />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style={{display:"flex",gap:"10px",marginTop:"24px"}}>
+                        <button className="btn-cancel" onClick={()=>setEtape(1)}>← Retour</button>
+                        <button className="btn-save" style={{padding:"12px 28px"}}
+                          disabled={!form.contact} onClick={()=>setEtape(3)}>
+                          Vérifier ma demande →
+                        </button>
+                      </div>
+                    </>)}
+
+                    {/* ─────── ÉTAPE 3 : CONFIRMATION ─────── */}
+                    {etape===3 && (<>
+                      <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:"20px",
+                        color:"var(--text-dark)",marginBottom:"20px"}}>
+                        Récapitulatif de votre demande
+                      </h3>
+
+                      <div style={{background:"var(--off-white)",borderRadius:"12px",
+                        border:"1px solid var(--border)",padding:"20px",marginBottom:"16px"}}>
+
+                        {/* Type + montant */}
+                        <div style={{display:"flex",alignItems:"center",
+                          justifyContent:"space-between",paddingBottom:"16px",
+                          borderBottom:"1px solid var(--border)",marginBottom:"16px"}}>
+                          <div style={{display:"flex",alignItems:"center",gap:"12px"}}>
+                            <span style={{fontSize:"32px"}}>{typeObj?.icon}</span>
+                            <div>
+                              <div style={{fontWeight:800,fontSize:"16px",color:"var(--text-dark)"}}>
+                                {typeObj?.label}
+                              </div>
+                              <div style={{fontSize:"12px",color:"var(--text-muted)",marginTop:"2px"}}>
+                                {typeObj?.sousTypes.find(s=>s.value===form.sousType)?.label
+                                  || typeObj?.description}
+                              </div>
+                              {form.quantite && (
+                                <div style={{fontSize:"12px",color:"var(--green-bright)",
+                                  fontWeight:600,marginTop:"2px"}}>
+                                  {form.quantite} {typeObj?.unite}(s) demandé(s)
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          {montant ? (
+                            <div style={{textAlign:"right"}}>
+                              <div style={{fontSize:"11px",color:"var(--text-muted)",
+                                textTransform:"uppercase",letterSpacing:"0.06em"}}>Montant estimé</div>
+                              <div style={{fontSize:"22px",fontWeight:800,color:"var(--green-dark)",
+                                fontFamily:"'Playfair Display',serif"}}>{formaterMontant(montant)}</div>
+                            </div>
+                          ) : (
+                            <span style={{background:"rgba(212,168,48,0.1)",color:"#D4A830",
+                              border:"1px solid rgba(212,168,48,0.3)",borderRadius:"100px",
+                              padding:"4px 12px",fontSize:"12px",fontWeight:700}}>
+                              Sur devis
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Critères */}
+                        <div style={{display:"flex",flexDirection:"column",gap:"12px"}}>
+                          {form.regions.length>0 && (
+                            <div>
+                              <div style={{fontSize:"11px",fontWeight:700,color:"var(--text-muted)",
+                                textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:"6px"}}>
+                                🗺️ Régions
+                              </div>
+                              <div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>
+                                {form.regions.map(r=><Chip key={r} label={r}/>)}
+                              </div>
+                            </div>
+                          )}
+                          {form.activites.length>0 && (
+                            <div>
+                              <div style={{fontSize:"11px",fontWeight:700,color:"var(--text-muted)",
+                                textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:"6px"}}>
+                                🏭 Activités
+                              </div>
+                              <div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>
+                                {form.activites.map(a=>(
+                                  <Chip key={a} label={ACTIVITES.find(x=>x.value===a)?.label}/>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {form.formesJuridiques.length>0 && (
+                            <div>
+                              <div style={{fontSize:"11px",fontWeight:700,color:"var(--text-muted)",
+                                textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:"6px"}}>
+                                ⚖️ Formes juridiques
+                              </div>
+                              <div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>
+                                {form.formesJuridiques.map(f=><Chip key={f} label={f}/>)}
+                              </div>
+                            </div>
+                          )}
+                          {form.tranches.length>0 && (
+                            <div>
+                              <div style={{fontSize:"11px",fontWeight:700,color:"var(--text-muted)",
+                                textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:"6px"}}>
+                                👥 Tranches d'effectif
+                              </div>
+                              <div style={{display:"flex",flexWrap:"wrap",gap:"6px"}}>
+                                {form.tranches.map(t=>(
+                                  <Chip key={t} label={TRANCHES_EFFECTIF.find(x=>x.value===t)?.label}/>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {nbCriteres===0 && (
+                            <p style={{fontSize:"13px",color:"var(--text-muted)",
+                              fontStyle:"italic",margin:0}}>
+                              Aucun critère — toutes les données disponibles seront incluses
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div style={{background:"var(--green-pale)",
+                        border:"1px solid rgba(34,160,82,0.2)",borderRadius:"10px",
+                        padding:"12px 16px",marginBottom:"20px",
+                        fontSize:"13px",color:"var(--text-mid)",lineHeight:1.6}}>
+                        ℹ️ Un agent CCI-BF vous recontactera à <strong>{form.contact}</strong> sous{" "}
+                        <strong>3 à 5 jours ouvrables</strong> pour confirmer et organiser le paiement.
+                      </div>
+
+                      <div style={{display:"flex",gap:"10px"}}>
+                        <button className="btn-cancel" onClick={()=>setEtape(2)}>← Modifier</button>
+                        <button className="btn-save" style={{padding:"12px 32px"}}
+                          disabled={loading} onClick={soumettre}>
+                          {loading
+                            ? <><span className="spinner-sm"/>&nbsp;Envoi...</>
+                            : "📤 Soumettre la demande"}
+                        </button>
+                      </div>
+                    </>)}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
-          {/* ══ ONGLET HISTORIQUE ══ */}
-          {onglet === "historique" && (
-            <div style={{ maxWidth:"820px" }}>
-              <div style={{ display:"flex", justifyContent:"space-between",
-                alignItems:"center", marginBottom:"20px" }}>
-                <div>
-                  <h2 style={{ fontSize:"20px", fontWeight:800, color:"#0A2410", margin:0 }}>
-                    Historique des recherches
-                  </h2>
-                  <p style={{ color:"#6B9A7A", fontSize:"13px", margin:"4px 0 0" }}>
-                    {historique.length} recherche{historique.length !== 1 ? "s" : ""} enregistrée{historique.length !== 1 ? "s" : ""}
-                  </p>
+          {/* ══════ HISTORIQUE ══════ */}
+          {onglet==="historique" && (
+            <div style={{maxWidth:"820px"}}>
+              {DEMANDES_MOCK.length===0 ? (
+                <div style={{textAlign:"center",padding:"60px 0",color:"var(--text-muted)"}}>
+                  <div style={{fontSize:"48px",marginBottom:"12px"}}>📋</div>
+                  <p>Aucune demande pour l'instant.</p>
+                  <button className="btn-save" style={{marginTop:"16px"}}
+                    onClick={()=>setOnglet("nouvelle")}>Faire une demande</button>
                 </div>
-                <button onClick={chargerHistorique} disabled={histoLoading}
-                  style={{ padding:"8px 16px", background:"#00904C", color:"#fff",
-                    border:"none", borderRadius:"8px", cursor:"pointer",
-                    fontSize:"12px", fontWeight:700 }}>
-                  {histoLoading ? "Chargement..." : "Actualiser"}
-                </button>
-              </div>
-
-              {histoLoading && (
-                <div style={{ textAlign:"center", padding:"60px 0", color:"#6B9A7A" }}>
-                  <p style={{ fontSize:"14px" }}>Chargement de l'historique...</p>
-                </div>
-              )}
-
-              {!histoLoading && histoErreur && (
-                <div style={{ background:"#FFF0F0", border:"1px solid #FFB3B3",
-                  borderRadius:"12px", padding:"20px", textAlign:"center", color:"#CC3333" }}>
-                  <p style={{ margin:0, fontSize:"14px" }}>{histoErreur}</p>
-                  <button onClick={chargerHistorique}
-                    style={{ marginTop:"12px", padding:"8px 16px", background:"#CC3333",
-                      color:"#fff", border:"none", borderRadius:"8px", cursor:"pointer", fontSize:"12px" }}>
-                    Réessayer
-                  </button>
-                </div>
-              )}
-
-              {!histoLoading && !histoErreur && historique.length === 0 && (
-                <div style={{ background:"#fff", border:"1px solid rgba(0,144,76,0.12)",
-                  borderRadius:"16px", padding:"48px", textAlign:"center", color:"#6B9A7A" }}>
-                  <div style={{ fontSize:"40px", marginBottom:"12px" }}>📭</div>
-                  <p style={{ fontSize:"14px", marginBottom:"16px" }}>Aucune recherche enregistrée.</p>
-                  <button onClick={() => setOnglet("recherche")}
-                    style={{ padding:"10px 20px", background:"#00904C", color:"#fff",
-                      border:"none", borderRadius:"8px", cursor:"pointer",
-                      fontSize:"13px", fontWeight:700 }}>
-                    Faire une recherche
-                  </button>
-                </div>
-              )}
-
-              {!histoLoading && !histoErreur && historique.length > 0 && (
-                <div style={{ display:"flex", flexDirection:"column", gap:"12px" }}>
-                  {historique.map((h, i) => (
-                    <div key={h._id || i} style={{
-                      background:"#fff", border:"1px solid rgba(0,144,76,0.12)",
-                      borderRadius:"12px", padding:"18px 20px",
-                      boxShadow:"0 2px 8px rgba(0,144,76,0.04)"
-                    }}>
-                      <div style={{ display:"flex", justifyContent:"space-between",
-                        alignItems:"flex-start", marginBottom:"10px" }}>
-                        <div>
-                          <div style={{ fontWeight:700, fontSize:"14px", color:"#0A2410" }}>
-                            {h.description || "Recherche d'entreprise"}
+              ) : (
+                <div style={{display:"flex",flexDirection:"column",gap:"12px"}}>
+                  {DEMANDES_MOCK.map(d=>{
+                    const sc  = STATUT_COLORS[d.statut];
+                    const typ = TYPES_REQUETES.find(t=>t.id===d.typeRequete);
+                    return (
+                      <div key={d.id} style={{background:"#fff",borderRadius:"14px",
+                        border:"1px solid var(--border)",padding:"20px 24px"}}>
+                        <div style={{display:"flex",justifyContent:"space-between",
+                          alignItems:"flex-start",marginBottom:"14px"}}>
+                          <div style={{display:"flex",alignItems:"center",gap:"10px"}}>
+                            <span style={{fontSize:"28px"}}>{typ?.icon}</span>
+                            <div>
+                              <div style={{fontWeight:700,fontSize:"15px",color:"var(--text-dark)"}}>
+                                {typ?.label}
+                              </div>
+                              <div style={{fontSize:"12px",color:"var(--text-muted)"}}>
+                                {d.date} · Réf. {d.id}
+                              </div>
+                            </div>
                           </div>
-                          <div style={{ fontSize:"11px", color:"#6B9A7A", marginTop:"3px" }}>
-                            {h.createdAt
-                              ? new Date(h.createdAt).toLocaleDateString("fr-FR",
-                                  { day:"2-digit", month:"long", year:"numeric" }) +
-                                " à " +
-                                new Date(h.createdAt).toLocaleTimeString("fr-FR",
-                                  { hour:"2-digit", minute:"2-digit" })
-                              : "—"}
+                          <div style={{display:"flex",flexDirection:"column",
+                            alignItems:"flex-end",gap:"6px"}}>
+                            <span style={{background:sc.bg,color:sc.color,
+                              border:`1px solid ${sc.color}33`,borderRadius:"100px",
+                              padding:"4px 12px",fontSize:"11px",fontWeight:700}}>
+                              ● {sc.label}
+                            </span>
+                            {d.montantEstime && (
+                              <span style={{fontSize:"13px",fontWeight:700,color:"var(--green-dark)"}}>
+                                {d.montantEstime.toLocaleString()} FCFA
+                              </span>
+                            )}
                           </div>
                         </div>
-                        <span style={{
-                          background:"rgba(0,144,76,0.08)", color:"#00904C",
-                          border:"1px solid rgba(0,144,76,0.2)", borderRadius:"100px",
-                          padding:"3px 12px", fontSize:"11px", fontWeight:700, flexShrink:0
-                        }}>
-                          {h.nbResultats ?? 0} résultat{(h.nbResultats ?? 0) > 1 ? "s" : ""}
-                        </span>
+                        <div style={{display:"flex",flexWrap:"wrap",gap:"6px",marginBottom:"10px"}}>
+                          {d.criteres?.regions?.map(r=><Chip key={r} label={"🗺️ "+r}/>)}
+                          {d.criteres?.activites?.map(a=>(
+                            <Chip key={a} label={"🏭 "+ACTIVITES.find(x=>x.value===a)?.label}/>
+                          ))}
+                          {d.criteres?.tranches?.map(t=>(
+                            <Chip key={t} label={"👥 "+t}/>
+                          ))}
+                        </div>
+                        <p style={{fontSize:"13px",color:"var(--text-muted)",
+                          lineHeight:1.6,margin:0}}>{d.description}</p>
                       </div>
-
-                      {h.criteres && (
-                        <div style={{ display:"flex", flexWrap:"wrap", gap:"6px", marginBottom:"12px" }}>
-                          {h.criteres.rccm && (
-                            <span style={{ background:"#E6F4EC", color:"#00904C",
-                              border:"1px solid rgba(0,144,76,0.2)", borderRadius:"100px",
-                              padding:"2px 10px", fontSize:"11px", fontWeight:600 }}>
-                              RCCM: {h.criteres.rccm}
-                            </span>
-                          )}
-                          {h.criteres.ifu && (
-                            <span style={{ background:"#E6F4EC", color:"#00904C",
-                              border:"1px solid rgba(0,144,76,0.2)", borderRadius:"100px",
-                              padding:"2px 10px", fontSize:"11px", fontWeight:600 }}>
-                              IFU: {h.criteres.ifu}
-                            </span>
-                          )}
-                          {h.criteres.raisonSociale && (
-                            <span style={{ background:"#E6F4EC", color:"#00904C",
-                              border:"1px solid rgba(0,144,76,0.2)", borderRadius:"100px",
-                              padding:"2px 10px", fontSize:"11px", fontWeight:600 }}>
-                              Raison sociale: {h.criteres.raisonSociale}
-                            </span>
-                          )}
-                        </div>
-                      )}
-
-                      {replayMessage.id === h._id && replayMessage.texte && (
-                        <div style={{
-                          padding:"10px 14px", borderRadius:"8px",
-                          fontSize:"12px", marginBottom:"10px",
-                          background: replayMessage.type === "succes" ? "#E6F4EC" : "#FFF0F0",
-                          color:      replayMessage.type === "succes" ? "#00904C" : "#CC3333",
-                          border: `1px solid ${replayMessage.type === "succes" ? "rgba(0,144,76,0.2)" : "#FFB3B3"}`,
-                        }}>
-                          {replayMessage.texte}
-                        </div>
-                      )}
-
-                      <button
-                        onClick={() => relancerRecherche(h)}
-                        disabled={replayLoadingId === h._id}
-                        style={{
-                          padding:"7px 16px", borderRadius:"8px", fontSize:"12px",
-                          fontWeight:700, cursor:"pointer",
-                          background:"rgba(0,144,76,0.08)", color:"#00904C",
-                          border:"1px solid rgba(0,144,76,0.2)",
-                          opacity: replayLoadingId === h._id ? 0.6 : 1,
-                          transition:"all 0.15s",
-                        }}>
-                        {replayLoadingId === h._id ? "Vérification..." : "Relancer"}
-                      </button>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
           )}
         </div>
 
-        {/* ══ FOOTER ══ */}
         <footer className="dash-footer">
           <span>CCI-BF — Chambre de Commerce et d'Industrie du Burkina Faso</span>
-          <div style={{ display:"flex", gap:"20px" }}>
+          <div style={{display:"flex",gap:"20px"}}>
             <span>Tarifs officiels CCI-BF</span>
             <span>+226 25 30 61 22</span>
           </div>
         </footer>
-
       </div>
     </div>
   );

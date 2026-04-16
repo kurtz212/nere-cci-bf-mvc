@@ -98,7 +98,7 @@ export default function Contact() {
         <nav className="dash-navbar">
           <div style={{ display:"flex", alignItems:"center", gap:"12px" }}>
             <img src={logoNERE} alt="NERE"
-              style={{ height:"60px", width:"auto", borderRadius:"6px", flexShrink:0 }}/>
+              style={{ height:"80px", width:"auto", borderRadius:"6px", flexShrink:0 }}/>
             <div style={{ display:"flex", flexDirection:"column", lineHeight:1.4 }}>
               <span style={{ fontSize:"11px", fontWeight:800, color:"#fff",
                 letterSpacing:"0.06em", textTransform:"uppercase" }}>Fichier NERE</span>

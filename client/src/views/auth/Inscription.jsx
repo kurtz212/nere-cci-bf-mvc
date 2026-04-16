@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../styles/auth.css";
-
+import logoNERE from "../../assets/nere.jpg";
 const TYPES_COMPTE = [
   { value: "etudiant",       label: "Étudiant",       icon: "🎓" },
   { value: "entreprise",     label: "Entreprise",     icon: "🏢" },
@@ -110,6 +110,18 @@ export default function Inscription() {
 
       <div className="auth-wrapper">
         <nav className="auth-navbar">
+          
+                    <div style={{ display:"flex", alignItems:"center", gap:"12px" }}>
+                      <img src={logoNERE} alt="NERE"
+                        style={{ height:"80px", width:"auto", borderRadius:"6px", flexShrink:0 }}/>
+                      <div style={{ display:"flex", flexDirection:"column", lineHeight:1.4 }}>
+                        <span style={{ fontSize:"11px", fontWeight:800, color:"#fff",
+                          letterSpacing:"0.06em", textTransform:"uppercase" }}>Fichier NERE</span>
+                        <span style={{ fontSize:"10px", color:"rgba(255,255,255,0.85)" }}>
+                          Registre national des entreprises<br/>Du Burkina Faso
+                        </span>
+                      </div>
+                    </div>
           <div className="nav-links" style={{color:"#00904C", display:"flex", alignItems:"center", gap:"25px", marginLeft:"100px"}}>
             <span className="nav-link active" onClick={()=>navigate("/")}>Accueil</span>
             <span className="nav-link" onClick={()=>navigate("/publications")}>Publications</span>

@@ -141,8 +141,20 @@ exports.connexion = async (req, res, next) => {
     if (!user.emailVerified)
       return res.status(401).json({ success:false, message:'Veuillez vérifier votre email avant de vous connecter.' });
 
-    if (!user.isActive)
-      return res.status(401).json({ success:false, message:'Compte suspendu. Contactez la CCI-BF.' });
+    // Vérifier si la suspension temporaire est expirée → réactiver automatiquement
+    if (!user.isActive && user.suspendJusquau && new Date() > new Date(user.suspendJusquau)) {
+      user.isActive         = true;
+      user.suspendJusquau   = null;
+      user.raisonSuspension = '';
+      await user.save();
+    }
+
+    if (!user.isActive) {
+      const msg = user.suspendJusquau
+        ? `Compte suspendu jusqu'au ${new Date(user.suspendJusquau).toLocaleDateString('fr-FR')}. Motif : ${user.raisonSuspension||'Non précisé'}`
+        : 'Compte suspendu. Contactez la CCI-BF.';
+      return res.status(401).json({ success:false, message: msg });
+    }
 
     user.derniereConnexion = new Date();
     await user.save();

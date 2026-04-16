@@ -46,7 +46,9 @@ const userSchema = new mongoose.Schema({
     enum:    ['visitor', 'subscriber', 'manager', 'admin'],
     default: 'visitor',
   },
-  isActive: { type: Boolean, default: true },
+  isActive:         { type: Boolean, default: true },
+  suspendJusquau:   { type: Date,    default: null },
+  raisonSuspension: { type: String,  default: "" },
 
   // ── Vérification email ──
   emailVerified:    { type: Boolean, default: false },
