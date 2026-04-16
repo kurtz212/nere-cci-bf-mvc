@@ -399,7 +399,7 @@ export default function Recherche() {
                   style={{ position:"relative", ...(hovered==="single" ? cardHovered : cardBase) }}
                   onMouseEnter={() => setHovered("single")}
                   onMouseLeave={() => setHovered(null)}
-                  onClick={() => navigate("/recherche-entreprise")}
+                  onClick={() => navigate("/rechercheentreprise")}
                 >
                               {/* Icône */}
               <div style={iconBox("rgba(201,168,76,0.2)")}>

@@ -97,12 +97,44 @@ const STATUT_COLORS = {
   rejete:     { bg:"rgba(232,85,85,0.1)",   color:"#E85555", label:"Rejeté" },
 };
 
+const PACKS_UPGRADE = [
+  { id:"pack1", label:"Pack 1", montant:5000  },
+  { id:"pack2", label:"Pack 2", montant:10000 },
+  { id:"pack3", label:"Pack 3", montant:15000 },
+];
+
+const ANNEE_COURANTE = new Date().getFullYear();
+
 function formaterMontant(m) {
   if (!m) return "Sur devis";
   return m.toLocaleString("fr-FR") + " FCFA";
 }
 
-/* ── Modal Détail ── */
+/* ── Composants globaux ── */
+function Chip({ label }) {
+  return (
+    <span style={{ background:"var(--green-pale)", color:"var(--green-dark)",
+      border:"1px solid rgba(34,160,82,0.2)", borderRadius:"100px",
+      padding:"3px 10px", fontSize:"11px", fontWeight:600,
+      display:"inline-flex", alignItems:"center" }}>
+      {label}
+    </span>
+  );
+}
+
+function SectionCritere({ titre, sous, children }) {
+  return (
+    <div style={{ background:"var(--off-white)", borderRadius:"12px",
+      border:"1px solid var(--border)", padding:"20px" }}>
+      <div style={{ display:"flex", alignItems:"center", gap:"8px", marginBottom:"14px" }}>
+        <span style={{ fontWeight:700, fontSize:"14px", color:"var(--text-dark)" }}>{titre}</span>
+        {sous && <span style={{ fontSize:"11px", color:"var(--text-muted)" }}>{sous}</span>}
+      </div>
+      {children}
+    </div>
+  );
+}
+
 function ModalDetail({ demande, onClose }) {
   if (!demande) return null;
   const typ = TYPES_REQUETES.find(t => t.id === demande.typeRequete);
@@ -142,9 +174,11 @@ function ModalDetail({ demande, onClose }) {
               ? new Date(demande.createdAt).toLocaleDateString("fr-FR",
                   { day:"2-digit", month:"long", year:"numeric" }) : "—" },
             { label:"Sous-type", value: typ?.sousTypes?.find(s => s.value === demande.sousType)?.label || "—" },
-            { label:"Quantité", value: demande.quantite ? `${demande.quantite} ${typ?.unite || ""}(s)` : "—" },
+            { label:"Quantité",  value: demande.typeRequete === "statistique"
+              ? "1 statistique — 5 000 FCFA"
+              : demande.quantite ? `${demande.quantite} ${typ?.unite||""}(s)` : "—" },
             { label:"Montant estimé", value: formaterMontant(demande.montantEstime) },
-            { label:"Contact", value: demande.contact || "—" },
+            { label:"Contact",   value: demande.contact || "—" },
             { label:"Téléphone", value: demande.telephone || "—" },
           ].map(({ label, value }) => (
             <div key={label} style={{ background:"#F7FAF8", borderRadius:"10px", padding:"12px 14px" }}>
@@ -154,6 +188,18 @@ function ModalDetail({ demande, onClose }) {
             </div>
           ))}
         </div>
+        {demande.typeRequete === "statistique" && demande.periode && (
+          <div style={{ background:"rgba(0,144,76,0.06)", border:"1px solid rgba(0,144,76,0.15)",
+            borderRadius:"10px", padding:"12px 14px", marginBottom:"16px" }}>
+            <div style={{ fontSize:"10px", fontWeight:700, color:"#6B9A7A",
+              textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:"4px" }}>Période</div>
+            <div style={{ fontSize:"14px", fontWeight:600, color:"#00904C" }}>
+               {demande.periode.type === "annee_courante"   ? `Année ${ANNEE_COURANTE}` :
+                  demande.periode.type === "annee_specifique" ? `Année ${demande.periode.annee}` :
+                  `${demande.periode.debut} → ${demande.periode.fin}`}
+            </div>
+          </div>
+        )}
         {demande.description && (
           <div style={{ background:"#F7FAF8", borderRadius:"10px", padding:"14px", marginBottom:"20px" }}>
             <div style={{ fontSize:"10px", fontWeight:700, color:"#6B9A7A",
@@ -169,19 +215,21 @@ function ModalDetail({ demande, onClose }) {
   );
 }
 
+/* ══════════════════════════════════════════
+   COMPOSANT PRINCIPAL
+══════════════════════════════════════════ */
 export default function DemandeDocument() {
-  const [solde, setSolde]             = useState(null);
-  const [showUpgrade, setShowUpgrade] = useState(false);
-  const [coutRequete, setCoutRequete] = useState(0);
   const navigate = useNavigate();
 
-  const [user, setUser]       = useState(null);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [onglet, setOnglet]   = useState("nouvelle");
-  const [etape, setEtape]     = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-
+  const [solde, setSolde]               = useState(null);
+  const [showUpgrade, setShowUpgrade]   = useState(false);
+  const [coutRequete, setCoutRequete]   = useState(0);
+  const [user, setUser]                 = useState(null);
+  const [menuOpen, setMenuOpen]         = useState(false);
+  const [onglet, setOnglet]             = useState("nouvelle");
+  const [etape, setEtape]               = useState(1);
+  const [loading, setLoading]           = useState(false);
+  const [success, setSuccess]           = useState(false);
   const [demandes, setDemandes]               = useState([]);
   const [demandesLoading, setDemandesLoading] = useState(false);
   const [demandesErreur, setDemandesErreur]   = useState("");
@@ -190,6 +238,12 @@ export default function DemandeDocument() {
   const [relanceId, setRelanceId]             = useState(null);
   const [actionMessage, setActionMessage]     = useState({ id:null, texte:"", type:"" });
   const [filtreStatut, setFiltreStatut]       = useState("tous");
+
+  /* ── Période statistique ── */
+  const [periodeType, setPeriodeType]         = useState("annee_courante");
+  const [anneeSpecifique, setAnneeSpecifique] = useState(String(ANNEE_COURANTE));
+  const [anneeDebut, setAnneeDebut]           = useState("2020");
+  const [anneeFin, setAnneeFin]               = useState(String(ANNEE_COURANTE));
 
   const [form, setForm] = useState({
     typeRequete:"", sousType:"", quantite:"",
@@ -207,18 +261,6 @@ export default function DemandeDocument() {
       setForm(f => ({ ...f, contact: parsed.email || "", telephone: parsed.telephone || "" }));
     }
   }, []);
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    setUser(null);
-    setMenuOpen(false);
-    navigate("/");
-  };
-
-  const initiales = user
-    ? `${user.prenom?.[0] || ""}${user.nom?.[0] || ""}`.toUpperCase()
-    : "";
 
   const chargerDemandes = useCallback(async () => {
     const token = localStorage.getItem("token");
@@ -241,6 +283,14 @@ export default function DemandeDocument() {
   useEffect(() => {
     if (onglet === "historique") chargerDemandes();
   }, [onglet, chargerDemandes]);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setUser(null);
+    setMenuOpen(false);
+    navigate("/");
+  };
 
   const annulerDemande = async (id) => {
     if (!window.confirm("Confirmer l'annulation de cette demande ?")) return;
@@ -289,23 +339,45 @@ export default function DemandeDocument() {
     ...f, [field]: f[field].includes(val) ? f[field].filter(v => v !== val) : [...f[field], val],
   }));
 
-  const typeObj  = TYPES_REQUETES.find(t => t.id === form.typeRequete);
-  const montant  = typeObj?.prix && form.quantite ? typeObj.prix * parseInt(form.quantite || 0) : null;
-  const nbCriteres = form.regions.length + form.activites.length +
-    form.formesJuridiques.length + form.tranches.length;
+  /* ── Helpers période ── */
+  const getPeriodeLabel = () => {
+    if (periodeType === "annee_courante")   return `Année ${ANNEE_COURANTE} (en cours)`;
+    if (periodeType === "annee_specifique") return `Année ${anneeSpecifique}`;
+    if (periodeType === "intervalle")       return `${anneeDebut} → ${anneeFin}`;
+    return "";
+  };
 
-  const demandesFiltrees = filtreStatut === "tous"
-    ? demandes : demandes.filter(d => d.statut === filtreStatut);
+  const getPeriodePayload = () => {
+    if (form.typeRequete !== "statistique") return null;
+    return {
+      type:  periodeType,
+      annee: periodeType === "annee_specifique" ? anneeSpecifique : null,
+      debut: periodeType === "intervalle"       ? anneeDebut      : null,
+      fin:   periodeType === "intervalle"       ? anneeFin        : null,
+    };
+  };
+
+  const periodeValide = () => {
+    if (form.typeRequete !== "statistique") return true;
+    if (periodeType === "intervalle") return parseInt(anneeDebut) <= parseInt(anneeFin);
+    return true;
+  };
 
   const soumettre = async () => {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
+      /* Pour les statistiques : quantité = 1 fixe, montant = 5000 fixe */
+      const quantiteEnvoyee = form.typeRequete === "statistique" ? 1 : (form.quantite || 1);
+
       const deductRes = await fetch("http://localhost:5000/api/abonnements/deduire", {
         method:"POST",
         headers:{ "Content-Type":"application/json", Authorization:`Bearer ${token}` },
-        body: JSON.stringify({ typeRequete:form.typeRequete, quantite:form.quantite||1,
-          description:`Requête ${form.typeRequete} - ${form.sousType}` }),
+        body: JSON.stringify({
+          typeRequete: form.typeRequete,
+          quantite:    quantiteEnvoyee,
+          description: `Requête ${form.typeRequete} - ${form.sousType}`,
+        }),
       });
       const deductData = await deductRes.json();
       if (!deductData.success && deductData.code === "SOLDE_INSUFFISANT") {
@@ -320,11 +392,20 @@ export default function DemandeDocument() {
         method:"POST",
         headers:{ "Content-Type":"application/json", Authorization:`Bearer ${token}` },
         body: JSON.stringify({
-          typeRequete:form.typeRequete, sousType:form.sousType, quantite:form.quantite,
-          regions:form.regions, villes:form.villes, activites:form.activites,
-          formesJuridiques:form.formesJuridiques, tranches:form.tranches,
-          description:form.description, contact:form.contact, telephone:form.telephone,
-          montantEstime:montant,
+          typeRequete:      form.typeRequete,
+          sousType:         form.sousType,
+          /* Statistique : quantité 1, montant fixe 5000 */
+          quantite:         quantiteEnvoyee,
+          montantEstime:    form.typeRequete === "statistique" ? 5000 : montant,
+          regions:          form.regions,
+          villes:           form.villes,
+          activites:        form.activites,
+          formesJuridiques: form.formesJuridiques,
+          tranches:         form.tranches,
+          description:      form.description,
+          contact:          form.contact,
+          telephone:        form.telephone,
+          periode:          getPeriodePayload(),
         }),
       });
       setSuccess(true);
@@ -338,6 +419,10 @@ export default function DemandeDocument() {
   const reset = () => {
     setSuccess(false);
     setEtape(1);
+    setPeriodeType("annee_courante");
+    setAnneeSpecifique(String(ANNEE_COURANTE));
+    setAnneeDebut("2020");
+    setAnneeFin(String(ANNEE_COURANTE));
     setForm({
       typeRequete:"", sousType:"", quantite:"", regions:[], villes:"",
       activites:[], formesJuridiques:[], tranches:[],
@@ -346,22 +431,22 @@ export default function DemandeDocument() {
     });
   };
 
-  const PACKS_UPGRADE = [
-    { id:"pack1", label:"Pack 1", montant:5000  },
-    { id:"pack2", label:"Pack 2", montant:10000 },
-    { id:"pack3", label:"Pack 3", montant:15000 },
-  ];
+  /* ── Valeurs dérivées ── */
+  const initiales  = user ? `${user.prenom?.[0]||""}${user.nom?.[0]||""}`.toUpperCase() : "";
+  const typeObj    = TYPES_REQUETES.find(t => t.id === form.typeRequete);
+  /* montant uniquement pour les types non-statistique */
+  const montant    = typeObj?.prix && form.quantite && form.typeRequete !== "statistique"
+    ? typeObj.prix * parseInt(form.quantite||0) : null;
+  const nbCriteres = form.regions.length + form.activites.length + form.formesJuridiques.length + form.tranches.length;
+  const demandesFiltrees = filtreStatut === "tous" ? demandes : demandes.filter(d => d.statut === filtreStatut);
 
-if (!user) return (
-  <>
-    {/* NAVBAR */}
-    <nav className="dash-navbar" style={{ display:"flex", alignItems:"center" }}>
-
-      {/* LOGO À GAUCHE */}
-      <div className="nav-left">
-        <div style={{ display:"flex", alignItems:"center", gap:"8px" }}>
-          <img src={logoNERE} alt="NERE"
-            style={{ height:"80px", width:"auto", borderRadius:"6px", flexShrink:0 }}/>
+  /* ── Garde non connecté ── */
+  if (!user) return (
+    <>
+      <style>{`* { font-family: Arial, Helvetica, sans-serif !important; }`}</style>
+      <nav className="dash-navbar" style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:"12px" }}>
+          <img src={logoNERE} alt="NERE" style={{ height:"60px", width:"auto", borderRadius:"6px" }}/>
           <div style={{ display:"flex", flexDirection:"column", lineHeight:1.4 }}>
             <span style={{ fontSize:"11px", fontWeight:800, color:"#fff",
               letterSpacing:"0.06em", textTransform:"uppercase" }}>Fichier NERE</span>
@@ -370,74 +455,24 @@ if (!user) return (
             </span>
           </div>
         </div>
+        <div className="dash-nav-links">
+          <span className="dash-nav-link" onClick={() => navigate("/")}>Accueil</span>
+          <span className="dash-nav-link" onClick={() => navigate("/rechercheacc")}>Recherche</span>
+          <span className="dash-nav-link" onClick={() => navigate("/contact")}>Contact</span>
+        </div>
+        <div style={{ width:"120px" }}/>
+      </nav>
+      <div style={{ height:"calc(100vh - 70px)", background:"#F5FAF7",
+        display:"flex", alignItems:"center", justifyContent:"center",
+        flexDirection:"column", textAlign:"center" }}>
+        <div style={{ fontSize:"48px", marginBottom:"16px" }}></div>
+        <h2 style={{ color:"#0A3D1F", marginBottom:"16px" }}>Accès réservé aux abonnés</h2>
+        <button onClick={() => navigate("/connexion")} className="btn-save"
+          style={{ padding:"12px 28px", fontSize:"15px" }}>
+          Se connecter
+        </button>
       </div>
-
-      {/* MENU CENTRÉ */}
-      <div className="dash-nav-links"
-        style={{
-          display:"flex",
-          justifyContent:"center",
-          alignItems:"center",
-          flex:1,
-          gap:"20px"
-        }}>
-        <span className="dash-nav-link" onClick={() => navigate("/")}>Accueil</span>
-        <span className="dash-nav-link" onClick={() => navigate("/contact")}>Contact</span>
-        <span className="dash-nav-link" onClick={() => navigate("/rechercheacc")}>Recherche</span>
-        <span className="dash-nav-link active">Chat</span>
-      </div>
-
-      {/* ESPACE À DROITE POUR ÉQUILIBRER */}
-      <div className="nav-right" style={{ width:"120px" }}></div>
-
-    </nav>
-
-    {/* CONTENU CENTRÉ SUR TOUTE LA PAGE */}
-    <div style={{
-      height:"calc(100vh - 80px)",   // hauteur totale - navbar
-      width:"100%",
-      background:"#F5FAF7",
-      display:"flex",
-      alignItems:"center",
-      justifyContent:"center",
-      flexDirection:"column",
-      textAlign:"center",
-      fontFamily:"Arial, sans-serif"
-    }}>
-      <div style={{ fontSize:"48px", marginBottom:"16px" }}></div>
-      <h2 style={{ color:"#0A3D1F", marginBottom:"16px" }}>Accès réservé aux abonnés</h2>
-
-      <button
-        onClick={() => navigate("/connexion")}
-        className="btn-save"
-        style={{ padding:"10px 20px", fontSize:"16px" }}
-      >
-        Se connecter
-      </button>
-    </div>
-  </>
-);
-
-
-
-  const Chip = ({ label }) => (
-    <span style={{ background:"var(--green-pale)", color:"var(--green-dark)",
-      border:"1px solid rgba(34,160,82,0.2)", borderRadius:"100px",
-      padding:"3px 10px", fontSize:"11px", fontWeight:600,
-      display:"inline-flex", alignItems:"center", gap:"5px" }}>
-      {label}
-    </span>
-  );
-
-  const SectionCritere = ({ titre, sous, children }) => (
-    <div style={{ background:"var(--off-white)", borderRadius:"12px",
-      border:"1px solid var(--border)", padding:"20px" }}>
-      <div style={{ display:"flex", alignItems:"center", gap:"8px", marginBottom:"14px" }}>
-        <span style={{ fontWeight:700, fontSize:"14px", color:"var(--text-dark)" }}>{titre}</span>
-        {sous && <span style={{ fontSize:"11px", color:"var(--text-muted)" }}>{sous}</span>}
-      </div>
-      {children}
-    </div>
+    </>
   );
 
   return (
@@ -459,7 +494,6 @@ if (!user) return (
               </span>
             </div>
           </div>
-
           <div className="dash-nav-links">
             <span className="dash-nav-link" onClick={() => navigate("/")}>Accueil</span>
             <span className="dash-nav-link" onClick={() => navigate("/publications")}>Publications</span>
@@ -468,7 +502,6 @@ if (!user) return (
             <span className="dash-nav-link" onClick={() => navigate("/contact")}>Contact</span>
             <span className="dash-nav-link" onClick={() => navigate("/chat")}>Chat</span>
           </div>
-
           <div className="dash-nav-actions">
             <div style={{ position:"relative" }}>
               <div className="user-chip" onClick={() => setMenuOpen(o => !o)}>
@@ -479,12 +512,11 @@ if (!user) return (
               {menuOpen && (
                 <>
                   <div style={{ position:"fixed", inset:0, zIndex:50 }} onClick={() => setMenuOpen(false)}/>
-                  <div style={{
-                    position:"absolute", zIndex:9999, background:"#00904C",
+                  <div style={{ position:"absolute", zIndex:9999, background:"#00904C",
                     top:"calc(100% + 8px)", right:0, borderRadius:"12px",
                     border:"1px solid rgba(255,255,255,0.15)", minWidth:"200px",
-                    overflow:"hidden", boxShadow:"0 10px 30px rgba(0,0,0,0.25)"
-                  }} onClick={e => e.stopPropagation()}>
+                    overflow:"hidden", boxShadow:"0 10px 30px rgba(0,0,0,0.25)" }}
+                    onClick={e => e.stopPropagation()}>
                     <div style={{ padding:"16px", borderBottom:"1px solid rgba(255,255,255,0.1)" }}>
                       <div style={{ fontWeight:700, color:"#fff", fontSize:"14px" }}>{user.prenom} {user.nom}</div>
                       <div style={{ fontSize:"12px", color:"rgba(255,255,255,0.6)" }}>{user.email || "—"}</div>
@@ -546,9 +578,7 @@ if (!user) return (
               <div style={{ background:"rgba(255,255,255,0.1)", borderRadius:"12px",
                 padding:"8px 16px", display:"flex", alignItems:"center", gap:"10px" }}>
                 <div style={{ fontSize:"11px", color:"rgba(255,255,255,0.5)",
-                  textTransform:"uppercase", letterSpacing:"0.06em" }}>
-                  Solde {solde.packLabel}
-                </div>
+                  textTransform:"uppercase", letterSpacing:"0.06em" }}>Solde {solde.packLabel}</div>
                 <div style={{ fontWeight:800, fontSize:"18px",
                   color: solde.solde < 2000 ? "#FF8080" : solde.solde < 5000 ? "#D4A830" : "#4DC97A" }}>
                   {solde.solde?.toLocaleString()} FCFA
@@ -567,7 +597,11 @@ if (!user) return (
                 display:"flex", alignItems:"center", gap:"6px" }}>
                 <span style={{ fontWeight:700, color:"#4DC97A" }}>{t.label}</span>
                 <span>—</span>
-                <span>{t.prix.toLocaleString()} FCFA/{t.unite}</span>
+                <span>
+                  {t.id === "statistique"
+                    ? `${t.prix.toLocaleString()} FCFA forfait`
+                    : `${t.prix.toLocaleString()} FCFA/${t.unite}`}
+                </span>
               </div>
             ))}
           </div>
@@ -575,9 +609,8 @@ if (!user) return (
 
         {/* ══ MODAL UPGRADE ══ */}
         {showUpgrade && (
-          <div style={{ position:"fixed", inset:0, zIndex:1000,
-            background:"rgba(0,0,0,0.6)", display:"flex",
-            alignItems:"center", justifyContent:"center", padding:"20px" }}>
+          <div style={{ position:"fixed", inset:0, zIndex:1000, background:"rgba(0,0,0,0.6)",
+            display:"flex", alignItems:"center", justifyContent:"center", padding:"20px" }}>
             <div style={{ background:"#fff", borderRadius:"20px", padding:"36px",
               maxWidth:"440px", width:"100%", textAlign:"center" }}>
               <div style={{ fontSize:"48px", marginBottom:"16px" }}>💳</div>
@@ -587,8 +620,7 @@ if (!user) return (
               <p style={{ color:"#6B9A7A", fontSize:"14px", lineHeight:1.6, marginBottom:"20px" }}>
                 Cette requête coûte{" "}
                 <strong style={{ color:"#CC3333" }}>{coutRequete.toLocaleString()} FCFA</strong>.<br/>
-                Votre solde actuel est de{" "}
-                <strong>{solde?.solde?.toLocaleString() || 0} FCFA</strong>.
+                Votre solde actuel est de <strong>{solde?.solde?.toLocaleString() || 0} FCFA</strong>.
               </p>
               <div style={{ display:"flex", flexDirection:"column", gap:"10px", marginBottom:"20px" }}>
                 {PACKS_UPGRADE.filter(p => p.montant > (solde?.montantInitial || 0)).map(p => (
@@ -617,12 +649,10 @@ if (!user) return (
           </div>
         )}
 
-        {/* ══ MODAL DÉTAIL ══ */}
         <ModalDetail demande={demandeDetail} onClose={() => setDemandeDetail(null)} />
 
         {/* ══ ONGLETS ══ */}
-        <div style={{ background:"#fff", borderBottom:"1px solid var(--border)",
-          padding:"0 48px", display:"flex" }}>
+        <div style={{ background:"#fff", borderBottom:"1px solid var(--border)", padding:"0 48px", display:"flex" }}>
           {[
             { key:"nouvelle",   label:"Nouvelle demande" },
             { key:"historique", label:`Mes demandes${demandes.length > 0 ? ` (${demandes.length})` : ""}` },
@@ -640,74 +670,53 @@ if (!user) return (
 
         <div style={{ padding:"40px 48px 60px", background:"var(--off-white)" }}>
 
-          {/* ══════ NOUVELLE DEMANDE ══════ */}
+          {/* ══ NOUVELLE DEMANDE ══ */}
           {onglet === "nouvelle" && (
             <div style={{ maxWidth:"820px", margin:"0 auto" }}>
-
-              {/* ── SUCCÈS : uniquement la carte résultat, sans formulaire ── */}
               {success ? (
-                <div style={{
-                  background:"#fff", borderRadius:"24px",
-                  border:"1.5px solid rgba(0,144,76,0.2)",
-                  padding:"64px 48px", textAlign:"center",
-                  boxShadow:"0 8px 40px rgba(0,144,76,0.1)",
-                }}>
-                  {/* Icône succès */}
+                /* ── SUCCÈS ── */
+                <div style={{ background:"#fff", borderRadius:"24px",
+                  border:"1.5px solid rgba(0,144,76,0.2)", padding:"64px 48px",
+                  textAlign:"center", boxShadow:"0 8px 40px rgba(0,144,76,0.1)" }}>
                   <div style={{ width:"80px", height:"80px", borderRadius:"50%",
                     background:"rgba(0,144,76,0.1)", display:"flex",
                     alignItems:"center", justifyContent:"center",
-                    fontSize:"40px", margin:"0 auto 24px" }}>
-                    ✅
-                  </div>
-
-                  <h2 style={{ fontSize:"28px", fontWeight:900,
-                    color:"#00904C", marginBottom:"14px" }}>
+                    fontSize:"40px", margin:"0 auto 24px" }}>✅</div>
+                  <h2 style={{ fontSize:"28px", fontWeight:900, color:"#00904C", marginBottom:"14px" }}>
                     Demande enregistrée !
                   </h2>
-
-                  <p style={{ color:"#6B9A7A", lineHeight:1.9,
-                    fontSize:"15px", marginBottom:"32px",
+                  <p style={{ color:"#6B9A7A", lineHeight:1.9, fontSize:"15px",
                     maxWidth:"460px", margin:"0 auto 32px" }}>
                     Votre demande a été transmise à la CCI-BF.<br/>
                     Un agent vous recontactera à{" "}
                     <strong style={{ color:"#00904C" }}>{form.contact}</strong>{" "}
-                    sous <strong>3 à 5 jours ouvrables</strong> pour confirmer
-                    et organiser le paiement.
+                    sous <strong>3 à 5 jours ouvrables</strong>.
                   </p>
 
-                  {/* Montant estimé si applicable */}
-                  {montant && (
-                    <div style={{
-                      display:"inline-flex", alignItems:"center", gap:"16px",
-                      background:"rgba(0,144,76,0.06)",
-                      border:"1px solid rgba(0,144,76,0.18)",
-                      borderRadius:"16px", padding:"20px 36px",
-                      marginBottom:"36px",
-                    }}>
-                      <div>
-                        <div style={{ fontSize:"11px", fontWeight:700, color:"#6B9A7A",
-                          textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:"6px" }}>
-                          Montant estimé
-                        </div>
-                        <div style={{ fontSize:"30px", fontWeight:900, color:"#00904C" }}>
-                          {formaterMontant(montant)}
-                        </div>
+                  {/* Montant */}
+                  <div style={{ display:"inline-flex", alignItems:"center",
+                    background:"rgba(0,144,76,0.06)", border:"1px solid rgba(0,144,76,0.18)",
+                    borderRadius:"16px", padding:"20px 36px", marginBottom:"28px" }}>
+                    <div>
+                      <div style={{ fontSize:"11px", fontWeight:700, color:"#6B9A7A",
+                        textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:"6px" }}>
+                        Montant
+                      </div>
+                      <div style={{ fontSize:"30px", fontWeight:900, color:"#00904C" }}>
+                        {form.typeRequete === "statistique"
+                          ? "5 000 FCFA"
+                          : montant ? formaterMontant(montant) : "Sur devis"}
                       </div>
                     </div>
-                  )}
+                  </div>
 
-                  {/* Récapitulatif type */}
-                  <div style={{
-                    background:"#F5FAF7", borderRadius:"12px",
-                    border:"1px solid rgba(0,144,76,0.12)",
-                    padding:"16px 24px", marginBottom:"36px",
-                    display:"inline-flex", flexDirection:"column",
-                    alignItems:"center", gap:"6px",
-                  }}>
+                  {/* Récap type */}
+                  <div style={{ background:"#F5FAF7", borderRadius:"12px",
+                    border:"1px solid rgba(0,144,76,0.12)", padding:"16px 24px",
+                    marginBottom:"36px", display:"inline-flex", flexDirection:"column",
+                    alignItems:"center", gap:"6px" }}>
                     <div style={{ fontSize:"12px", color:"#6B9A7A", fontWeight:600,
-                      textTransform:"uppercase", letterSpacing:"0.06em" }}>
-                      Type de demande
-                    </div>
+                      textTransform:"uppercase", letterSpacing:"0.06em" }}>Type de demande</div>
                     <div style={{ fontSize:"16px", fontWeight:800, color:"#0A2410" }}>
                       {typeObj?.label || form.typeRequete}
                     </div>
@@ -716,36 +725,32 @@ if (!user) return (
                         {typeObj?.sousTypes?.find(s => s.value === form.sousType)?.label}
                       </div>
                     )}
+                    {form.typeRequete === "statistique" && (
+                      <div style={{ fontSize:"13px", color:"#00904C", fontWeight:600 }}>
+                         {getPeriodeLabel()}
+                      </div>
+                    )}
                   </div>
 
-                  {/* Boutons */}
                   <div style={{ display:"flex", gap:"14px", justifyContent:"center" }}>
-                    <button className="btn-save"
-                      style={{ padding:"14px 32px", fontSize:"14px" }}
-                      onClick={reset}>
+                    <button className="btn-save" style={{ padding:"14px 32px", fontSize:"14px" }} onClick={reset}>
                       + Nouvelle demande
                     </button>
-                    <button className="btn-cancel"
-                      style={{ padding:"14px 32px", fontSize:"14px" }}
-                      onClick={() => { setOnglet("historique"); }}>
+                    <button className="btn-cancel" style={{ padding:"14px 32px", fontSize:"14px" }}
+                      onClick={() => setOnglet("historique")}>
                       Voir mes demandes
                     </button>
                   </div>
                 </div>
-
               ) : (
-                /* ── FORMULAIRE (étapes 1, 2, 3) ── */
+                /* ── FORMULAIRE ── */
                 <div style={{ background:"#fff", borderRadius:"16px",
                   border:"1px solid var(--border)", overflow:"hidden" }}>
 
                   {/* Barre étapes */}
-                  <div style={{ background:"var(--green-deep)", padding:"18px 32px",
-                    display:"flex", alignItems:"center" }}>
-                    {[
-                      { n:1, label:"Type de requête" },
-                      { n:2, label:"Critères" },
-                      { n:3, label:"Confirmation" },
-                    ].map((s, i) => (
+                  <div style={{ background:"var(--green-deep)", padding:"18px 32px", display:"flex", alignItems:"center" }}>
+                    {[{ n:1, label:"Type de requête" }, { n:2, label:"Critères" }, { n:3, label:"Confirmation" }]
+                      .map((s, i) => (
                       <div key={s.n} style={{ display:"flex", alignItems:"center", flex:i<2?1:"none" }}>
                         <div style={{ display:"flex", alignItems:"center", gap:"8px" }}>
                           <div style={{ width:"28px", height:"28px", borderRadius:"50%",
@@ -758,34 +763,28 @@ if (!user) return (
                             {etape>s.n ? "✓" : s.n}
                           </div>
                           <span style={{ fontSize:"12px", fontWeight:600,
-                            color: etape>=s.n ? "#fff" : "rgba(255,255,255,0.35)" }}>
-                            {s.label}
-                          </span>
+                            color: etape>=s.n ? "#fff" : "rgba(255,255,255,0.35)" }}>{s.label}</span>
                         </div>
-                        {i < 2 && (
-                          <div style={{ flex:1, height:"2px",
-                            background:"rgba(255,255,255,0.12)", margin:"0 12px" }}/>
-                        )}
+                        {i < 2 && <div style={{ flex:1, height:"2px", background:"rgba(255,255,255,0.12)", margin:"0 12px" }}/>}
                       </div>
                     ))}
                   </div>
 
                   <div style={{ padding:"32px" }}>
 
-                    {/* ─────── ÉTAPE 1 ─────── */}
-                    {(etape === 1) && (<>
-                      <h3 style={{ fontSize:"20px", fontWeight:800,
-                        color:"var(--text-dark)", marginBottom:"8px" }}>
+                    {/* ═══ ÉTAPE 1 ═══ */}
+                    {etape === 1 && (<>
+                      <h3 style={{ fontSize:"20px", fontWeight:800, color:"var(--text-dark)", marginBottom:"8px" }}>
                         Quel type de données souhaitez-vous ?
                       </h3>
                       <p style={{ color:"var(--text-muted)", fontSize:"13px", marginBottom:"24px" }}>
                         Sélectionnez le type de requête selon vos besoins.
                       </p>
-                      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr",
-                        gap:"12px", marginBottom:"24px" }}>
+
+                      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"12px", marginBottom:"24px" }}>
                         {TYPES_REQUETES.map(t => (
                           <button key={t.id}
-                            onClick={() => setForm(f => ({ ...f, typeRequete:t.id, sousType:"" }))}
+                            onClick={() => setForm(f => ({ ...f, typeRequete:t.id, sousType:"", quantite:"" }))}
                             style={{ padding:"18px 20px", borderRadius:"12px", textAlign:"left",
                               border: form.typeRequete===t.id ? `2px solid ${t.couleur}` : "1.5px solid var(--border)",
                               background: form.typeRequete===t.id ? "var(--green-pale)" : "#fff",
@@ -797,27 +796,27 @@ if (!user) return (
                                 alignItems:"center", justifyContent:"center",
                                 fontSize:"10px", fontWeight:800 }}>✓</div>
                             )}
-                            <div style={{ display:"flex", alignItems:"center",
-                              gap:"10px", marginBottom:"8px" }}>
+                            <div style={{ display:"flex", alignItems:"center", gap:"10px", marginBottom:"8px" }}>
                               <span style={{ fontWeight:800, fontSize:"15px",
                                 color: form.typeRequete===t.id ? t.couleur : "var(--text-dark)" }}>
                                 {t.label}
                               </span>
                               {t.prix && (
-                                <span style={{ marginLeft:"auto", fontSize:"12px",
-                                  fontWeight:700, color:t.couleur }}>
-                                  {t.prix.toLocaleString()} FCFA/{t.unite}
+                                <span style={{ marginLeft:"auto", fontSize:"12px", fontWeight:700, color:t.couleur }}>
+                                  {t.id === "statistique"
+                                    ? `${t.prix.toLocaleString()} FCFA forfait`
+                                    : `${t.prix.toLocaleString()} FCFA/${t.unite}`}
                                 </span>
                               )}
                             </div>
-                            <p style={{ fontSize:"12px", color:"var(--text-muted)",
-                              lineHeight:1.5, margin:0 }}>
+                            <p style={{ fontSize:"12px", color:"var(--text-muted)", lineHeight:1.5, margin:0 }}>
                               {t.description}
                             </p>
                           </button>
                         ))}
                       </div>
 
+                      {/* Sous-types */}
                       {typeObj && typeObj.sousTypes.length > 0 && (
                         <div style={{ marginBottom:"20px" }}>
                           <label className="profil-label" style={{ marginBottom:"10px", display:"block" }}>
@@ -840,9 +839,31 @@ if (!user) return (
                         </div>
                       )}
 
-                      {typeObj?.prix && (
-                        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr",
-                          gap:"14px", marginBottom:"20px" }}>
+                      {/* Statistique : montant forfaitaire fixe affiché */}
+                      {form.typeRequete === "statistique" && (
+                        <div style={{ background:"var(--green-pale)",
+                          border:"1px solid rgba(34,160,82,0.2)", borderRadius:"12px",
+                          padding:"16px 20px", marginBottom:"20px",
+                          display:"flex", alignItems:"center", gap:"16px" }}>
+                          <div style={{ fontSize:"24px" }}></div>
+                          <div>
+                            <div style={{ fontSize:"11px", fontWeight:700, color:"var(--text-muted)",
+                              textTransform:"uppercase", letterSpacing:"0.06em", marginBottom:"4px" }}>
+                              Tarif forfaitaire
+                            </div>
+                            <div style={{ fontSize:"22px", fontWeight:900, color:"var(--green-dark)" }}>
+                              5 000 FCFA
+                            </div>
+                            <div style={{ fontSize:"12px", color:"var(--text-muted)", marginTop:"2px" }}>
+                              Quelle que soit la quantité de données — tarif unique par demande
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Quantité — uniquement pour les types NON statistique */}
+                      {typeObj?.prix && form.typeRequete !== "statistique" && (
+                        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"14px", marginBottom:"20px" }}>
                           <div className="profil-field">
                             <label className="profil-label">Quantité estimée ({typeObj.unite}s) *</label>
                             <input type="number" min="1" className="profil-input"
@@ -873,14 +894,13 @@ if (!user) return (
                           if (form.typeRequete === "autre" || form.typeRequete === "fiche") setEtape(1.5);
                           else setEtape(2);
                         }}>
-                        Continuer →
+                        Continuer 
                       </button>
                     </>)}
 
-                    {/* ─────── ÉTAPE 1.5 ─────── */}
+                    {/* ═══ ÉTAPE 1.5 ═══ */}
                     {etape === 1.5 && (<>
-                      <h3 style={{ fontSize:"20px", fontWeight:800,
-                        color:"var(--text-dark)", marginBottom:"8px" }}>
+                      <h3 style={{ fontSize:"20px", fontWeight:800, color:"var(--text-dark)", marginBottom:"8px" }}>
                         Confirmation de votre demande
                       </h3>
                       <p style={{ color:"var(--text-muted)", fontSize:"13px", marginBottom:"24px" }}>
@@ -895,10 +915,8 @@ if (!user) return (
                           <div><strong>Type :</strong> {typeObj?.label}</div>
                           {form.sousType && (
                             <div><strong>Sous-type :</strong>{" "}
-                              {typeObj?.sousTypes?.find(s => s.value === form.sousType)?.label}
-                            </div>
+                              {typeObj?.sousTypes?.find(s => s.value === form.sousType)?.label}</div>
                           )}
-                          {form.quantite && <div><strong>Quantité :</strong> {form.quantite}</div>}
                         </div>
                       </div>
                       <div className="profil-field" style={{ marginBottom:"24px" }}>
@@ -922,7 +940,7 @@ if (!user) return (
                         </div>
                       </div>
                       <div style={{ display:"flex", gap:"12px", justifyContent:"space-between" }}>
-                        <button className="btn-cancel" onClick={() => setEtape(1)}>← Retour</button>
+                        <button className="btn-cancel" onClick={() => setEtape(1)}> Retour</button>
                         <button className="btn-save" style={{ padding:"12px 28px" }}
                           disabled={!form.contact.trim() || loading}
                           onClick={async () => {
@@ -946,26 +964,25 @@ if (!user) return (
                                 method:"POST",
                                 headers:{ "Content-Type":"application/json", Authorization:`Bearer ${token}` },
                                 body: JSON.stringify({ typeRequete:form.typeRequete, sousType:form.sousType,
-                                  quantite:form.quantite, description:form.confirmationDescription,
+                                  quantite:1, description:form.confirmationDescription,
                                   contact:form.contact, telephone:form.telephone, montantEstime:prixSpecial }),
                               });
                               setSuccess(true);
-                            } catch {
-                              setSuccess(true);
-                            } finally { setLoading(false); }
+                            } catch { setSuccess(true); }
+                            finally { setLoading(false); }
                           }}>
-                          {loading ? "Traitement..." : "Envoyer la demande →"}
+                          {loading ? "Traitement..." : "Envoyer la demande "}
                         </button>
                       </div>
                     </>)}
 
-                    {/* ─────── ÉTAPE 2 ─────── */}
+                    {/* ═══ ÉTAPE 2 ═══ */}
                     {etape === 2 && (<>
-                      <div style={{ display:"flex", alignItems:"center",
-                        justifyContent:"space-between", marginBottom:"20px" }}>
+                      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:"20px" }}>
                         <div>
-                          <h3 style={{ fontSize:"20px", fontWeight:800,
-                            color:"var(--text-dark)", margin:0 }}>Critères de sélection</h3>
+                          <h3 style={{ fontSize:"20px", fontWeight:800, color:"var(--text-dark)", margin:0 }}>
+                            Critères de sélection
+                          </h3>
                           <p style={{ color:"var(--text-muted)", fontSize:"13px", margin:"6px 0 0" }}>
                             Choisissez un ou plusieurs critères — sélection multiple autorisée.
                           </p>
@@ -978,7 +995,9 @@ if (!user) return (
                           </span>
                         )}
                       </div>
+
                       <div style={{ display:"flex", flexDirection:"column", gap:"16px" }}>
+
                         <SectionCritere titre="Sélection par secteur géographique" sous="(Région, Province, Ville)">
                           <div style={{ marginBottom:"12px" }}>
                             <label className="profil-label" style={{ marginBottom:"8px", display:"block" }}>Régions</label>
@@ -1000,8 +1019,7 @@ if (!user) return (
                             <label className="profil-label">Villes / Provinces spécifiques</label>
                             <input type="text" className="profil-input"
                               placeholder="ex: Ouagadougou, Bobo-Dioulasso..."
-                              value={form.villes}
-                              onChange={e => setForm(f => ({ ...f, villes:e.target.value }))} />
+                              value={form.villes} onChange={e => setForm(f => ({ ...f, villes:e.target.value }))} />
                           </div>
                         </SectionCritere>
 
@@ -1061,6 +1079,81 @@ if (!user) return (
                           </div>
                         </SectionCritere>
 
+                        {/* ═══ PÉRIODE STATISTIQUE ═══ */}
+                        {form.typeRequete === "statistique" && (
+                          <SectionCritere titre=" Période des statistiques" sous="(Obligatoire)">
+                            <div style={{ display:"flex", flexWrap:"wrap", gap:"10px", marginBottom:"20px" }}>
+                              {[
+                                { val:"annee_courante",   label:"Année en cours" },
+                                { val:"annee_specifique", label:"Année spécifique" },
+                                { val:"intervalle",       label:"Intervalle d'années" },
+                              ].map(opt => (
+                                <button key={opt.val} onClick={() => setPeriodeType(opt.val)}
+                                  style={{ padding:"10px 20px", borderRadius:"100px", fontSize:"13px",
+                                    border: periodeType===opt.val ? "2px solid var(--green-light)" : "1.5px solid var(--border)",
+                                    background: periodeType===opt.val ? "var(--green-pale)" : "#fff",
+                                    color: periodeType===opt.val ? "var(--green-dark)" : "var(--text-mid)",
+                                    fontWeight: periodeType===opt.val ? 700 : 500,
+                                    cursor:"pointer", transition:"all 0.2s" }}>
+                                  {periodeType===opt.val ? "✓ " : ""}{opt.label}
+                                </button>
+                              ))}
+                            </div>
+
+                            {/* Année en cours */}
+                            {periodeType === "annee_courante" && (
+                              <div style={{ background:"var(--green-pale)",
+                                border:"1px solid rgba(34,160,82,0.2)", borderRadius:"10px",
+                                padding:"14px 18px", fontSize:"14px",
+                                color:"var(--green-dark)", fontWeight:600 }}>
+                                ✓ Statistiques de l'année {ANNEE_COURANTE} (année en cours)
+                              </div>
+                            )}
+
+                            {/* Année spécifique */}
+                            {periodeType === "annee_specifique" && (
+                              <div className="profil-field">
+                                <label className="profil-label">Année *</label>
+                                <input type="number" min="2000" max={ANNEE_COURANTE}
+                                  className="profil-input" value={anneeSpecifique}
+                                  onChange={e => setAnneeSpecifique(e.target.value)}
+                                  placeholder={`ex: ${ANNEE_COURANTE - 1}`}
+                                  style={{ maxWidth:"200px" }} />
+                                <div style={{ fontSize:"11px", color:"var(--text-muted)", marginTop:"6px" }}>
+                                  Entre 2000 et {ANNEE_COURANTE}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Intervalle */}
+                            {periodeType === "intervalle" && (
+                              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"16px" }}>
+                                <div className="profil-field">
+                                  <label className="profil-label">Année de début *</label>
+                                  <input type="number" min="2000" max={ANNEE_COURANTE}
+                                    className="profil-input" value={anneeDebut}
+                                    onChange={e => setAnneeDebut(e.target.value)}
+                                    placeholder="ex: 2020" />
+                                </div>
+                                <div className="profil-field">
+                                  <label className="profil-label">Année de fin *</label>
+                                  <input type="number" min="2000" max={ANNEE_COURANTE}
+                                    className="profil-input" value={anneeFin}
+                                    onChange={e => setAnneeFin(e.target.value)}
+                                    placeholder={`ex: ${ANNEE_COURANTE}`} />
+                                </div>
+                                {parseInt(anneeDebut) > parseInt(anneeFin) && (
+                                  <div style={{ gridColumn:"1/-1", padding:"10px 14px",
+                                    background:"#FFF0F0", border:"1px solid #FFB3B3",
+                                    borderRadius:"8px", fontSize:"12px", color:"#CC3333" }}>
+                                    ⚠️ L'année de début doit être inférieure ou égale à l'année de fin.
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </SectionCritere>
+                        )}
+
                         <div className="profil-field">
                           <label className="profil-label">Précisions supplémentaires (facultatif)</label>
                           <textarea className="profil-input" rows={3}
@@ -1069,6 +1162,7 @@ if (!user) return (
                             onChange={e => setForm(f => ({ ...f, description:e.target.value }))}
                             style={{ resize:"vertical" }} />
                         </div>
+
                         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"14px" }}>
                           <div className="profil-field">
                             <label className="profil-label">Email de contact *</label>
@@ -1083,23 +1177,26 @@ if (!user) return (
                           </div>
                         </div>
                       </div>
+
                       <div style={{ display:"flex", gap:"10px", marginTop:"24px" }}>
                         <button className="btn-cancel" onClick={() => setEtape(1)}>← Retour</button>
                         <button className="btn-save" style={{ padding:"12px 28px" }}
-                          disabled={!form.contact} onClick={() => setEtape(3)}>
-                          Vérifier ma demande →
+                          disabled={!form.contact || !periodeValide()}
+                          onClick={() => setEtape(3)}>
+                          Vérifier ma demande 
                         </button>
                       </div>
                     </>)}
 
-                    {/* ─────── ÉTAPE 3 ─────── */}
+                    {/* ═══ ÉTAPE 3 ═══ */}
                     {etape === 3 && (<>
-                      <h3 style={{ fontSize:"20px", fontWeight:800,
-                        color:"var(--text-dark)", marginBottom:"20px" }}>
+                      <h3 style={{ fontSize:"20px", fontWeight:800, color:"var(--text-dark)", marginBottom:"20px" }}>
                         Récapitulatif de votre demande
                       </h3>
                       <div style={{ background:"var(--off-white)", borderRadius:"12px",
                         border:"1px solid var(--border)", padding:"20px", marginBottom:"16px" }}>
+
+                        {/* En-tête récap */}
                         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
                           paddingBottom:"16px", borderBottom:"1px solid var(--border)", marginBottom:"16px" }}>
                           <div>
@@ -1109,13 +1206,23 @@ if (!user) return (
                             <div style={{ fontSize:"12px", color:"var(--text-muted)", marginTop:"2px" }}>
                               {typeObj?.sousTypes.find(s => s.value === form.sousType)?.label || typeObj?.description}
                             </div>
-                            {form.quantite && (
+                            {/* Pas de quantité pour les statistiques */}
+                            {form.quantite && form.typeRequete !== "statistique" && (
                               <div style={{ fontSize:"12px", color:"var(--green-bright)", fontWeight:600, marginTop:"2px" }}>
                                 {form.quantite} {typeObj?.unite}(s) demandé(s)
                               </div>
                             )}
                           </div>
-                          {montant ? (
+                          {/* Montant */}
+                          {form.typeRequete === "statistique" ? (
+                            <div style={{ textAlign:"right" }}>
+                              <div style={{ fontSize:"11px", color:"var(--text-muted)",
+                                textTransform:"uppercase", letterSpacing:"0.06em" }}>Forfait</div>
+                              <div style={{ fontSize:"22px", fontWeight:800, color:"var(--green-dark)" }}>
+                                5 000 FCFA
+                              </div>
+                            </div>
+                          ) : montant ? (
                             <div style={{ textAlign:"right" }}>
                               <div style={{ fontSize:"11px", color:"var(--text-muted)",
                                 textTransform:"uppercase", letterSpacing:"0.06em" }}>Montant estimé</div>
@@ -1129,6 +1236,7 @@ if (!user) return (
                               padding:"4px 12px", fontSize:"12px", fontWeight:700 }}>Sur devis</span>
                           )}
                         </div>
+
                         <div style={{ display:"flex", flexDirection:"column", gap:"12px" }}>
                           {form.regions.length > 0 && (
                             <div>
@@ -1144,9 +1252,7 @@ if (!user) return (
                               <div style={{ fontSize:"11px", fontWeight:700, color:"var(--text-muted)",
                                 textTransform:"uppercase", letterSpacing:"0.06em", marginBottom:"6px" }}>Activités</div>
                               <div style={{ display:"flex", flexWrap:"wrap", gap:"6px" }}>
-                                {form.activites.map(a => (
-                                  <Chip key={a} label={ACTIVITES.find(x => x.value === a)?.label}/>
-                                ))}
+                                {form.activites.map(a => <Chip key={a} label={ACTIVITES.find(x => x.value === a)?.label}/>)}
                               </div>
                             </div>
                           )}
@@ -1164,33 +1270,46 @@ if (!user) return (
                               <div style={{ fontSize:"11px", fontWeight:700, color:"var(--text-muted)",
                                 textTransform:"uppercase", letterSpacing:"0.06em", marginBottom:"6px" }}>Tranches d'effectif</div>
                               <div style={{ display:"flex", flexWrap:"wrap", gap:"6px" }}>
-                                {form.tranches.map(t => (
-                                  <Chip key={t} label={TRANCHES_EFFECTIF.find(x => x.value === t)?.label}/>
-                                ))}
+                                {form.tranches.map(t => <Chip key={t} label={TRANCHES_EFFECTIF.find(x => x.value === t)?.label}/>)}
                               </div>
                             </div>
                           )}
-                          {nbCriteres === 0 && (
+
+                          {/* Période statistique dans le récap */}
+                          {form.typeRequete === "statistique" && (
+                            <div>
+                              <div style={{ fontSize:"11px", fontWeight:700, color:"var(--text-muted)",
+                                textTransform:"uppercase", letterSpacing:"0.06em", marginBottom:"6px" }}>
+                                Période
+                              </div>
+                              <span style={{ background:"rgba(0,144,76,0.12)", color:"#00904C",
+                                border:"1px solid rgba(0,144,76,0.25)", borderRadius:"100px",
+                                padding:"4px 14px", fontSize:"12px", fontWeight:700 }}>
+                                 {getPeriodeLabel()}
+                              </span>
+                            </div>
+                          )}
+
+                          {nbCriteres === 0 && form.typeRequete !== "statistique" && (
                             <p style={{ fontSize:"13px", color:"var(--text-muted)", fontStyle:"italic", margin:0 }}>
                               Aucun critère — toutes les données disponibles seront incluses
                             </p>
                           )}
                         </div>
                       </div>
+
                       <div style={{ background:"var(--green-pale)", border:"1px solid rgba(34,160,82,0.2)",
                         borderRadius:"10px", padding:"12px 16px", marginBottom:"20px",
                         fontSize:"13px", color:"var(--text-mid)", lineHeight:1.6 }}>
-                        Un agent CCI-BF vous recontactera à{" "}
-                        <strong>{form.contact}</strong> sous{" "}
+                        Un agent CCI-BF vous recontactera à <strong>{form.contact}</strong> sous{" "}
                         <strong>3 à 5 jours ouvrables</strong> pour confirmer et organiser le paiement.
                       </div>
+
                       <div style={{ display:"flex", gap:"10px" }}>
                         <button className="btn-cancel" onClick={() => setEtape(2)}> Modifier</button>
                         <button className="btn-save" style={{ padding:"12px 32px" }}
                           disabled={loading} onClick={soumettre}>
-                          {loading
-                            ? <><span className="spinner-sm"/>&nbsp;Envoi...</>
-                            : "Soumettre la demande"}
+                          {loading ? <><span className="spinner-sm"/>&nbsp;Envoi...</> : "Soumettre la demande"}
                         </button>
                       </div>
                     </>)}
@@ -1201,14 +1320,12 @@ if (!user) return (
             </div>
           )}
 
-          {/* ══════ MES DEMANDES ══════ */}
+          {/* ══ MES DEMANDES ══ */}
           {onglet === "historique" && (
             <div style={{ maxWidth:"820px", margin:"0 auto" }}>
-              <div style={{ display:"flex", justifyContent:"space-between",
-                alignItems:"center", marginBottom:"20px" }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"20px" }}>
                 <div>
-                  <h2 style={{ fontSize:"22px", fontWeight:800,
-                    color:"var(--text-dark)", margin:0 }}>Mes demandes</h2>
+                  <h2 style={{ fontSize:"22px", fontWeight:800, color:"var(--text-dark)", margin:0 }}>Mes demandes</h2>
                   <p style={{ color:"var(--text-muted)", fontSize:"13px", margin:"4px 0 0" }}>
                     {demandes.length} demande{demandes.length!==1?"s":""} enregistrée{demandes.length!==1?"s":""}
                   </p>
@@ -1225,11 +1342,10 @@ if (!user) return (
                   return (
                     <button key={s} onClick={() => setFiltreStatut(s)}
                       style={{ padding:"6px 14px", borderRadius:"100px", fontSize:"12px",
-                        border: filtreStatut===s ? `2px solid ${sc?.color || "var(--green-light)"}` : "1.5px solid var(--border)",
-                        background: filtreStatut===s ? (sc?.bg || "var(--green-pale)") : "#fff",
-                        color: filtreStatut===s ? (sc?.color || "var(--green-dark)") : "var(--text-mid)",
-                        fontWeight: filtreStatut===s ? 700 : 500,
-                        cursor:"pointer", transition:"all 0.15s" }}>
+                        border: filtreStatut===s ? `2px solid ${sc?.color||"var(--green-light)"}` : "1.5px solid var(--border)",
+                        background: filtreStatut===s ? (sc?.bg||"var(--green-pale)") : "#fff",
+                        color: filtreStatut===s ? (sc?.color||"var(--green-dark)") : "var(--text-mid)",
+                        fontWeight: filtreStatut===s ? 700 : 500, cursor:"pointer", transition:"all 0.15s" }}>
                       {s === "tous" ? "Toutes" : sc?.label}
                       {s !== "tous" && (
                         <span style={{ marginLeft:"6px", opacity:0.7 }}>
@@ -1246,7 +1362,6 @@ if (!user) return (
                   <p style={{ fontSize:"14px" }}>Chargement de vos demandes...</p>
                 </div>
               )}
-
               {!demandesLoading && demandesErreur && (
                 <div style={{ background:"#FFF0F0", border:"1px solid #FFB3B3",
                   borderRadius:"12px", padding:"20px", textAlign:"center", color:"#CC3333" }}>
@@ -1255,17 +1370,13 @@ if (!user) return (
                     onClick={chargerDemandes}>Réessayer</button>
                 </div>
               )}
-
               {!demandesLoading && !demandesErreur && demandes.length === 0 && (
                 <div style={{ textAlign:"center", padding:"60px 0", color:"var(--text-muted)" }}>
-                  <div style={{ fontSize:"48px", marginBottom:"12px" }}>📭</div>
+                  <div style={{ fontSize:"48px", marginBottom:"12px" }}></div>
                   <p style={{ fontSize:"14px", marginBottom:"16px" }}>Aucune demande pour l'instant.</p>
-                  <button className="btn-save" onClick={() => setOnglet("nouvelle")}>
-                    Faire une demande
-                  </button>
+                  <button className="btn-save" onClick={() => setOnglet("nouvelle")}>Faire une demande</button>
                 </div>
               )}
-
               {!demandesLoading && !demandesErreur && demandesFiltrees.length > 0 && (
                 <div style={{ display:"flex", flexDirection:"column", gap:"12px" }}>
                   {demandesFiltrees.map(d => {
@@ -1283,11 +1394,19 @@ if (!user) return (
                               {typ?.label || d.typeRequete}
                             </div>
                             <div style={{ fontSize:"12px", color:"var(--text-muted)", marginTop:"2px" }}>
-                              {d.createdAt
-                                ? new Date(d.createdAt).toLocaleDateString("fr-FR",
-                                    { day:"2-digit", month:"long", year:"numeric" }) : "—"}
+                              {d.createdAt ? new Date(d.createdAt).toLocaleDateString("fr-FR",
+                                { day:"2-digit", month:"long", year:"numeric" }) : "—"}
                               {" · "}Réf. <strong>{d._id?.slice(-6).toUpperCase()}</strong>
                             </div>
+                            {/* Période pour les statistiques */}
+                            {d.typeRequete === "statistique" && d.periode && (
+                              <div style={{ fontSize:"11px", color:"#00904C", fontWeight:600, marginTop:"4px" }}>
+                                {" "}
+                                {d.periode.type === "annee_courante"   ? `Année ${ANNEE_COURANTE}` :
+                                 d.periode.type === "annee_specifique" ? `Année ${d.periode.annee}` :
+                                 `${d.periode.debut} → ${d.periode.fin}`}
+                              </div>
+                            )}
                           </div>
                           <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:"6px" }}>
                             <span style={{ background:sc.bg, color:sc.color,
@@ -1302,42 +1421,34 @@ if (!user) return (
                             )}
                           </div>
                         </div>
-
                         {actionMessage.id === d._id && actionMessage.texte && (
-                          <div style={{ padding:"10px 14px", borderRadius:"8px",
-                            fontSize:"13px", marginBottom:"12px",
+                          <div style={{ padding:"10px 14px", borderRadius:"8px", fontSize:"13px", marginBottom:"12px",
                             background: actionMessage.type==="succes" ? "#E8F5EE" : "#FFF0F0",
                             color: actionMessage.type==="succes" ? "#1A7A40" : "#CC3333",
                             border:`1px solid ${actionMessage.type==="succes"?"#C0D8C8":"#FFB3B3"}` }}>
                             {actionMessage.texte}
                           </div>
                         )}
-
                         <div style={{ display:"flex", gap:"8px", flexWrap:"wrap" }}>
                           <button onClick={() => setDemandeDetail(d)}
-                            style={{ padding:"7px 14px", borderRadius:"8px", fontSize:"12px",
-                              fontWeight:600, cursor:"pointer",
-                              background:"var(--green-pale)", color:"var(--green-dark)",
+                            style={{ padding:"7px 14px", borderRadius:"8px", fontSize:"12px", fontWeight:600,
+                              cursor:"pointer", background:"var(--green-pale)", color:"var(--green-dark)",
                               border:"1px solid rgba(34,160,82,0.3)", transition:"all 0.15s" }}>
                             Voir le détail
                           </button>
                           {peutRelancer && (
                             <button onClick={() => relancerDemande(d)} disabled={relanceId===d._id}
-                              style={{ padding:"7px 14px", borderRadius:"8px", fontSize:"12px",
-                                fontWeight:600, cursor:"pointer",
-                                background:"#EFF6FF", color:"#1E60CC",
-                                border:"1px solid rgba(30,96,204,0.3)",
-                                opacity: relanceId===d._id ? 0.6 : 1 }}>
+                              style={{ padding:"7px 14px", borderRadius:"8px", fontSize:"12px", fontWeight:600,
+                                cursor:"pointer", background:"#EFF6FF", color:"#1E60CC",
+                                border:"1px solid rgba(30,96,204,0.3)", opacity:relanceId===d._id?0.6:1 }}>
                               {relanceId===d._id ? "Relance..." : "Relancer"}
                             </button>
                           )}
                           {peutAnnuler && (
                             <button onClick={() => annulerDemande(d._id)} disabled={annulationId===d._id}
-                              style={{ padding:"7px 14px", borderRadius:"8px", fontSize:"12px",
-                                fontWeight:600, cursor:"pointer",
-                                background:"#FFF0F0", color:"#CC3333",
-                                border:"1px solid rgba(204,51,51,0.3)",
-                                opacity: annulationId===d._id ? 0.6 : 1 }}>
+                              style={{ padding:"7px 14px", borderRadius:"8px", fontSize:"12px", fontWeight:600,
+                                cursor:"pointer", background:"#FFF0F0", color:"#CC3333",
+                                border:"1px solid rgba(204,51,51,0.3)", opacity:annulationId===d._id?0.6:1 }}>
                               {annulationId===d._id ? "Annulation..." : "Annuler"}
                             </button>
                           )}
@@ -1351,7 +1462,6 @@ if (!user) return (
           )}
         </div>
 
-        {/* ══ FOOTER ══ */}
         <footer className="dash-footer">
           <span>CCI-BF — Chambre de Commerce et d'Industrie du Burkina Faso</span>
           <div style={{ display:"flex", gap:"20px" }}>

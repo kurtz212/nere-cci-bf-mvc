@@ -462,7 +462,7 @@ export default function Admin() {
       <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:"16px",marginBottom:"24px"}}>
         {kpis.map(k=>(
           <div key={k.label} style={{...S.card,display:"flex",alignItems:"center",gap:"14px"}}>
-            <div style={{width:"48px",height:"48px",borderRadius:"12px",
+            <div style={{borderRadius:"12px",
               background:`${k.couleur}18`,display:"flex",alignItems:"center",
               justifyContent:"center",fontSize:"22px",flexShrink:0}}>
               {k.icone}
@@ -477,13 +477,13 @@ export default function Admin() {
 
       <div style={S.card}>
         <div style={{fontWeight:700,fontSize:"15px",color:"#0A3D1F",marginBottom:"16px"}}> Activités récentes</div>
-        {activitesLoading ? <div style={{color:"#6B9A7A",fontSize:"13px"}}>⏳ Chargement...</div> :
+        {activitesLoading ? <div style={{color:"#6B9A7A",fontSize:"13px"}}> Chargement...</div> :
          activitesError   ? <div style={{color:"#CC3333",fontSize:"13px"}}>{activitesError}</div> :
          activites.length===0 ? <div style={{color:"#6B9A7A",fontSize:"13px"}}>Aucune activité récente.</div> :
          activites.map((a,i)=>(
            <div key={a.id} style={{display:"flex",gap:"12px",padding:"12px 0",
              borderBottom:i<activites.length-1?"1px solid #E2EDE6":"none"}}>
-             <div style={{width:"36px",height:"36px",borderRadius:"10px",background:"#F0F8F3",
+             <div style={{borderRadius:"10px",background:"#F0F8F3",
                display:"flex",alignItems:"center",justifyContent:"center",fontSize:"16px",flexShrink:0}}></div>
              <div style={{flex:1}}>
                <div style={{fontSize:"13px",color:"#1A2E1F",lineHeight:1.5}}>{a.texte}</div>
@@ -611,7 +611,7 @@ export default function Admin() {
             <p style={{color:"#6B9A7A",fontSize:"13px",marginTop:"4px"}}>{users.length} comptes enregistrés</p>
           </div>
           <div style={{display:"flex",gap:"10px",alignItems:"center"}}>
-            <button style={S.btn} onClick={()=>setShowUserForm(true)}>+ Nouveau gestionnaire</button>
+            <button style={S.btn} onClick={()=>setShowUserForm(true)}> Nouveau gestionnaire</button>
             <input style={{...S.input,width:"220px"}} placeholder=" Rechercher..."
               value={searchUser} onChange={e=>setSearchUser(e.target.value)}/>
           </div>
@@ -798,7 +798,7 @@ export default function Admin() {
           borderRadius:"10px",border:"1px solid rgba(0,144,76,0.15)",
           fontSize:"12px",color:"#6B9A7A",display:"flex",alignItems:"center",gap:"8px"}}>
           <span></span>
-          <span>La suppression de comptes utilisateurs est désactivée pour des raisons de traçabilité. Utilisez la suspension pour restreindre l'accès.</span>
+          <span> Utilisez la suspension d'un utilisateur pour restreindre ses accès.</span>
         </div>
       </div>
     );
@@ -817,7 +817,7 @@ export default function Admin() {
          activites.map((a,i)=>(
            <div key={a.id} style={{display:"flex",gap:"14px",padding:"14px 0",
              borderBottom:i<activites.length-1?"1px solid #E2EDE6":"none"}}>
-             <div style={{width:"40px",height:"40px",borderRadius:"10px",background:"#F0F8F3",
+             <div style={{width:"40px",height:"40px",borderRadius:"10px",background:"",
                display:"flex",alignItems:"center",justifyContent:"center",fontSize:"18px",flexShrink:0}}></div>
              <div style={{flex:1}}>
                <div style={{fontSize:"14px",color:"#0A3D1F",lineHeight:1.5,fontWeight:500}}>{a.texte}</div>

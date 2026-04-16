@@ -330,7 +330,7 @@ export default function Contact() {
 
             {/* Bouton */}
             {chatOuvert ? (
-              <button onClick={() => navigate("/chat")} style={{
+              <button onClick={() => navigate("/chatadmin")} style={{
                 width:"100%", padding:"14px", borderRadius:"12px",
                 background:"#ffffff", border:"none",
                 color:"#00904C", fontWeight:800, fontSize:"15px",
@@ -339,7 +339,7 @@ export default function Contact() {
               }}
                 onMouseEnter={e => e.currentTarget.style.background = "#ffffff"}
                 onMouseLeave={e => e.currentTarget.style.background = "#ffffff"}>
-                Ouvrir le chat →
+                Ouvrir le chat 
               </button>
             ) : (
               <>

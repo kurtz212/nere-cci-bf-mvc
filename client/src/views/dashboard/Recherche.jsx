@@ -236,7 +236,6 @@ export default function Recherche() {
                 onMouseEnter={()=>setHovered("multi")}
                 onMouseLeave={()=>setHovered(null)}
                 onClick={()=>handleCardClick("/demande-document")}>
-                <div style={{width:"72px",height:"72px",borderRadius:"18px",background:"rgba(0,144,76,0.15)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"32px"}}></div>
                 <div className="choice-label">Recherche<br/>multicritère</div>
                 <div className="choice-desc">Combinez plusieurs filtres : secteur, région, chiffre d'affaires, effectif, statut juridique et plus encore.</div>
                 <div className="choice-arrow">
@@ -253,7 +252,6 @@ export default function Recherche() {
                 onMouseEnter={()=>setHovered("single")}
                 onMouseLeave={()=>setHovered(null)}
                 onClick={()=>handleCardClick("/recherche-entreprise")}>
-                <div style={{width:"72px",height:"72px",borderRadius:"18px",background:"rgba(0,144,76,0.15)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"32px"}}></div>
                 <div className="choice-label">Recherche par<br/>un critère</div>
                 <div className="choice-desc">Recherche rapide et ciblée : nom d'entreprise, numéro RCCM, IFU ou tout autre identifiant unique.</div>
                 <div className="choice-arrow">

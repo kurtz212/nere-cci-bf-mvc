@@ -276,7 +276,7 @@ export default function Formules() {
               onMouseLeave={()=>setHover(null)}
               style={S.packCard(isHover, pack.populaire)}>
 
-              {pack.populaire && <div style={S.packBadge}>Le plus populaire</div>}
+              {pack.populaire && <div style={S.packBadge}></div>}
 
               <div style={{marginBottom:"20px"}}>
                 <div style={S.packLevel(pack.niveau)}>{pack.niveau}</div>

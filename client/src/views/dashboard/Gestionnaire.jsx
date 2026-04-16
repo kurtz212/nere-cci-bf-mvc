@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../styles/dashboard.css";
 
-const API = "/api";
+const API = "http://localhost:5000/api";
 const getToken = () => localStorage.getItem("token");
 
 const STATUT_COLORS = {
@@ -357,10 +357,10 @@ export default function Gestionnaire() {
   ];
 
   const kpis = [
-    {label:"En attente",val:demandes.filter(d=>d.statut==="en_attente").length,color:"#B8860B",bg:"rgba(212,168,48,0.1)",filtre:"en_attente"},
-    {label:"En cours",  val:demandes.filter(d=>d.statut==="en_cours").length,  color:"#1E60CC",bg:"rgba(74,158,255,0.1)",filtre:"en_cours"},
-    {label:"Traitées",  val:demandes.filter(d=>d.statut==="traite").length,    color:"#1A7A40",bg:"rgba(34,160,82,0.1)", filtre:"traite"},
-    {label:"Total",     val:demandes.length,                                   color:"#00904C",bg:"rgba(0,144,76,0.06)", filtre:"tous"},
+    {label:"En attente",val:demandes.filter(d=>d.statut==="en_attente").length,color:"#B8860B",filtre:"en_attente"},
+    {label:"En cours",  val:demandes.filter(d=>d.statut==="en_cours").length,  color:"#1E60CC",filtre:"en_cours"},
+    {label:"Traitées",  val:demandes.filter(d=>d.statut==="traite").length,    color:"#1A7A40", filtre:"traite"},
+    {label:"Total",     val:demandes.length,                                   color:"#00904C", filtre:"tous"},
   ];
 
   const demandesFiltrees = (filtreStatut==="tous"?demandes:demandes.filter(d=>d.statut===filtreStatut))
@@ -410,7 +410,7 @@ export default function Gestionnaire() {
       {/* KPI utilisateurs */}
       <div style={{...S.card,marginBottom:"20px",display:"flex",alignItems:"center",gap:"20px",padding:"16px 24px",cursor:"pointer"}}
         onClick={()=>setSection("utilisateurs")}>
-        <div style={{width:"48px",height:"48px",borderRadius:"12px",background:"rgba(74,158,255,0.1)",
+        <div style={{width:"48px",height:"48px",borderRadius:"12px",
           display:"flex",alignItems:"center",justifyContent:"center",fontSize:"22px",flexShrink:0}}></div>
         <div style={{flex:1}}>
           <div style={{fontWeight:700,fontSize:"14px",color:"#0A3D1F"}}>Utilisateurs inscrits</div>
@@ -427,7 +427,7 @@ export default function Gestionnaire() {
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"20px"}}>
             <div style={{fontWeight:700,fontSize:"15px",color:"#0A3D1F"}}>Demandes récentes</div>
             <button onClick={()=>setSection("demandes")} style={{...S.btnGhost,padding:"6px 14px",fontSize:"12px"}}>
-              Voir tout →
+              Voir tout 
             </button>
           </div>
           {demandesLoading ? <div style={{textAlign:"center",padding:"32px",color:"#6B9A7A"}}></div> :
@@ -463,7 +463,7 @@ export default function Gestionnaire() {
         <div style={S.card}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"20px"}}>
             <div style={{fontWeight:700,fontSize:"15px",color:"#0A3D1F"}}>Activités récentes</div>
-            <button onClick={()=>setSection("activites")} style={{...S.btnGhost,padding:"6px 14px",fontSize:"12px"}}>Voir tout →</button>
+            <button onClick={()=>setSection("activites")} style={{...S.btnGhost,padding:"6px 14px",fontSize:"12px"}}>Voir tout </button>
           </div>
           {activitesLoading ? <div style={{textAlign:"center",padding:"32px",color:"#6B9A7A"}}></div> :
           activites.length===0 ? <div style={{textAlign:"center",padding:"32px",color:"#6B9A7A",fontSize:"13px"}}>Aucune activité</div> :
@@ -943,6 +943,17 @@ export default function Gestionnaire() {
             fontSize:"13px",fontFamily:"inherit"}}>
             <span style={{fontSize:"18px"}}></span>
             {sidebarOpen&&<span>Voir le site</span>}
+          </button>
+        </div>
+
+         <div style={{padding:"12px 10px",borderTop:"1px solid #EAF0EB"}}>
+          <button onClick={()=>navigate("/Chat")} style={{width:"100%",display:"flex",alignItems:"center",
+            gap:sidebarOpen?"12px":"0",justifyContent:sidebarOpen?"flex-start":"center",
+            padding:sidebarOpen?"10px 14px":"10px",borderRadius:"10px",border:"none",
+            cursor:"pointer",background:"#00904C",color:"#fff",fontWeight:600,
+            fontSize:"13px",fontFamily:"inherit"}}>
+            <span style={{fontSize:"18px"}}></span>
+            {sidebarOpen&&<span>Voir les chats</span>}
           </button>
         </div>
       </aside>

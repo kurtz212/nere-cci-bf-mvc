@@ -155,7 +155,7 @@ export default function Home() {
                       </div>
                       <div className="dropdown-divider"/>
                       <div className="dropdown-item" onClick={()=>{navigate("/profil");setMenuOpen(false);}}> Mon Profil</div>
-                      <div className="dropdown-item" onClick={()=>{navigate("/paiement");setMenuOpen(false);}}> Mon Abonnement</div>
+                    
                       <div className="dropdown-item" onClick={()=>{navigate("/profil");setMenuOpen(false);}}> Historique</div>
                       <div className="dropdown-item" onClick={()=>{navigate("/profil");setMenuOpen(false);}}> Sécurité</div>
                       {user.role==="admin" && (
@@ -165,7 +165,7 @@ export default function Home() {
                         <div className="dropdown-item" onClick={()=>{navigate("/gestionnaire");setMenuOpen(false);}}>Tableau de bord</div>
                       )}
                       <div className="dropdown-divider"/>
-                      <div className="dropdown-item danger" onClick={handleLogout}>🚪 Déconnexion</div>
+                      <div className="dropdown-item danger" onClick={handleLogout}> Déconnexion</div>
                     </div>
                   </>
                 )}
@@ -406,7 +406,7 @@ function AdminPanelStats({ navigate }) {
     <div>
       <div style={{fontWeight:700,fontSize:"14px",color:"#0A2410",marginBottom:"16px"}}>Vue d'ensemble</div>
       {!stats ? (
-        <div style={{textAlign:"center",padding:"24px",color:"#6B9A7A"}}>⏳ Chargement...</div>
+        <div style={{textAlign:"center",padding:"24px",color:"#6B9A7A"}}> Chargement...</div>
       ) : (
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"12px",marginBottom:"20px"}}>
           {kpis.map(k=>(

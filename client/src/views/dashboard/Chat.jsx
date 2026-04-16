@@ -117,8 +117,8 @@ export default function Chat() {
       <div style={S.header}>
         <div style={{display:"flex", alignItems:"center", gap:"12px"}}>
           <button onClick={()=>navigate("/")}
-            style={{background:"rgba(255,255,255,0.1)",border:"none",borderRadius:"8px",padding:"7px 12px",color:"#fff",cursor:"pointer",fontFamily:"inherit",fontWeight:600,fontSize:"13px"}}>
-            ← Accueil
+            style={{background:"#ffffff",border:"none",borderRadius:"8px",padding:"7px 12px",color:"#4DC97A",cursor:"pointer",fontFamily:"inherit",fontWeight:600,fontSize:"13px"}}>
+            Accueil
           </button>
           <div style={{fontFamily:"'Playfair Display',serif",fontSize:"18px",fontWeight:800,color:"#fff"}}>
             Messagerie NERE
