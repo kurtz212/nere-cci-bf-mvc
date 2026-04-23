@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../styles/home.css";
 import logoCCI      from "../../assets/ccibf.png";
-import logoNERE     from "../../assets/nere.jpg";
+import logoNERE     from "../../assets/nere.png";
 
 const FLOATING_TEXTS = [
   "RCCM: BF-OUA-2024-A142", "IFU: 000-24856-X", "CA: 2,4 Mrd FCFA",
@@ -273,7 +273,18 @@ export default function Recherche() {
           <div className="logo-zone" style={{display:"flex", alignItems:"center", gap:"10px"}}>
             <div style={{width:"0px", height:"44px", background:"rgba(255,255,255,0.15)", margin:"0 4px"}}/>
             <div style={{display:"flex", alignItems:"center", gap:"8px"}}>
-              <img src={logoNERE} alt="Logo NERE" style={{height:"90px", width:"auto", borderRadius:"6px"}}/>
+           <img
+  src={logoNERE}
+  alt="NERE"
+  style={{
+    height: "90px",
+    width: "auto",
+    borderRadius: "6px",
+    flexShrink: 0,
+    backgroundColor: "#ffffff",   // ← fond blanc
+    padding: "4px",               // ← petit espace autour du logo
+  }}
+/>
               <div style={{display:"flex", flexDirection:"column"}}>
                 <span style={{fontSize:"11px", fontWeight:800, color:"#ffffff", letterSpacing:"0.06em", textTransform:"uppercase"}}>Fichier NERE</span>
                 <span style={{fontSize:"10px", color:"#ffffff", lineHeight:1.4}}>Registre national des entreprises<br/>Du Burkina Faso</span>
@@ -286,7 +297,7 @@ export default function Recherche() {
             <span className="nav-link" onClick={()=>navigate("/publications")}>Publications</span>
             <span className="nav-link active" onClick={()=>navigate("/demande-document")}>Recherche</span>
             <span className="nav-link" onClick={()=>navigate("/Contact")}>Contact</span>
-            <span className="nav-link" onClick={()=>navigate("/Chat")}>Chat</span>
+            <span className="nav-link" onClick={()=>navigate("/Chat")}>Message</span>
           </div>
 
           <div className="nav-actions">

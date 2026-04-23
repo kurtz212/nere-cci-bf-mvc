@@ -4,7 +4,7 @@ import { io } from "socket.io-client";
 import "../../styles/dashboard.css";
 
 const SOCKET_URL = "http://localhost:5000";
-const API = "http://localhost:5000/api";
+const API = "/api";
 
 export default function ChatAdmin() {
   const navigate  = useNavigate();
@@ -174,7 +174,7 @@ export default function ChatAdmin() {
       expediteurNom: `${user.prenom} ${user.nom}`,
       cibles,
     });
-    setDiffMsg({ texte:`✅ Message envoyé à ${ciblesMode==="tous"?"tous les utilisateurs":`${cibles.length} utilisateur(s) ciblé(s)`}`, type:"succes" });
+    setDiffMsg({ texte:` Message envoyé à ${ciblesMode==="tous"?"tous les utilisateurs":`${cibles.length} utilisateur(s) ciblé(s)`}`, type:"succes" });
     setTexteDiff(""); setUsersSelect(new Set()); setCiblesMode("tous");
     setDiffEnvoi(false);
     setTimeout(()=>setDiffMsg({texte:"",type:""}),4000);
@@ -289,7 +289,7 @@ export default function ChatAdmin() {
         {onglet==="diffusion" && (
           <div style={{flex:1,overflowY:"auto",padding:"16px"}}>
             <div style={{marginBottom:"14px"}}>
-              <div style={{fontWeight:700,fontSize:"13px",color:"#0A2410",marginBottom:"10px"}}> Envoyer une annonce</div>
+              <div style={{fontWeight:700,fontSize:"13px",color:"#0A2410",marginBottom:"10px"}}>📢 Envoyer une annonce</div>
 
               {/* Mode ciblage */}
               <div style={{display:"flex",gap:"8px",marginBottom:"12px"}}>
@@ -362,14 +362,12 @@ export default function ChatAdmin() {
         {/* Retour */}
         <div style={{padding:"12px 16px",borderTop:"1px solid #E2EDE6",flexShrink:0}}>
           <button onClick={()=>navigate("/admin")}
-            style={{width:"100%",padding:"10px",borderRadius:"8px",background:"#E6F4EC",border:"none",color:"#00904C",fontWeight:600,fontSize:"13px",cursor:"pointer",fontFamily:"inherit"}}>
+            style={{width:"100%",padding:"10px",borderRadius:"8px",background:"#ffffff",border:"none",color:"#00904C",fontWeight:600,fontSize:"13px",cursor:"pointer",fontFamily:"inherit"}}>
              Retour au dashboard
           </button>
-        </div>
 
-         <div style={{padding:"12px 16px",borderTop:"1px solid #E2EDE6",flexShrink:0}}>
           <button onClick={()=>navigate("/")}
-            style={{width:"100%",padding:"10px",borderRadius:"8px",background:"#E6F4EC",border:"none",color:"#00904C",fontWeight:600,fontSize:"13px",cursor:"pointer",fontFamily:"inherit"}}>
+            style={{width:"100%",padding:"10px",borderRadius:"8px",background:"#ffffff",border:"none",color:"#00904C",fontWeight:600,fontSize:"13px",cursor:"pointer",fontFamily:"inherit"}}>
              Retour à l'accueil
           </button>
         </div>
@@ -457,7 +455,7 @@ export default function ChatAdmin() {
             style={{flex:1,padding:"12px 16px",borderRadius:"12px",border:"1.5px solid #E2EDE6",fontSize:"14px",fontFamily:"inherit",outline:"none",background:userActif?"#fff":"#F5FAF7",color:"#0A2410"}}/>
           <button onClick={envoyer} disabled={!texte.trim()||!userActif}
             style={{padding:"12px 24px",borderRadius:"12px",background:texte.trim()&&userActif?"#00904C":"#E2EDE6",border:"none",color:texte.trim()&&userActif?"#fff":"#6B9A7A",fontWeight:700,fontSize:"14px",cursor:texte.trim()&&userActif?"pointer":"not-allowed",fontFamily:"inherit",transition:"all 0.2s"}}>
-            Envoyer →
+            Envoyer 
           </button>
         </div>
       </div>

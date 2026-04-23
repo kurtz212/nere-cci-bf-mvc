@@ -953,7 +953,7 @@ export default function Gestionnaire() {
             cursor:"pointer",background:"#00904C",color:"#fff",fontWeight:600,
             fontSize:"13px",fontFamily:"inherit"}}>
             <span style={{fontSize:"18px"}}></span>
-            {sidebarOpen&&<span>Voir les chats</span>}
+            {sidebarOpen&&<span>Voir la messagerie</span>}
           </button>
         </div>
       </aside>

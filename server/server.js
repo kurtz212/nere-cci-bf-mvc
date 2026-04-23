@@ -10,7 +10,7 @@ dotenv.config();
 const app    = express();
 const server = http.createServer(app);
 
-// ── Socket.io (optionnel) ──
+// ── Socket.io ──
 let io = null;
 try {
   const { Server } = require('socket.io');
@@ -46,17 +46,18 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// ── Routes — chargement sécurisé ──
+// ── Routes ──
 const ROUTES = [
-  { path:'/api/auth',         file:'./src/routes/auth.routes'        },
-  { path:'/api/packs',        file:'./src/routes/pack.routes'         },
-  { path:'/api/paiements',    file:'./src/routes/payment.routes'      },
-  { path:'/api/searchlogs',   file:'./src/routes/searchlog.routes'    },
-  { path:'/api/abonnements',   file:'./src/routes/abonnement.routes'   },
-  { path:'/api/users',        file:'./src/routes/user.routes'        },
-  { path:'/api/publications', file:'./src/routes/publication.routes' },
-  { path:'/api/demandes',     file:'./src/routes/demande.routes'     },
-  { path:'/api/chat',         file:'./src/routes/chat.routes'        },
+  { path:'/api/auth',         file:'./src/routes/auth.routes'          },
+  { path:'/api/packs',        file:'./src/routes/pack.routes'           },
+  { path:'/api/paiements',    file:'./src/routes/payment.routes'        },
+  { path:'/api/searchlogs',   file:'./src/routes/searchlog.routes'      },
+  { path:'/api/abonnements',  file:'./src/routes/abonnement.routes'     },
+  { path:'/api/users',        file:'./src/routes/user.routes'           },
+  { path:'/api/publications', file:'./src/routes/publication.routes'    },
+  { path:'/api/demandes',     file:'./src/routes/demande.routes'        },
+  { path:'/api/chat',         file:'./src/routes/chat.routes'           },
+  { path:'/api/nere',         file:'./src/routes/nere.proxy.routes'     },
 ];
 
 ROUTES.forEach(({ path, file }) => {

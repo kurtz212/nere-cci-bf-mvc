@@ -18,7 +18,7 @@ async function main() {
   // Vérifier si un gestionnaire existe déjà
   const existing = await User.findOne({ role: 'manager' });
   if (existing) {
-    console.log(`ℹ️  Gestionnaire existant : ${existing.email} (role: ${existing.role}, isActive: ${existing.isActive}, emailVerified: ${existing.emailVerified})`);
+    console.log(`  Gestionnaire existant : ${existing.email} (role: ${existing.role}, isActive: ${existing.isActive}, emailVerified: ${existing.emailVerified})`);
     
     // S'assurer que le compte est actif et vérifié
     await User.findByIdAndUpdate(existing._id, {
@@ -48,7 +48,7 @@ async function main() {
 
   // Lister tous les gestionnaires
   const managers = await User.find({ role: 'manager' }).select('email isActive emailVerified suspendJusquau');
-  console.log('\n📋 Tous les gestionnaires :');
+  console.log('\n Tous les gestionnaires :');
   managers.forEach(m => {
     const susp = m.suspendJusquau ? ` | suspendu jusqu'au ${new Date(m.suspendJusquau).toLocaleDateString('fr-FR')}` : '';
     console.log(`  - ${m.email} | actif: ${m.isActive} | vérifié: ${m.emailVerified}${susp}`);

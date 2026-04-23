@@ -1,60 +1,69 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../styles/dashboard.css";
-import logoNERE from "../../assets/nere.jpg";
+import logoNERE from "../../assets/nere.png";
 
-const ENTREPRISES_MOCK = [
-  { id:1, nom:"SOCOGEB SARL", raisonSociale:"SOCOGEB", rccm:"RCCM-BF-OUA-2020-B-1111", ifu:"IFU-BF-001234", ville:"Ouagadougou" },
-  { id:2, nom:"AGRO-BF SA",   raisonSociale:"AGRO-BF", rccm:"RCCM-BF-BOB-2021-B-2222", ifu:"IFU-BF-005678", ville:"Bobo-Dioulasso" },
-  { id:3, nom:"BATIKO SARL",  raisonSociale:"BATIKO",  rccm:"RCCM-BF-OUA-2019-B-3333", ifu:"IFU-BF-009012", ville:"Ouagadougou" },
-  { id:4, nom:"TRANS SAHEL",  raisonSociale:"TRANS SAHEL", rccm:"RCCM-BF-KDG-2018-B-4444", ifu:"IFU-BF-003456", ville:"Koudougou" },
+// Déclarer API AVANT de l'utiliser
+const API = process.env.REACT_APP_API_URL;
+console.log("API =", API);
+
+const NAV_LINKS = [
+  { label:"Accueil",      path:"/",            key:"accueil"      },
+  { label:"Publications", path:"/publications", key:"publications" },
+  { label:"Recherche",    path:"/rechercheacc", key:"recherche"    },
+  { label:"Contact",      path:"/contact",      key:"contact"      },
+  { label:"Messages",     path:"/chat",         key:"messages"     },
 ];
 
 export default function RechercheEntreprise() {
   const navigate = useNavigate();
 
-  const [user, setUser]           = useState(null);
-  const [menuOpen, setMenuOpen]   = useState(false);
-  const [checked, setChecked]     = useState(false);
-  const [onglet, setOnglet]       = useState("recherche");
-  const [loading, setLoading]     = useState(false);
-  const [resultats, setResultats] = useState([]);
+  const [user, setUser]                 = useState(null);
+  const [menuOpen, setMenuOpen]         = useState(false);
+  const [onglet, setOnglet]             = useState("recherche");
+  const [loading, setLoading]           = useState(false);
+  const [resultats, setResultats]       = useState([]);
+  const [total, setTotal]               = useState(0);
   const [rechercheFaite, setRechercheFaite] = useState(false);
-  const [form, setForm]           = useState({ rccm:"", ifu:"", raisonSociale:"" });
+  const [erreur, setErreur]             = useState("");
+  const [soldeRestant, setSoldeRestant] = useState(null);
+  const [form, setForm]                 = useState({ rccm:"", ifu:"", raisonSociale:"" });
+
   const [historique, setHistorique]           = useState([]);
   const [histoLoading, setHistoLoading]       = useState(false);
   const [histoErreur, setHistoErreur]         = useState("");
   const [replayLoadingId, setReplayLoadingId] = useState(null);
   const [replayMessage, setReplayMessage]     = useState({ id:null, texte:"", type:"" });
 
-  /* ── Vérification connexion ── */
   useEffect(() => {
-    const u     = localStorage.getItem("user");
-    const token = localStorage.getItem("token");
-    if (u && token) {
-      setUser(JSON.parse(u));
-    } else {
-      navigate("/connexion");
-    }
-    setChecked(true);
-  }, [navigate]);
+    const u = localStorage.getItem("user");
+    if (u) setUser(JSON.parse(u));
+  }, []);
 
+  // 🔥 Correction complète : charger l’historique correctement
   const chargerHistorique = useCallback(async () => {
     const token = localStorage.getItem("token");
     if (!token) return;
+
     setHistoLoading(true);
     setHistoErreur("");
+
     try {
-      const res  = await fetch(
-        "http://localhost:5000/api/searchlogs/mon-historique?type=entreprise&limit=50",
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const res = await fetch(`${API}/searchlogs`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
       const data = await res.json();
-      if (data.success) setHistorique(data.data || []);
-      else setHistoErreur(data.message || "Impossible de charger l'historique.");
+
+      if (data.success) {
+        setHistorique(data.data || []);
+      } else {
+        setHistoErreur(data.message || "Impossible de charger l'historique.");
+      }
     } catch {
       setHistoErreur("Serveur inaccessible.");
     }
+
     setHistoLoading(false);
   }, []);
 
@@ -65,14 +74,74 @@ export default function RechercheEntreprise() {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    setUser(null);
-    setMenuOpen(false);
     navigate("/");
   };
 
-  const initiales = user
-    ? `${user.prenom?.[0] || ""}${user.nom?.[0] || ""}`.toUpperCase()
-    : "";
+  const initiales = user ? `${user.prenom?.[0] || ""}${user.nom?.[0] || ""}`.toUpperCase() : "";
+
+  const handleRecherche = async (e) => {
+    e.preventDefault();
+    if (!form.rccm && !form.ifu && !form.raisonSociale) return;
+
+    setLoading(true);
+    setRechercheFaite(true);
+    setErreur("");
+
+    try {
+      const token  = localStorage.getItem("token");
+      const params = new URLSearchParams({ limit:20, page:1 });
+
+      if (form.rccm)          params.append("rccm",         form.rccm.trim());
+      if (form.ifu)           params.append("ifu",          form.ifu.trim());
+      if (form.raisonSociale) params.append("denomination", form.raisonSociale.trim());
+
+      const res  = await fetch(`${API}/nere/recherche?${params}`, {
+        headers:{ Authorization:`Bearer ${token}` },
+      });
+
+      const data = await res.json();
+
+      if (data.code === "SOLDE_INSUFFISANT") {
+        setErreur(
+          `Solde insuffisant — cette recherche coûte ${data.cout_requete?.toLocaleString("fr-FR")} FCFA. Votre solde : ${data.solde_actuel?.toLocaleString("fr-FR")} FCFA.`
+        );
+        setResultats([]);
+      } else if (data.success) {
+        setResultats(data.data || []);
+        setTotal(data.total || 0);
+
+        if (data.solde_restant !== undefined) {
+          setSoldeRestant(data.solde_restant);
+        }
+
+        // Enregistrer dans les logs
+        fetch(`${API}/searchlogs`, {
+          method:"POST",
+          headers:{ "Content-Type":"application/json", Authorization:`Bearer ${token}` },
+          body: JSON.stringify({
+            type:"entreprise",
+            description:"Recherche entreprise",
+            criteres:{ rccm:form.rccm, ifu:form.ifu, raisonSociale:form.raisonSociale },
+            nbResultats: data.total || data.data?.length || 0,
+          }),
+        }).catch(()=>{});
+      } else {
+        setErreur(data.message || "Erreur lors de la recherche.");
+        setResultats([]);
+      }
+    } catch {
+      setErreur("Serveur inaccessible. Vérifiez votre connexion.");
+      setResultats([]);
+    }
+
+    setLoading(false);
+  };
+
+
+  const handleReset = () => {
+    setForm({ rccm:"", ifu:"", raisonSociale:"" });
+    setResultats([]); setRechercheFaite(false); setErreur("");
+  };
 
   const relancerRecherche = async (item) => {
     if (!item?._id) return;
@@ -80,148 +149,189 @@ export default function RechercheEntreprise() {
     setReplayLoadingId(item._id);
     try {
       const token = localStorage.getItem("token");
-      const res   = await fetch(
-        `http://localhost:5000/api/searchlogs/${item._id}/replay`,
-        { method:"POST", headers:{ "Content-Type":"application/json", Authorization:`Bearer ${token}` } }
-      );
-      const data = await res.json();
+      const res   = await fetch(`${API}/searchlogs/${item._id}/replay`,
+        { method:"POST", headers:{ "Content-Type":"application/json", Authorization:`Bearer ${token}` } });
+      const data  = await res.json();
       if (data.success) {
-        setReplayMessage({
-          id: item._id,
+        setReplayMessage({ id:item._id,
           texte: data.updated
-            ? "Modification détectée : nouvelle requête enregistrée et facturée."
-            : "Aucune mise à jour : résultat servi depuis le cache, non facturé.",
-          type: "succes",
-        });
+            ? "Modification détectée : nouvelle requête enregistrée."
+            : "Aucune mise à jour : résultat depuis le cache.",
+          type:"succes" });
         chargerHistorique();
-      } else {
-        setReplayMessage({ id:item._id, texte:data.message || "Relance impossible.", type:"erreur" });
-      }
-    } catch {
-      setReplayMessage({ id:item._id, texte:"Erreur serveur lors de la relance.", type:"erreur" });
-    }
+      } else setReplayMessage({ id:item._id, texte:data.message||"Relance impossible.", type:"erreur" });
+    } catch { setReplayMessage({ id:item._id, texte:"Erreur serveur.", type:"erreur" }); }
     setReplayLoadingId(null);
-    setTimeout(() => setReplayMessage({ id:null, texte:"", type:"" }), 5000);
+    setTimeout(()=>setReplayMessage({ id:null, texte:"", type:"" }), 5000);
   };
 
-  const handleRecherche = async (e) => {
-    e.preventDefault();
-    if (!form.rccm && !form.ifu && !form.raisonSociale) return;
-    setLoading(true);
-    setRechercheFaite(true);
-    await new Promise(r => setTimeout(r, 600));
-    let res = ENTREPRISES_MOCK;
-    if (form.rccm)          res = res.filter(e => e.rccm.toLowerCase().includes(form.rccm.toLowerCase()));
-    if (form.ifu)           res = res.filter(e => e.ifu.toLowerCase().includes(form.ifu.toLowerCase()));
-    if (form.raisonSociale) res = res.filter(e => e.raisonSociale.toLowerCase().includes(form.raisonSociale.toLowerCase()));
-    setResultats(res);
-    setLoading(false);
-    const token = localStorage.getItem("token");
-    if (token) {
-      fetch("http://localhost:5000/api/searchlogs", {
-        method: "POST",
-        headers: { "Content-Type":"application/json", Authorization:`Bearer ${token}` },
-        body: JSON.stringify({ type:"entreprise", description:"Recherche entreprise", criteres:form, nbResultats:res.length }),
-      }).catch(() => {});
-    }
-  };
-
-  const handleReset = () => {
-    setForm({ rccm:"", ifu:"", raisonSociale:"" });
-    setResultats([]);
-    setRechercheFaite(false);
-  };
-
-  if (!checked) return null;
-  if (!user)    return null;
+  if (!user) return null;
 
   return (
     <div style={{ minHeight:"100vh", fontFamily:"Arial, Helvetica, sans-serif" }}>
-      <style>{`* { font-family: Arial, Helvetica, sans-serif !important; }`}</style>
+      <style>{`
+        * { font-family: Arial, Helvetica, sans-serif !important; }
+
+        /* ══ NAVBAR — identique Home.jsx ══ */
+        .nere-navbar-re {
+          position: sticky; top: 0; z-index: 100;
+          display: flex; align-items: center; justify-content: space-between;
+          padding: 0 32px; height: 120px;
+          background: #00904C;
+          box-shadow: 0 2px 16px rgba(0,0,0,0.15);
+        }
+        .nere-navbar-re .nav-pill {
+          display: flex; align-items: center; gap: 3px;
+          background: rgba(255,255,255,0.08);
+          border: 1px solid rgba(255,255,255,0.15);
+          border-radius: 100px; padding: 5px 8px;
+          margin-left: auto; margin-right: 20px;
+        }
+        .nere-navbar-re .nav-pill .nav-btn {
+          padding: 7px 15px; border-radius: 100px;
+          font-size: 18px; font-weight: 600;
+          color: rgba(255,255,255,0.78); cursor: pointer;
+          transition: all 0.18s; white-space: nowrap;
+          border: none; background: transparent;
+          font-family: Arial, Helvetica, sans-serif;
+        }
+        .nere-navbar-re .nav-pill .nav-btn:hover {
+          color: #fff; background: rgba(255,255,255,0.12);
+        }
+        .nere-navbar-re .nav-pill .nav-btn.active {
+          color: #0A3D1F; background: #4DC97A;
+          font-weight: 700; box-shadow: 0 2px 8px rgba(77,201,122,0.4);
+        }
+        .nere-navbar-re .u-chip {
+          display: flex; align-items: center; gap: 8px;
+          padding: 5px 12px 5px 5px;
+          background: rgba(255,255,255,0.1);
+          border: 1px solid rgba(255,255,255,0.2);
+          border-radius: 100px; cursor: pointer;
+          color: #fff; font-size: 13px; font-weight: 600;
+          transition: all 0.2s; flex-shrink: 0;
+        }
+        .nere-navbar-re .u-chip:hover { background: rgba(255,255,255,0.18); }
+        .nere-navbar-re .u-avatar {
+          width: 30px; height: 30px; border-radius: 50%;
+          background: #4DC97A; color: #0A3D1F;
+          display: flex; align-items: center; justify-content: center;
+          font-weight: 800; font-size: 12px; flex-shrink: 0;
+        }
+        .nere-dropdown-re {
+          position: absolute; z-index: 9999;
+          top: calc(100% + 10px); right: 0;
+          background: #fff; border-radius: 16px;
+          border: 1px solid #E2EDE6; min-width: 220px;
+          overflow: hidden; box-shadow: 0 16px 48px rgba(0,0,0,0.14);
+          animation: dropInRe 0.18s ease;
+        }
+        @keyframes dropInRe {
+          from { opacity:0; transform:translateY(-8px); }
+          to   { opacity:1; transform:translateY(0); }
+        }
+        .nere-dropdown-re .dd-head {
+          padding: 14px 18px 10px; border-bottom: 1px solid #F0F4F1;
+          background: linear-gradient(135deg,#F5FAF7,#fff);
+        }
+        .nere-dropdown-re .dd-name  { font-weight:800; color:#0A3D1F; font-size:14px; }
+        .nere-dropdown-re .dd-email { font-size:12px; color:#6B9A7A; margin-top:2px; }
+        .nere-dropdown-re .dd-role  {
+          display:inline-flex; align-items:center; gap:5px; margin-top:6px;
+          background:#E8F5EE; color:#00904C; border-radius:100px; padding:3px 10px;
+          font-size:10px; font-weight:700; text-transform:uppercase;
+        }
+        .nere-dropdown-re .dd-item {
+          padding: 10px 18px; font-size:13px; color:#0A3D1F;
+          cursor:pointer; transition:background 0.15s;
+        }
+        .nere-dropdown-re .dd-item:hover { background:#F5FAF7; }
+        .nere-dropdown-re .dd-danger { color:#CC3333; }
+        .nere-dropdown-re .dd-danger:hover { background:#FFF0F0 !important; }
+        .nere-dropdown-re .dd-sep { height:1px; background:#F0F4F1; margin:4px 0; }
+      `}</style>
+
       <div className="dash-bg"><div className="grid"/></div>
       <div style={{ position:"relative", zIndex:1 }}>
 
-        {/* ══ NAVBAR ══ */}
-        <nav className="dash-navbar">
-          <div style={{ display:"flex", alignItems:"center", gap:"12px" }}>
+        {/* ══ NAVBAR — même design que Home.jsx ══ */}
+        <nav className="nere-navbar-re">
+
+          {/* Logo */}
+          <div style={{ display:"flex", alignItems:"center", gap:"10px", flexShrink:0 }}>
             <img src={logoNERE} alt="NERE"
-              style={{ height:"60px", width:"auto", borderRadius:"6px", flexShrink:0 }}/>
-            <div style={{ display:"flex", flexDirection:"column", lineHeight:1.4 }}>
-              <span style={{ fontSize:"11px", fontWeight:800, color:"#ffffff",
-                letterSpacing:"0.06em", textTransform:"uppercase" }}>Fichier NERE</span>
-              <span style={{ fontSize:"10px", color:"rgba(255,255,255,0.85)" }}>
-                Registre national des entreprises<br/>Du Burkina Faso
+              style={{ height:"80px", width:"auto", borderRadius:"6px",
+                flexShrink:0, backgroundColor:"#fff", padding:"4px" }}/>
+            <div style={{ display:"flex", flexDirection:"column", lineHeight:1.35 }}>
+              <span style={{ fontSize:"18px", fontWeight:800, color:"#fff",
+                letterSpacing:"0.08em", textTransform:"uppercase" }}>Fichier NERE</span>
+              <span style={{ fontSize:"10px", color:"rgba(255,255,255,0.65)" }}>
+                Registre national des entreprises
               </span>
             </div>
           </div>
 
-          <div className="dash-nav-links">
-            <span className="dash-nav-link" onClick={() => navigate("/")}>Accueil</span>
-            <span className="dash-nav-link" onClick={() => navigate("/publications")}>Publications</span>
-            <span className="dash-nav-link active" onClick={() => navigate("/rechercheacc")}>Recherche</span>
-            <span className="dash-nav-link" onClick={() => navigate("/contact")}>Contact</span>
-            <span className="dash-nav-link" onClick={() => navigate("/chat")}>Chat</span>
+          {/* Pilule liens — margin-left:auto pousse à droite */}
+          <div className="nav-pill">
+            {NAV_LINKS.map(link => (
+              <button key={link.key}
+                className={`nav-btn ${link.key==="recherche"?"active":""}`}
+                onClick={() => navigate(link.path)}>
+                {link.label}
+              </button>
+            ))}
           </div>
 
-          <div className="dash-nav-actions">
+          {/* Actions droite */}
+          <div style={{ display:"flex", alignItems:"center", gap:"8px", flexShrink:0 }}>
             <div style={{ position:"relative" }}>
-              <div className="user-chip" onClick={() => setMenuOpen(o => !o)}>
-                <div className="user-avatar">{initiales}</div>
-                <span>{user.prenom} {user.nom}</span>
-                <span style={{ fontSize:"10px", opacity:0.5, marginLeft:"2px" }}>▾</span>
+              <div className="u-chip" onClick={() => setMenuOpen(o => !o)}>
+                <div className="u-avatar">{initiales}</div>
+                <span style={{ maxWidth:"100px", overflow:"hidden",
+                  textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                  {user.prenom} {user.nom}
+                </span>
+                <span style={{ fontSize:"9px", opacity:0.5 }}>▾</span>
               </div>
               {menuOpen && (
                 <>
-                  <div style={{ position:"fixed", inset:0, zIndex:50 }} onClick={() => setMenuOpen(false)}/>
-                  <div style={{ position:"absolute", zIndex:9999, background:"#00904C",
-                    top:"calc(100% + 8px)", right:0, borderRadius:"12px",
-                    border:"1px solid rgba(255,255,255,0.15)", minWidth:"200px",
-                    overflow:"hidden", boxShadow:"0 10px 30px rgba(0,0,0,0.25)" }}
-                    onClick={e => e.stopPropagation()}>
-                    <div style={{ padding:"16px", borderBottom:"1px solid rgba(255,255,255,0.1)" }}>
-                      <div style={{ fontWeight:700, color:"#fff", fontSize:"14px" }}>{user.prenom} {user.nom}</div>
-                      <div style={{ fontSize:"12px", color:"rgba(255,255,255,0.6)" }}>{user.email || "—"}</div>
-                      <div style={{ fontSize:"11px", color:"#4DC97A", marginTop:"4px", fontWeight:600 }}>
-                        {user.role === "admin" ? "Administrateur" : "Pack · Actif"}
+                  <div style={{ position:"fixed", inset:0, zIndex:50 }}
+                    onClick={() => setMenuOpen(false)}/>
+                  <div className="nere-dropdown-re" onClick={e => e.stopPropagation()}>
+                    <div className="dd-head">
+                      <div className="dd-name">{user.prenom} {user.nom}</div>
+                      <div className="dd-email">{user.email||"—"}</div>
+                      <div className="dd-role">
+                        {user.role==="admin"   ? " Admin" :
+                         user.role==="manager" ? " Gestionnaire" : " Abonné"}
                       </div>
                     </div>
-                    {[
-                      { label:"Mon Profil",     path:"/profil" },
-                      { label:"Mon Abonnement", path:"/paiement" },
-                      { label:"Historique",     path:"/profil" },
-                      { label:"Sécurité",       path:"/profil" },
-                      { label:"Notifications",  path:"/profil" },
-                    ].map(item => (
-                      <div key={item.label}
-                        style={{ padding:"11px 16px", color:"rgba(255,255,255,0.85)", fontSize:"13px", cursor:"pointer" }}
-                        onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
-                        onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-                        onClick={() => { navigate(item.path); setMenuOpen(false); }}>
-                        {item.label}
-                      </div>
-                    ))}
-                    {user.role === "admin" && (
-                      <div style={{ padding:"11px 16px", color:"rgba(255,255,255,0.85)", fontSize:"13px", cursor:"pointer" }}
-                        onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
-                        onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-                        onClick={() => { navigate("/admin"); setMenuOpen(false); }}>
-                        Tableau de bord
-                      </div>
-                    )}
-                    {user.role === "manager" && (
-                      <div style={{ padding:"11px 16px", color:"rgba(255,255,255,0.85)", fontSize:"13px", cursor:"pointer" }}
-                        onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
-                        onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-                        onClick={() => { navigate("/gestionnaire"); setMenuOpen(false); }}>
-                        Tableau de bord
-                      </div>
-                    )}
-                    <div style={{ borderTop:"1px solid rgba(255,255,255,0.1)" }}>
-                      <div style={{ padding:"11px 16px", color:"#FF6B6B", fontSize:"13px", cursor:"pointer", fontWeight:600 }}
-                        onMouseEnter={e => e.currentTarget.style.background = "rgba(255,107,107,0.1)"}
-                        onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-                        onClick={handleLogout}>
-                        Déconnexion
+                    <div style={{ padding:"6px 0" }}>
+                      {[
+                        { label:" Mon Profil",     path:"/profil"   },
+                        { label:" Mon Abonnement", path:"/paiement" },
+                        { label:" Historique",     path:"/profil"   },
+                      ].map(item => (
+                        <div key={item.label} className="dd-item"
+                          onClick={() => { navigate(item.path); setMenuOpen(false); }}>
+                          {item.label}
+                        </div>
+                      ))}
+                      {user.role==="admin" && (
+                        <div className="dd-item"
+                          onClick={() => { navigate("/admin"); setMenuOpen(false); }}>
+                           Tableau de bord
+                        </div>
+                      )}
+                      {user.role==="manager" && (
+                        <div className="dd-item"
+                          onClick={() => { navigate("/gestionnaire"); setMenuOpen(false); }}>
+                           Tableau de bord
+                        </div>
+                      )}
+                      <div className="dd-sep"/>
+                      <div className="dd-item dd-danger" onClick={handleLogout}>
+                         Déconnexion
                       </div>
                     </div>
                   </div>
@@ -233,12 +343,27 @@ export default function RechercheEntreprise() {
 
         {/* ══ HERO ══ */}
         <div className="pub-page-hero" style={{ padding:"36px 48px 28px" }}>
-          <div className="pub-page-tag">Registre NERE · CCI-BF</div>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+            <div className="pub-page-tag">Registre NERE · CCI-BF</div>
+            {soldeRestant !== null && (
+              <div style={{ background:"rgba(255,255,255,0.1)", borderRadius:"10px",
+                padding:"8px 16px", display:"flex", alignItems:"center", gap:"8px" }}>
+                <span style={{ fontSize:"11px", color:"rgba(255,255,255,0.6)", textTransform:"uppercase" }}>
+                  Solde
+                </span>
+                <span style={{ fontWeight:800, fontSize:"16px",
+                  color: soldeRestant<2000?"#FF8080":soldeRestant<5000?"#D4A830":"#4DC97A" }}>
+                  {soldeRestant.toLocaleString("fr-FR")} FCFA
+                </span>
+              </div>
+            )}
+          </div>
           <h1 className="pub-page-title" style={{ fontSize:"28px", textAlign:"left" }}>
             Recherche d'entreprise
           </h1>
-          <p style={{ color:"#6B9A7A", fontSize:"14px", marginTop:"8px" }}>
-            Interrogez le registre national par RCCM, IFU ou raison sociale.
+          <p style={{ color:"rgba(255,255,255,0.7)", fontSize:"14px", marginTop:"8px" }}>
+            Interrogez le registre national NERE par RCCM, IFU ou raison sociale. ·{" "}
+            <strong style={{ color:"#4DC97A" }}>250 FCFA / recherche</strong>
           </p>
         </div>
 
@@ -247,13 +372,13 @@ export default function RechercheEntreprise() {
           padding:"0 48px", display:"flex" }}>
           {[
             { key:"recherche",  label:"Recherche" },
-            { key:"historique", label:`Mes recherches${historique.length > 0 ? ` (${historique.length})` : ""}` },
+            { key:"historique", label:`Mes recherches${historique.length>0?` (${historique.length})`:""}`},
           ].map(t => (
             <button key={t.key} onClick={() => setOnglet(t.key)} style={{
               padding:"13px 20px", fontSize:"14px", fontWeight:600,
               background:"transparent", border:"none",
-              color: onglet===t.key ? "#00904C" : "rgba(0,0,0,0.45)",
-              borderBottom: onglet===t.key ? "2px solid #00904C" : "2px solid transparent",
+              color: onglet===t.key?"#00904C":"rgba(0,0,0,0.45)",
+              borderBottom: onglet===t.key?"2px solid #00904C":"2px solid transparent",
               cursor:"pointer", transition:"all 0.2s" }}>
               {t.label}
             </button>
@@ -262,9 +387,10 @@ export default function RechercheEntreprise() {
 
         <div style={{ padding:"32px 48px 60px", background:"var(--off-white)" }}>
 
-          {/* ── RECHERCHE ── */}
-          {onglet === "recherche" && (
-            <div style={{ display:"grid", gridTemplateColumns:"380px 1fr", gap:"28px", maxWidth:"1100px" }}>
+          {/* ══ RECHERCHE ══ */}
+          {onglet==="recherche" && (
+            <div style={{ display:"grid", gridTemplateColumns:"380px 1fr",
+              gap:"28px", maxWidth:"1100px" }}>
 
               {/* Formulaire */}
               <div style={{ background:"#fff", borderRadius:"16px",
@@ -274,13 +400,13 @@ export default function RechercheEntreprise() {
                   Critères de recherche
                 </h2>
                 <p style={{ fontSize:"12px", color:"#6B9A7A", marginBottom:"24px" }}>
-                  Remplissez au moins un champ pour lancer la recherche.
+                  Remplissez au moins un champ. Coût : <strong>250 FCFA</strong> par recherche.
                 </p>
                 <form onSubmit={handleRecherche}>
                   {[
-                    { key:"rccm",          label:"Numéro RCCM",    placeholder:"ex: RCCM-BF-OUA-2020-B-1111" },
-                    { key:"ifu",           label:"Numéro IFU",     placeholder:"ex: IFU-BF-001234" },
-                    { key:"raisonSociale", label:"Raison sociale",  placeholder:"ex: SOCOGEB" },
+                    { key:"rccm",          label:"Numéro RCCM",   placeholder:"ex: RCCM-BF-OUA-202X-B-1XXX" },
+                    { key:"ifu",           label:"Numéro IFU",    placeholder:"ex: XXX-24856-X"              },
+                    { key:"raisonSociale", label:"Raison sociale", placeholder:"ex: SOCOGEB"                 },
                   ].map(f => (
                     <div key={f.key} style={{ marginBottom:"18px" }}>
                       <label style={{ fontSize:"11px", fontWeight:700, color:"#6B9A7A",
@@ -288,28 +414,24 @@ export default function RechercheEntreprise() {
                         display:"block", marginBottom:"6px" }}>
                         {f.label}
                       </label>
-                      <input
-                        value={form[f.key]}
-                        onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))}
+                      <input value={form[f.key]}
+                        onChange={e => setForm(p => ({...p,[f.key]:e.target.value}))}
                         placeholder={f.placeholder}
-                        style={{ width:"100%", padding:"11px 14px",
-                          background:"#F5FAF7", border:"1.5px solid rgba(0,144,76,0.2)",
-                          borderRadius:"8px", color:"#0A2410", fontSize:"13px",
-                          boxSizing:"border-box", outline:"none", transition:"border-color 0.2s" }}
-                        onFocus={e => e.target.style.borderColor = "#00904C"}
-                        onBlur={e  => e.target.style.borderColor = "rgba(0,144,76,0.2)"}
-                      />
+                        style={{ width:"100%", padding:"11px 14px", background:"#F5FAF7",
+                          border:"1.5px solid rgba(0,144,76,0.2)", borderRadius:"8px",
+                          color:"#0A2410", fontSize:"13px", boxSizing:"border-box", outline:"none" }}
+                        onFocus={e  => e.target.style.borderColor="#00904C"}
+                        onBlur={e   => e.target.style.borderColor="rgba(0,144,76,0.2)"}/>
                     </div>
                   ))}
                   <div style={{ display:"flex", gap:"10px", marginTop:"24px" }}>
                     <button type="submit"
-                      disabled={loading || (!form.rccm && !form.ifu && !form.raisonSociale)}
+                      disabled={loading||(!form.rccm&&!form.ifu&&!form.raisonSociale)}
                       style={{ flex:1, padding:"12px", background:"#00904C", color:"#fff",
                         border:"none", borderRadius:"10px", cursor:"pointer",
                         fontSize:"14px", fontWeight:700,
-                        boxShadow:"0 4px 14px rgba(0,144,76,0.3)",
-                        opacity: (!form.rccm && !form.ifu && !form.raisonSociale) ? 0.5 : 1 }}>
-                      {loading ? "Recherche..." : " Chercher"}
+                        opacity:(!form.rccm&&!form.ifu&&!form.raisonSociale)?0.5:1 }}>
+                      {loading ? " Recherche..." : " Chercher"}
                     </button>
                     <button type="button" onClick={handleReset}
                       style={{ padding:"12px 16px", background:"#fff", color:"#6B9A7A",
@@ -323,7 +445,24 @@ export default function RechercheEntreprise() {
 
               {/* Résultats */}
               <div>
-                {!rechercheFaite && (
+                {erreur && (
+                  <div style={{ background:"#FFF0F0", border:"1px solid #FFB3B3",
+                    borderRadius:"12px", padding:"16px 20px", color:"#CC3333",
+                    fontSize:"13px", marginBottom:"16px",
+                    display:"flex", gap:"10px", alignItems:"center" }}>
+                    ⚠️ {erreur}
+                    {erreur.includes("Solde") && (
+                      <button onClick={() => navigate("/formules")}
+                        style={{ padding:"7px 14px", borderRadius:"8px", background:"#00904C",
+                          border:"none", color:"#fff", fontWeight:700, fontSize:"12px",
+                          cursor:"pointer", flexShrink:0 }}>
+                        Recharger →
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {!rechercheFaite && !erreur && (
                   <div style={{ background:"#fff", borderRadius:"16px",
                     border:"1px solid rgba(0,144,76,0.12)", padding:"60px 24px",
                     textAlign:"center", color:"#6B9A7A" }}>
@@ -331,9 +470,7 @@ export default function RechercheEntreprise() {
                     <div style={{ fontSize:"15px", fontWeight:600, color:"#0A2410", marginBottom:"8px" }}>
                       Lancez une recherche
                     </div>
-                    <div style={{ fontSize:"13px" }}>
-                      Remplissez au moins un critère et cliquez sur "Chercher".
-                    </div>
+                    <div style={{ fontSize:"13px" }}>Remplissez au moins un critère.</div>
                   </div>
                 )}
 
@@ -341,11 +478,11 @@ export default function RechercheEntreprise() {
                   <div style={{ background:"#fff", borderRadius:"16px",
                     border:"1px solid rgba(0,144,76,0.12)", padding:"60px 24px",
                     textAlign:"center", color:"#6B9A7A" }}>
-                    <div style={{ fontSize:"13px" }}>Recherche en cours...</div>
+                    <div style={{ fontSize:"13px" }}> Recherche dans dbNERE...</div>
                   </div>
                 )}
 
-                {rechercheFaite && !loading && resultats.length === 0 && (
+                {rechercheFaite && !loading && !erreur && resultats.length===0 && (
                   <div style={{ background:"#fff", borderRadius:"16px",
                     border:"1px solid rgba(0,144,76,0.12)", padding:"60px 24px",
                     textAlign:"center", color:"#6B9A7A" }}>
@@ -353,57 +490,99 @@ export default function RechercheEntreprise() {
                     <div style={{ fontSize:"15px", fontWeight:600, color:"#0A2410", marginBottom:"8px" }}>
                       Aucun résultat trouvé
                     </div>
-                    <div style={{ fontSize:"13px" }}>Vérifiez les critères saisis et réessayez.</div>
+                    <div style={{ fontSize:"13px" }}>Vérifiez les critères saisis.</div>
                   </div>
                 )}
 
-                {rechercheFaite && !loading && resultats.length > 0 && (
+                {rechercheFaite && !loading && resultats.length>0 && (
                   <div>
                     <div style={{ fontSize:"13px", color:"#6B9A7A", marginBottom:"14px", fontWeight:600 }}>
-                      {resultats.length} résultat{resultats.length > 1 ? "s" : ""} trouvé{resultats.length > 1 ? "s" : ""}
+                      {total.toLocaleString("fr-FR")} résultat{total>1?"s":""} trouvé{total>1?"s":""} — affichage des {resultats.length} premiers
                     </div>
                     <div style={{ display:"flex", flexDirection:"column", gap:"12px" }}>
                       {resultats.map((ent, i) => (
-                        <div key={i}
+                        <div key={ent.code_ent||i}
                           style={{ background:"#fff", border:"1px solid rgba(0,144,76,0.15)",
                             borderRadius:"14px", padding:"20px 24px",
                             boxShadow:"0 2px 8px rgba(0,144,76,0.05)", transition:"all 0.2s" }}
                           onMouseEnter={e => {
-                            e.currentTarget.style.borderColor = "#00904C";
-                            e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,144,76,0.12)";
+                            e.currentTarget.style.borderColor="#00904C";
+                            e.currentTarget.style.boxShadow="0 4px 16px rgba(0,144,76,0.12)";
                           }}
                           onMouseLeave={e => {
-                            e.currentTarget.style.borderColor = "rgba(0,144,76,0.15)";
-                            e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,144,76,0.05)";
+                            e.currentTarget.style.borderColor="rgba(0,144,76,0.15)";
+                            e.currentTarget.style.boxShadow="0 2px 8px rgba(0,144,76,0.05)";
                           }}>
-                          <div style={{ display:"flex", alignItems:"center",
+
+                          <div style={{ display:"flex", alignItems:"flex-start",
                             justifyContent:"space-between", marginBottom:"14px" }}>
-                            <div style={{ fontWeight:800, color:"#00904C", fontSize:"16px" }}>
-                              {ent.nom}
+                            <div>
+                              <div style={{ fontWeight:800, color:"#00904C", fontSize:"16px", marginBottom:"2px" }}>
+                                {ent.denomination || ent.nom_commercial || "—"}
+                              </div>
+                              {ent.sigle && (
+                                <div style={{ fontSize:"12px", color:"#6B9A7A" }}>{ent.sigle}</div>
+                              )}
                             </div>
-                            <span style={{ background:"rgba(0,144,76,0.08)", color:"#00904C",
-                              border:"1px solid rgba(0,144,76,0.2)", borderRadius:"100px",
-                              padding:"3px 12px", fontSize:"11px", fontWeight:700 }}>
-                              {ent.ville}
-                            </span>
+                            <div style={{ display:"flex", gap:"6px", flexWrap:"wrap", justifyContent:"flex-end" }}>
+                              {ent.region && (
+                                <span style={{ background:"rgba(0,144,76,0.08)", color:"#00904C",
+                                  border:"1px solid rgba(0,144,76,0.2)", borderRadius:"100px",
+                                  padding:"3px 12px", fontSize:"11px", fontWeight:700 }}>
+                                  {ent.region}
+                                </span>
+                              )}
+                              {ent.etat && (
+                                <span style={{
+                                  background:ent.etat==="A"?"rgba(77,201,122,0.1)":"rgba(232,85,85,0.1)",
+                                  color:ent.etat==="A"?"#1A7A40":"#CC3333",
+                                  borderRadius:"100px", padding:"3px 12px",
+                                  fontSize:"11px", fontWeight:700 }}>
+                                  {ent.etat==="A" ? "Actif" : "Inactif"}
+                                </span>
+                              )}
+                            </div>
                           </div>
-                          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:"12px" }}>
+
+                          <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:"10px" }}>
                             {[
-                              { label:"RCCM",          value:ent.rccm },
-                              { label:"IFU",           value:ent.ifu },
-                              { label:"Raison sociale", value:ent.raisonSociale },
-                            ].map(({ label, value }) => (
-                              <div key={label} style={{ background:"#F5FAF7", borderRadius:"8px", padding:"10px 14px" }}>
+                              { label:"RCCM",           value:ent.rccm            },
+                              { label:"IFU",            value:ent.ifu             },
+                              { label:"Forme juridique",value:ent.forme_juridique  },
+                              { label:"Commune",        value:ent.commune         },
+                              { label:"Effectif",       value:ent.effectif_permanent
+                                ? `${ent.effectif_permanent} employés` : "—"      },
+                              { label:"Capital",        value:ent.capital
+                                ? `${Number(ent.capital).toLocaleString("fr-FR")} FCFA` : "—" },
+                            ].map(({label, value}) => (
+                              <div key={label} style={{ background:"#F5FAF7",
+                                borderRadius:"8px", padding:"10px 12px" }}>
                                 <div style={{ fontSize:"10px", fontWeight:700, color:"#6B9A7A",
-                                  textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:"4px" }}>
+                                  textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:"3px" }}>
                                   {label}
                                 </div>
-                                <div style={{ fontSize:"13px", fontWeight:600, color:"#0A2410" }}>
-                                  {value}
+                                <div style={{ fontSize:"12px", fontWeight:600, color:"#0A2410" }}>
+                                  {value||"—"}
                                 </div>
                               </div>
                             ))}
                           </div>
+
+                          {(ent.email||ent.telephone_fixe||ent.telephone_mobile) && (
+                            <div style={{ marginTop:"12px", paddingTop:"12px",
+                              borderTop:"1px solid rgba(0,144,76,0.1)",
+                              display:"flex", gap:"16px", flexWrap:"wrap" }}>
+                              {ent.email && (
+                                <span style={{ fontSize:"12px", color:"#6B9A7A" }}> {ent.email}</span>
+                              )}
+                              {ent.telephone_fixe && (
+                                <span style={{ fontSize:"12px", color:"#6B9A7A" }}> {ent.telephone_fixe}</span>
+                              )}
+                              {ent.telephone_mobile && (
+                                <span style={{ fontSize:"12px", color:"#6B9A7A" }}> {ent.telephone_mobile}</span>
+                              )}
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -413,8 +592,8 @@ export default function RechercheEntreprise() {
             </div>
           )}
 
-          {/* ── HISTORIQUE ── */}
-          {onglet === "historique" && (
+          {/* ══ HISTORIQUE ══ */}
+          {onglet==="historique" && (
             <div style={{ maxWidth:"820px" }}>
               <div style={{ display:"flex", justifyContent:"space-between",
                 alignItems:"center", marginBottom:"20px" }}>
@@ -423,121 +602,109 @@ export default function RechercheEntreprise() {
                     Historique des recherches
                   </h2>
                   <p style={{ color:"#6B9A7A", fontSize:"13px", margin:"4px 0 0" }}>
-                    {historique.length} recherche{historique.length !== 1 ? "s" : ""} enregistrée{historique.length !== 1 ? "s" : ""}
+                    {historique.length} recherche{historique.length!==1?"s":""}
                   </p>
                 </div>
                 <button onClick={chargerHistorique} disabled={histoLoading}
                   style={{ padding:"8px 18px", background:"#00904C", color:"#fff",
                     border:"none", borderRadius:"8px", cursor:"pointer",
                     fontSize:"13px", fontWeight:700 }}>
-                  {histoLoading ? "Chargement..." : "Actualiser"}
+                  {histoLoading ? "Chargement..." : " Actualiser"}
                 </button>
               </div>
 
               {histoLoading && (
-                <div style={{ textAlign:"center", padding:"60px 0", color:"#6B9A7A" }}>
-                  <p>Chargement de l'historique...</p>
-                </div>
+                <div style={{ textAlign:"center", padding:"40px", color:"#6B9A7A" }}>⏳</div>
               )}
 
               {!histoLoading && histoErreur && (
                 <div style={{ background:"#FFF0F0", border:"1px solid #FFB3B3",
                   borderRadius:"12px", padding:"20px", textAlign:"center", color:"#CC3333" }}>
-                  <p style={{ margin:0, fontSize:"14px" }}>{histoErreur}</p>
-                  <button onClick={chargerHistorique}
-                    style={{ marginTop:"12px", padding:"8px 16px", background:"#CC3333",
-                      color:"#fff", border:"none", borderRadius:"8px", cursor:"pointer", fontSize:"12px" }}>
-                    Réessayer
-                  </button>
+                  {histoErreur}
                 </div>
               )}
 
-              {!histoLoading && !histoErreur && historique.length === 0 && (
+              {!histoLoading && !histoErreur && historique.length===0 && (
                 <div style={{ background:"#fff", border:"1px solid rgba(0,144,76,0.12)",
                   borderRadius:"16px", padding:"48px", textAlign:"center", color:"#6B9A7A" }}>
                   <div style={{ fontSize:"40px", marginBottom:"12px" }}>📭</div>
-                  <p style={{ fontSize:"14px", marginBottom:"16px" }}>Aucune recherche enregistrée.</p>
+                  <p style={{ marginBottom:"16px" }}>Aucune recherche enregistrée.</p>
                   <button onClick={() => setOnglet("recherche")}
                     style={{ padding:"10px 20px", background:"#00904C", color:"#fff",
-                      border:"none", borderRadius:"8px", cursor:"pointer", fontSize:"13px", fontWeight:700 }}>
+                      border:"none", borderRadius:"8px", cursor:"pointer", fontWeight:700 }}>
                     Faire une recherche
                   </button>
                 </div>
               )}
 
-              {!histoLoading && !histoErreur && historique.length > 0 && (
+              {!histoLoading && !histoErreur && historique.length>0 && (
                 <div style={{ display:"flex", flexDirection:"column", gap:"12px" }}>
                   {historique.map((h, i) => (
-                    <div key={h._id || i} style={{ background:"#fff",
-                      border:"1px solid rgba(0,144,76,0.12)", borderRadius:"14px",
-                      padding:"18px 22px" }}>
+                    <div key={h._id||i} style={{ background:"#fff",
+                      border:"1px solid rgba(0,144,76,0.12)",
+                      borderRadius:"14px", padding:"18px 22px" }}>
                       <div style={{ display:"flex", justifyContent:"space-between",
                         alignItems:"flex-start", marginBottom:"12px" }}>
                         <div>
                           <div style={{ fontWeight:700, fontSize:"14px", color:"#0A2410" }}>
-                            {h.description || "Recherche d'entreprise"}
+                            {h.description||"Recherche d'entreprise"}
                           </div>
                           <div style={{ fontSize:"11px", color:"#6B9A7A", marginTop:"3px" }}>
                             {h.createdAt
                               ? new Date(h.createdAt).toLocaleDateString("fr-FR",
-                                  { day:"2-digit", month:"long", year:"numeric" }) +
-                                " à " +
-                                new Date(h.createdAt).toLocaleTimeString("fr-FR",
-                                  { hour:"2-digit", minute:"2-digit" })
+                                  {day:"2-digit",month:"long",year:"numeric"})
+                                + " à " + new Date(h.createdAt).toLocaleTimeString("fr-FR",
+                                  {hour:"2-digit",minute:"2-digit"})
                               : "—"}
                           </div>
                         </div>
                         <span style={{ background:"rgba(0,144,76,0.08)", color:"#00904C",
                           border:"1px solid rgba(0,144,76,0.2)", borderRadius:"100px",
                           padding:"3px 12px", fontSize:"11px", fontWeight:700, flexShrink:0 }}>
-                          {h.nbResultats ?? 0} résultat{(h.nbResultats ?? 0) > 1 ? "s" : ""}
+                          {h.nbResultats??0} résultat{(h.nbResultats??0)>1?"s":""}
                         </span>
                       </div>
-
                       {h.criteres && (
                         <div style={{ display:"flex", flexWrap:"wrap", gap:"6px", marginBottom:"12px" }}>
                           {h.criteres.rccm && (
                             <span style={{ background:"#E6F4EC", color:"#00904C",
-                              border:"1px solid rgba(0,144,76,0.2)", borderRadius:"100px",
-                              padding:"2px 10px", fontSize:"11px", fontWeight:600 }}>
+                              borderRadius:"100px", padding:"2px 10px",
+                              fontSize:"11px", fontWeight:600 }}>
                               RCCM : {h.criteres.rccm}
                             </span>
                           )}
                           {h.criteres.ifu && (
                             <span style={{ background:"#E6F4EC", color:"#00904C",
-                              border:"1px solid rgba(0,144,76,0.2)", borderRadius:"100px",
-                              padding:"2px 10px", fontSize:"11px", fontWeight:600 }}>
+                              borderRadius:"100px", padding:"2px 10px",
+                              fontSize:"11px", fontWeight:600 }}>
                               IFU : {h.criteres.ifu}
                             </span>
                           )}
                           {h.criteres.raisonSociale && (
                             <span style={{ background:"#E6F4EC", color:"#00904C",
-                              border:"1px solid rgba(0,144,76,0.2)", borderRadius:"100px",
-                              padding:"2px 10px", fontSize:"11px", fontWeight:600 }}>
-                              Raison sociale : {h.criteres.raisonSociale}
+                              borderRadius:"100px", padding:"2px 10px",
+                              fontSize:"11px", fontWeight:600 }}>
+                              Raison : {h.criteres.raisonSociale}
                             </span>
                           )}
                         </div>
                       )}
-
-                      {replayMessage.id === h._id && replayMessage.texte && (
-                        <div style={{ padding:"10px 14px", borderRadius:"8px",
-                          fontSize:"12px", marginBottom:"10px",
-                          background: replayMessage.type === "succes" ? "#E6F4EC" : "#FFF0F0",
-                          color:      replayMessage.type === "succes" ? "#00904C" : "#CC3333",
-                          border: `1px solid ${replayMessage.type === "succes" ? "rgba(0,144,76,0.2)" : "#FFB3B3"}` }}>
+                      {replayMessage.id===h._id && replayMessage.texte && (
+                        <div style={{ padding:"8px 12px", borderRadius:"8px", fontSize:"12px",
+                          marginBottom:"10px",
+                          background:replayMessage.type==="succes"?"#E6F4EC":"#FFF0F0",
+                          color:replayMessage.type==="succes"?"#00904C":"#CC3333" }}>
                           {replayMessage.texte}
                         </div>
                       )}
-
                       <button onClick={() => relancerRecherche(h)}
-                        disabled={replayLoadingId === h._id}
+                        disabled={replayLoadingId===h._id}
                         style={{ padding:"7px 16px", borderRadius:"8px", fontSize:"12px",
                           fontWeight:700, cursor:"pointer",
                           background:"rgba(0,144,76,0.08)", color:"#00904C",
                           border:"1px solid rgba(0,144,76,0.2)",
-                          opacity: replayLoadingId === h._id ? 0.6 : 1 }}>
-                        {replayLoadingId === h._id ? "Vérification..." : "Relancer"}
+                          opacity:replayLoadingId===h._id?0.6:1 }}>
+                        {replayLoadingId===h._id ? "Vérification..." : " Relancer"}
                       </button>
                     </div>
                   ))}
@@ -547,7 +714,6 @@ export default function RechercheEntreprise() {
           )}
         </div>
 
-        {/* ══ FOOTER ══ */}
         <footer className="dash-footer">
           <span>CCI-BF — Chambre de Commerce et d'Industrie du Burkina Faso</span>
           <div style={{ display:"flex", gap:"20px" }}>

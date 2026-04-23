@@ -1,76 +1,63 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../styles/auth.css";
-import logoNERE from "../../assets/nere.jpg";
+import logoNERE from "../../assets/nere.png";
+
+const NAV_LINKS = [
+  { label:"Accueil",  path:"/",          key:"accueil"  },
+  { label:"Contact",  path:"/contact",   key:"contact"  },
+  { label:"Formules", path:"/formules",  key:"formules" },
+];
+
 const TYPES_COMPTE = [
-  { value: "etudiant",       label: "Étudiant",       icon: "🎓" },
-  { value: "entreprise",     label: "Entreprise",     icon: "🏢" },
-  { value: "administration", label: "Administration", icon: "🏛️" },
-  { value: "autre",          label: "Autre",          icon: "👤" },
+  { value:"etudiant",       label:"Étudiant",       icon:"🎓" },
+  { value:"entreprise",     label:"Entreprise",     icon:"🏢" },
+  { value:"administration", label:"Administration", icon:"🏛️" },
+  { value:"autre",          label:"Autre",          icon:"👤" },
 ];
 
 export default function Inscription() {
   const navigate = useNavigate();
-  const [step, setStep]       = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState("");
-  const [showPwd, setShowPwd] = useState(false);
+
+  const [step, setStep]               = useState(1);
+  const [loading, setLoading]         = useState(false);
+  const [error, setError]             = useState("");
+  const [showPwd, setShowPwd]         = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [packChoisi, setPackChoisi] = useState(null);
-  const [montantPack3, setMontantPack3] = useState("");
   const [form, setForm] = useState({
-    typeCompte: "",
-    nom:        "",
-    prenom:     "",
-    fonction:   "",
-    telephone:  "",
-    email:      "",
-    siteWeb:    "",
-    password:   "",
-    confirm:    "",
-    cgu:        false,
+    typeCompte:"", nom:"", prenom:"", fonction:"",
+    telephone:"", email:"", siteWeb:"",
+    password:"", confirm:"", cgu:false,
   });
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setForm(f => ({ ...f, [name]: type === "checkbox" ? checked : value }));
+    setForm(f => ({ ...f, [name]: type==="checkbox" ? checked : value }));
     setError("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.typeCompte) return setError("Veuillez sélectionner un type de compte.");
-    if (!form.cgu)        return setError("Veuillez accepter les CGU.");
-    if (form.password !== form.confirm)
-      return setError("Les mots de passe ne correspondent pas.");
-    if (form.password.length < 8)
-      return setError("Le mot de passe doit contenir au moins 8 caractères.");
+    if (!form.typeCompte)          return setError("Veuillez sélectionner un type de compte.");
+    if (!form.cgu)                 return setError("Veuillez accepter les CGU.");
+    if (form.password !== form.confirm) return setError("Les mots de passe ne correspondent pas.");
+    if (form.password.length < 8)  return setError("Le mot de passe doit contenir au moins 8 caractères.");
 
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/auth/inscription", {
-        method:  "POST",
-        headers: { "Content-Type": "application/json" },
+      const res  = await fetch("/api/auth/inscription", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
         body: JSON.stringify({
-          typeCompte: form.typeCompte,
-          nom:        form.nom,
-          prenom:     form.prenom,
-          fonction:   form.fonction,
-          telephone:  form.telephone,
-          email:      form.email,
-          siteWeb:    form.siteWeb,
-          password:   form.password,
+          typeCompte:form.typeCompte, nom:form.nom, prenom:form.prenom,
+          fonction:form.fonction, telephone:form.telephone,
+          email:form.email, siteWeb:form.siteWeb, password:form.password,
         }),
       });
       const data = await res.json();
       if (data.success) {
-        if (data.sansEmail) {
-          // Pas d'email → compte activé directement → connexion
-          navigate("/connexion?registered=1");
-        } else {
-          // Email fourni → écran de confirmation
-          setStep(2);
-        }
+        if (data.sansEmail) navigate("/connexion?registered=1");
+        else setStep(2);
       } else {
         setError(data.message || "Une erreur est survenue.");
       }
@@ -88,8 +75,49 @@ export default function Inscription() {
 
   return (
     <>
+      <style>{`
+        * { font-family: Arial, Helvetica, sans-serif !important; }
+
+        /* ══ NAVBAR — identique Home.jsx ══ */
+        .nere-navbar-ins {
+          position: sticky; top: 0; z-index: 100;
+          display: flex; align-items: center; justify-content: space-between;
+          padding: 0 32px; height: 120px;
+          background: #00904C;
+          box-shadow: 0 2px 16px rgba(0,0,0,0.15);
+           position: relative;
+        }
+        .nere-navbar-ins .nav-pill {
+          display: flex; align-items: center; gap: 3px;
+          background: rgba(255,255,255,0.08);
+          border: 1px solid rgba(255,255,255,0.15);
+          border-radius: 100px; padding: 5px 8px;
+          margin-left: auto; margin-right: 20px;
+          position: absolute;
+          left: 50%;
+          transform: translateX(-50%);
+        }
+        .nere-navbar-ins .nav-pill .nav-btn {
+          padding: 7px 15px; border-radius: 100px;
+          font-size: 18px; font-weight: 600;
+          color: rgba(255,255,255,0.78); cursor: pointer;
+          transition: all 0.18s; white-space: nowrap;
+          border: none; background: transparent;
+          font-family: Arial, Helvetica, sans-serif;
+        }
+        .nere-navbar-ins .nav-pill .nav-btn:hover {
+          color: #fff; background: rgba(255,255,255,0.12);
+        }
+        .nere-navbar-ins .nav-pill .nav-btn.active {
+          color: #0A3D1F; background: #4DC97A;
+          font-weight: 700; box-shadow: 0 2px 8px rgba(77,201,122,0.4);
+        }
+      `}</style>
+
+      {/* ══ FOND ══ */}
       <div className="auth-bg">
-        <div className="auth-blob1"/><div className="auth-blob2"/><div className="auth-grid"/>
+        <div className="auth-blob1"/><div className="auth-blob2"/>
+        <div className="auth-grid"/>
         <svg className="auth-skyline" viewBox="0 0 1400 200"
           preserveAspectRatio="xMidYMax meet" fill="rgba(46,111,204,0.4)">
           <rect x="40"   y="60"  width="80"  height="140"/>
@@ -109,44 +137,58 @@ export default function Inscription() {
       </div>
 
       <div className="auth-wrapper">
-        <nav className="auth-navbar">
-          
-                    <div style={{ display:"flex", alignItems:"center", gap:"12px" }}>
-                      <img src={logoNERE} alt="NERE"
-                        style={{ height:"80px", width:"auto", borderRadius:"6px", flexShrink:0 }}/>
-                      <div style={{ display:"flex", flexDirection:"column", lineHeight:1.4 }}>
-                        <span style={{ fontSize:"11px", fontWeight:800, color:"#fff",
-                          letterSpacing:"0.06em", textTransform:"uppercase" }}>Fichier NERE</span>
-                        <span style={{ fontSize:"10px", color:"rgba(255,255,255,0.85)" }}>
-                          Registre national des entreprises<br/>Du Burkina Faso
-                        </span>
-                      </div>
-                    </div>
-          <div className="nav-links" style={{color:"#00904C", display:"flex", alignItems:"center", gap:"25px", marginLeft:"100px"}}>
-            <span className="nav-link active" onClick={()=>navigate("/")}>Accueil</span>
-            <span className="nav-link" onClick={()=>navigate("/publications")}>Publications</span>
-                 <span className="nav-link" onClick={()=>navigate("/rechercheacc")}>Recherche</span>
-            <span className="nav-link" onClick={()=>navigate("/Contact")}>Contact</span>
-            <span className="nav-link" onClick={()=>navigate("/Chat")}>Chat</span>
+
+        {/* ══ NAVBAR — même design que Home.jsx ══ */}
+        <nav className="nere-navbar-ins">
+
+          {/* Logo */}
+          <div style={{ display:"flex", alignItems:"center", gap:"10px", flexShrink:0 }}>
+            <img src={logoNERE} alt="NERE"
+              style={{ height:"80px", width:"auto", borderRadius:"6px",
+                flexShrink:0, backgroundColor:"#fff", padding:"4px" }}/>
+            <div style={{ display:"flex", flexDirection:"column", lineHeight:1.35 }}>
+              <span style={{ fontSize:"18px", fontWeight:800, color:"#fff",
+                letterSpacing:"0.08em", textTransform:"uppercase" }}>
+                Fichier NERE
+              </span>
+              <span style={{ fontSize:"10px", color:"rgba(255,255,255,0.65)" }}>
+                Registre national des entreprises
+              </span>
+            </div>
           </div>
-          <div className="auth-nav-right">
-            Déjà un compte ?{" "}
-            <span className="auth-link" style={{ color: "#ffffff" }} onClick={() => navigate("/connexion")}>
-              Se connecter
-            </span>
+
+          {/* Pilule liens */}
+          <div className="nav-pill">
+            {NAV_LINKS.map(link => (
+              <button key={link.key}
+                className="nav-btn"
+                onClick={() => navigate(link.path)}>
+                {link.label}
+              </button>
+            ))}
           </div>
+
+          {/* Bouton Se connecter */}
+          <button onClick={() => navigate("/connexion")}
+            style={{ padding:"7px 20px", borderRadius:"100px",
+              border:"1.5px solid rgba(255,255,255,0.35)", background:"transparent",
+              color:"#fff", fontSize:"13px", fontWeight:600,
+              cursor:"pointer", flexShrink:0 }}>
+            Se connecter
+          </button>
         </nav>
 
         <div className="auth-container">
 
+          {/* ── ÉTAPE 1 : FORMULAIRE ── */}
           {step === 1 && (
             <div className="auth-card wide-card">
 
-              {/* Étapes */}
+              {/* Barre d'étapes */}
               <div className="steps-row">
                 {["Informations","Vérification","Formule","Paiement"].map((s, i) => (
-                  <div key={i} className={`step-item ${i === 0 ? "current" : ""}`}>
-                    <div className="step-circle">{i + 1}</div>
+                  <div key={i} className={`step-item ${i===0?"current":""}`}>
+                    <div className="step-circle">{i+1}</div>
                     <span>{s}</span>
                     {i < 3 && <div className="step-line"/>}
                   </div>
@@ -169,7 +211,7 @@ export default function Inscription() {
                     gap:"10px", marginTop:"8px" }}>
                     {TYPES_COMPTE.map(t => (
                       <button key={t.value} type="button"
-                        onClick={() => { setForm(f=>({...f,typeCompte:t.value})); setError(""); }}
+                        onClick={() => { setForm(f => ({...f, typeCompte:t.value})); setError(""); }}
                         style={{
                           padding:"14px 8px", borderRadius:"10px",
                           border: form.typeCompte===t.value
@@ -186,32 +228,32 @@ export default function Inscription() {
                           display:"flex", flexDirection:"column",
                           alignItems:"center", gap:"7px",
                         }}>
-                        <span style={{fontSize:"22px"}}>{t.icon}</span>
+                        <span style={{ fontSize:"22px" }}>{t.icon}</span>
                         {t.label}
                       </button>
                     ))}
                   </div>
                 </div>
 
-                {/* CHAMPS PRINCIPAUX */}
+                {/* CHAMPS */}
                 <div className="form-grid-2">
 
                   <div className="form-field">
                     <label className="form-label">Nom *</label>
-                    <input className="form-input" name="nom" placeholder="saisisez votre nom"
+                    <input className="form-input" name="nom" placeholder="Traoré"
                       value={form.nom} onChange={handleChange} required/>
                   </div>
 
                   <div className="form-field">
                     <label className="form-label">Prénom *</label>
-                    <input className="form-input" name="prenom" placeholder="saisisez votre prénom"
+                    <input className="form-input" name="prenom" placeholder="Ibrahim"
                       value={form.prenom} onChange={handleChange} required/>
                   </div>
 
                   <div className="form-field full">
                     <label className="form-label">Fonction *</label>
                     <input className="form-input" name="fonction"
-                      placeholder="ex: Directeur commercial, Étudiant en master, Chef de service..."
+                      placeholder="ex: Directeur commercial, Étudiant en master..."
                       value={form.fonction} onChange={handleChange} required/>
                   </div>
 
@@ -225,19 +267,19 @@ export default function Inscription() {
                   <div className="form-field">
                     <label className="form-label">
                       Email{" "}
-                      <span style={{fontSize:"11px",opacity:0.45,fontWeight:400}}>
+                      <span style={{ fontSize:"11px", opacity:0.45, fontWeight:400 }}>
                         (facultatif)
                       </span>
                     </label>
                     <input className="form-input" name="email" type="email"
-                      placeholder="nom.prenom.@exemple.bf"
+                      placeholder="i.traore@exemple.bf"
                       value={form.email} onChange={handleChange}/>
                   </div>
 
                   <div className="form-field full">
                     <label className="form-label">
                       Site web{" "}
-                      <span style={{fontSize:"11px",opacity:0.45,fontWeight:400}}>
+                      <span style={{ fontSize:"11px", opacity:0.45, fontWeight:400 }}>
                         (facultatif)
                       </span>
                     </label>
@@ -254,12 +296,11 @@ export default function Inscription() {
                         placeholder="Min. 8 caractères"
                         value={form.password} onChange={handleChange} required
                         style={{ paddingRight:"44px" }}/>
-                      <button type="button"
-                        onClick={() => setShowPwd(v => !v)}
+                      <button type="button" onClick={() => setShowPwd(v => !v)}
                         style={{ position:"absolute", right:"12px", top:"50%",
-                          transform:"translateY(-50%)", background:"none", border:"none",
-                          cursor:"pointer", fontSize:"16px", opacity:0.5,
-                          color:"#fff", padding:"0", lineHeight:1 }}>
+                          transform:"translateY(-50%)", background:"none",
+                          border:"none", cursor:"pointer", fontSize:"16px",
+                          opacity:0.5, color:"#fff", padding:0, lineHeight:1 }}>
                         {showPwd ? "🙈" : "👁️"}
                       </button>
                     </div>
@@ -273,12 +314,11 @@ export default function Inscription() {
                         placeholder="Répéter le mot de passe"
                         value={form.confirm} onChange={handleChange} required
                         style={{ paddingRight:"44px" }}/>
-                      <button type="button"
-                        onClick={() => setShowConfirm(v => !v)}
+                      <button type="button" onClick={() => setShowConfirm(v => !v)}
                         style={{ position:"absolute", right:"12px", top:"50%",
-                          transform:"translateY(-50%)", background:"none", border:"none",
-                          cursor:"pointer", fontSize:"16px", opacity:0.5,
-                          color:"#fff", padding:"0", lineHeight:1 }}>
+                          transform:"translateY(-50%)", background:"none",
+                          border:"none", cursor:"pointer", fontSize:"16px",
+                          opacity:0.5, color:"#fff", padding:0, lineHeight:1 }}>
                         {showConfirm ? "🙈" : "👁️"}
                       </button>
                     </div>
@@ -292,10 +332,11 @@ export default function Inscription() {
                       <div className={`pwd-fill strength-${forceMdp}`}/>
                     </div>
                     <span className="pwd-label" style={{
-                      color: forceMdp==="faible"?"#E85555"
-                        : forceMdp==="moyen"?"#D4A830":"#4DC97A"
+                      color: forceMdp==="faible" ? "#E85555"
+                           : forceMdp==="moyen"  ? "#D4A830" : "#4DC97A"
                     }}>
-                      {forceMdp==="faible"?"Faible":forceMdp==="moyen"?"Moyen":"Fort"}
+                      {forceMdp==="faible" ? "Faible"
+                       : forceMdp==="moyen" ? "Moyen" : "Fort"}
                     </span>
                   </div>
                 )}
@@ -314,25 +355,25 @@ export default function Inscription() {
                 </label>
 
                 <button className="btn-auth-primary" type="submit" disabled={loading}>
-                  {loading ? <span className="spinner"/> : "Créer mon compte →"}
+                  {loading ? <span className="spinner"/> : "Créer mon compte "}
                 </button>
               </form>
+
+              <div style={{ textAlign:"center", marginTop:"16px",
+                fontSize:"13px", color:"rgba(255,255,255,0.45)" }}>
+                Déjà un compte ?{" "}
+                <span style={{ color:"#4DC97A", cursor:"pointer", fontWeight:600 }}
+                  onClick={() => navigate("/connexion")}>
+                  Se connecter
+                </span>
+              </div>
             </div>
           )}
 
-          {/* ÉTAPE 2 : Confirmation email */}
+          {/* ── ÉTAPE 2 : CONFIRMATION EMAIL ── */}
           {step === 2 && (
             <div className="auth-card verify-card">
-              <div className="steps-row">
-                {["Informations","Vérification","Formule","Paiement"].map((s, i) => (
-                  <div key={i} className={`step-item ${i === 1 ? "current" : ""}`}>
-                    <div className="step-circle">{i + 1}</div>
-                    <span>{s}</span>
-                    {i < 3 && <div className="step-line"/>}
-                  </div>
-                ))}
-              </div>
-              <div className="verify-icon">📧</div>
+              <div className="verify-icon"></div>
               <h2 className="auth-title">Vérifiez votre email</h2>
               <p className="verify-desc">
                 Un lien de confirmation a été envoyé à{" "}
@@ -344,201 +385,9 @@ export default function Inscription() {
                 Pas reçu ?{" "}
                 <span className="auth-link">Renvoyer le mail</span>
               </p>
-              <div style={{ display: "flex", gap: "12px", marginTop: "24px" }}>
-                <button className="btn-auth" onClick={() => setStep(3)} style={{ flex: 1 }}>
-                  ✓ Compte vérifié, continuer
-                </button>
-                <button className="btn-auth-outline" onClick={() => navigate("/connexion")} style={{ flex: 1 }}>
-                  Aller à la connexion
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 3 - FORMULE */}
-          {step === 3 && (
-            <div className="auth-card wide-card">
-              <div className="steps-row">
-                {["Informations","Vérification","Formule","Paiement"].map((s, i) => (
-                  <div key={i} className={`step-item ${i === 2 ? "current" : ""}`}>
-                    <div className="step-circle">{i + 1}</div>
-                    <span>{s}</span>
-                    {i < 3 && <div className="step-line"/>}
-                  </div>
-                ))}
-              </div>
-
-              <div className="auth-card-header">
-                <h1 className="auth-title">Choisissez votre formule</h1>
-                <p className="auth-subtitle">Sélectionnez le crédit qui correspond à vos besoins</p>
-              </div>
-
-              {error && <div className="auth-error">⚠️ {error}</div>}
-
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "20px", marginTop: "24px" }}>
-                {/* Pack 1 */}
-                <div onClick={() => { setPackChoisi({ id: "pack1", nom: "Pack 1", prix: 5000 }); setError(""); }}
-                  style={{
-                    padding: "20px",
-                    borderRadius: "10px",
-                    border: packChoisi?.id === "pack1" ? "2px solid #4DC97A" : "1.5px solid rgba(255,255,255,0.1)",
-                    background: packChoisi?.id === "pack1" ? "rgba(77,201,122,0.12)" : "rgba(255,255,255,0.03)",
-                    cursor: "pointer",
-                    transition: "all 0.2s"
-                  }}>
-                  <div style={{ fontSize: "24px", fontWeight: "bold", color: "#4DC97A" }}>5 000 FCFA</div>
-                  <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.7)", marginTop: "8px" }}>
-                    Crédit prépayé · Déduction à chaque requête
-                  </div>
-                </div>
-
-                {/* Pack 2 */}
-                <div onClick={() => { setPackChoisi({ id: "pack2", nom: "Pack 2", prix: 10000 }); setError(""); }}
-                  style={{
-                    padding: "20px",
-                    borderRadius: "10px",
-                    border: packChoisi?.id === "pack2" ? "2px solid #22A052" : "1.5px solid rgba(255,255,255,0.1)",
-                    background: packChoisi?.id === "pack2" ? "rgba(34,160,82,0.12)" : "rgba(255,255,255,0.03)",
-                    cursor: "pointer",
-                    transition: "all 0.2s"
-                  }}>
-                  <div style={{ fontSize: "24px", fontWeight: "bold", color: "#22A052" }}>10 000 FCFA</div>
-                  <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.7)", marginTop: "8px" }}>
-                    Crédit prépayé · Déduction à chaque requête
-                  </div>
-                </div>
-
-                {/* Pack 3 */}
-                <div onClick={() => { setPackChoisi({ id: "pack3", nom: "Pack 3", prix: null, flexible: true }); setError(""); }}
-                  style={{
-                    padding: "20px",
-                    borderRadius: "10px",
-                    border: packChoisi?.id === "pack3" ? "2px solid #D4A830" : "1.5px solid rgba(255,255,255,0.1)",
-                    background: packChoisi?.id === "pack3" ? "rgba(212,168,48,0.12)" : "rgba(255,255,255,0.03)",
-                    cursor: "pointer",
-                    transition: "all 0.2s"
-                  }}>
-                  <div style={{ fontSize: "24px", fontWeight: "bold", color: "#D4A830" }}>À partir de 15 000 FCFA</div>
-                  <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.7)", marginTop: "8px" }}>
-                    Montant flexible · Déduction à chaque requête
-                  </div>
-                </div>
-              </div>
-
-              {/* Montant personnalisé pour Pack 3 */}
-              {packChoisi?.id === "pack3" && (
-                <div style={{ marginTop: "20px" }}>
-                  <label style={{ fontSize: "13px", color: "rgba(255,255,255,0.7)", display: "block", marginBottom: "8px" }}>
-                    Montant (minimum 15 000 FCFA)
-                  </label>
-                  <input
-                    type="number"
-                    value={montantPack3}
-                    onChange={(e) => setMontantPack3(e.target.value)}
-                    placeholder="50 000"
-                    style={{
-                      width: "100%",
-                      padding: "12px",
-                      borderRadius: "6px",
-                      border: "1.5px solid rgba(255,255,255,0.2)",
-                      background: "rgba(255,255,255,0.05)",
-                      color: "white",
-                      fontSize: "14px",
-                      fontFamily: "inherit"
-                    }}
-                  />
-                </div>
-              )}
-
-              <div style={{ display: "flex", gap: "12px", marginTop: "24px" }}>
-                <button className="btn-auth-outline" onClick={() => setStep(2)} style={{ flex: 1 }}>
-                  ← Retour
-                </button>
-                <button
-                  className="btn-auth"
-                  onClick={() => {
-                    if (!packChoisi) {
-                      setError("Veuillez sélectionner une formule.");
-                      return;
-                    }
-                    if (packChoisi.id === "pack3" && parseInt(montantPack3) < 15000) {
-                      setError("Le montant doit être au minimum 15 000 FCFA.");
-                      return;
-                    }
-                    if (packChoisi.id === "pack3") {
-                      packChoisi.prix = parseInt(montantPack3);
-                    }
-                    setStep(4);
-                  }}
-                  style={{ flex: 1 }}
-                >
-                  Continuer au paiement →
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 4 - PAIEMENT */}
-          {step === 4 && (
-            <div className="auth-card wide-card">
-              <div className="steps-row">
-                {["Informations","Vérification","Formule","Paiement"].map((s, i) => (
-                  <div key={i} className={`step-item ${i === 3 ? "current" : ""}`}>
-                    <div className="step-circle">{i + 1}</div>
-                    <span>{s}</span>
-                    {i < 3 && <div className="step-line"/>}
-                  </div>
-                ))}
-              </div>
-
-              <div className="auth-card-header">
-                <h1 className="auth-title">Finaliser votre paiement</h1>
-                <p className="auth-subtitle">Complétez votre inscription avec le paiement</p>
-              </div>
-
-              {error && <div className="auth-error">⚠️ {error}</div>}
-
-              <div style={{
-                background: "rgba(77,201,122,0.06)",
-                border: "1px solid rgba(77,201,122,0.25)",
-                borderRadius: "10px",
-                padding: "16px",
-                marginBottom: "20px"
-              }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
-                  <span style={{ color: "rgba(255,255,255,0.6)" }}>Formule choisie:</span>
-                  <span style={{ fontWeight: "bold", color: "#4DC97A" }}>{packChoisi?.nom}</span>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span style={{ color: "rgba(255,255,255,0.6)" }}>Montant:</span>
-                  <span style={{ fontWeight: "bold", fontSize: "18px", color: "#4DC97A" }}>
-                    {packChoisi?.prix?.toLocaleString("fr-FR")} FCFA
-                  </span>
-                </div>
-              </div>
-
-              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                <button
-                  className="btn-auth"
-                  onClick={() => navigate("/paiement", { state: { pack: packChoisi, user: form } })}
-                  style={{ width: "100%" }}
-                >
-                  Procéder au paiement (CinetPay)
-                </button>
-                <button
-                  className="btn-auth-outline"
-                  onClick={() => navigate("/paiement", { state: { pack: packChoisi, user: form, modePaiement: "agence" } })}
-                  style={{ width: "100%" }}
-                >
-                  Payer à l'agence CCI-BF
-                </button>
-              </div>
-
-              <div style={{ display: "flex", gap: "12px", marginTop: "16px" }}>
-                <button className="btn-auth-outline" onClick={() => setStep(3)} style={{ flex: 1 }}>
-                  ← Retour
-                </button>
-              </div>
+              <button className="btn-auth-outline" onClick={() => navigate("/connexion")}>
+                Aller à la connexion
+              </button>
             </div>
           )}
 

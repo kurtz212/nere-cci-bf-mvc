@@ -798,3 +798,9 @@
   .abo-features-grid { grid-template-columns:1fr; }
   .dash-footer { padding:0 20px; flex-direction:column; gap:6px; height:auto; padding:14px 20px; }
 }
+
+
+@keyframes marquee {
+  0%   { transform: translateX(100vw); }
+  100% { transform: translateX(-100%); }
+}

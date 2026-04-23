@@ -121,8 +121,8 @@ export default function Home() {
           padding: 0 32px;
           height: 120px;
         background: #00904C;
-          backdrop-filter: none;
-          -webkit-backdrop-filter: none;
+backdrop-filter: none;
+-webkit-backdrop-filter: none;
           border-bottom: 1px solid rgba(77,201,122,0.18);
           box-shadow: 0 4px 24px rgba(0,0,0,0.18);
         }
@@ -152,7 +152,7 @@ margin-right: 16px;
           position: relative;
           padding: 7px 16px;
           border-radius: 100px;
-          font-size: 20px;
+          font-size: 18px;
           font-weight: 600;
           color: rgba(255,255,255,0.75);
           cursor: pointer;
