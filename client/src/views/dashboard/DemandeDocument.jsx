@@ -9,7 +9,6 @@ const NAV_LINKS = [
   { label:"Accueil",      path:"/",            key:"accueil"      },
   { label:"Publications", path:"/publications", key:"publications" },
   { label:"Recherche",    path:"/rechercheacc", key:"recherche"    },
-  { label:"Demande",      path:"/demande-document", key:"demande" },
   { label:"Contact",      path:"/contact",      key:"contact"      },
   { label:"Messages",     path:"/chat",         key:"messages"     },
 ];
@@ -26,14 +25,11 @@ const TYPES_REQUETES = [
     couleur:"#4DC97A",
   },
   {
-    id:"detail", label:"Tableaux",
-    prix:2000, unite:"tableau", direct:true,
-    description:"Tableaux détaillés sur entreprises ou associations. Résultats immédiats.",
-    sousTypes:[
-      { value:"detail_entreprises",  label:"Tableaux entreprises" },
-      { value:"detail_associations", label:"Tableaux associations professionnelles" },
-    ],
-    couleur:"#22A052",
+    id:"autre_specifique", label:"Autre demande",
+    prix:null, unite:null, direct:false,
+    description:"Demande spécifique personnalisée. Vous serez redirigé vers la messagerie pour discuter directement avec un administrateur.",
+    sousTypes:[],
+    couleur:"#7C3AED",
   },
   {
     id:"statistique", label:"Statistiques",
@@ -67,12 +63,31 @@ const TYPES_REQUETES = [
 ];
 
 const REGIONS = [
-  "Centre","Hauts-Bassins","Est","Nord","Boucle du Mouhoun",
-  "Sahel","Sud-Ouest","Centre-Nord","Centre-Est","Centre-Ouest",
-  "Plateau-Central","Centre-Sud","Cascades",
+  "OUAGADOUGOU","BOBO","KOUDOUGOU","BANFORA","OUAHIGOUYA",
+  "KAYA","FADA","DEDOUGOU","TENKODOGO","ZINIARE",
+  "MANGA","KOMBISSIRI","DORI","GAOUA","NOUNA",
 ];
 
-const FORMES_JURIDIQUES = ["SA","SARL","SNC","SCS","GIE","EI","Coopérative","Association","ONG"];
+/* Formes juridiques confirmées dans PFormeJ */
+const FORMES_JURIDIQUES = [
+  { label:"Personne physique",                              value:"PERSONNE PHYSIQUE",                              nb:126630 },
+  { label:"SARL",                                          value:"Société à responsabilité limitée",               nb:42680  },
+  { label:"EURL",                                          value:"Entreprise unipersonnelle à responsabilité limitée", nb:20295 },
+  { label:"SA à Conseil d'Administration",                 value:"Société anonyme à Conseil d'Administration",     nb:6513   },
+  { label:"SAS",                                           value:"Société par actions simplifiée",                 nb:445    },
+  { label:"SA à Directoire",                               value:"Société Anonyme à Directoire",                   nb:187    },
+  { label:"Coopérative ouvrière",                          value:"Société coopérative ouvrière de production",     nb:159    },
+  { label:"SASU",                                          value:"Société par actions simplifiée unipersonnelle",  nb:141    },
+  { label:"GIE",                                           value:"Groupement d'intérêt économique",                nb:118    },
+  { label:"Succursale",                                    value:"SUCCURSALE",                                     nb:104    },
+  { label:"Société civile professionnelle",                value:"Société civile professionnelle",                 nb:81     },
+  { label:"Société civile immobilière",                    value:"Société civile immobilière",                     nb:41     },
+  { label:"Autres formes juridiques",                      value:"AUTRES FORMES JURIDIQUES",                       nb:35     },
+  { label:"Société d'État",                                value:"SOCIETE D'ETAT",                                 nb:22     },
+  { label:"SNC",                                           value:"Société en nom collectif",                       nb:3      },
+  { label:"SCS",                                           value:"Société en commandite simple",                   nb:3      },
+  { label:"Société d'économie mixte",                      value:"Société d'économie mixte",                       nb:5      },
+];
 
 const TRANCHES_EFFECTIF = [
   { value:"1-9",    label:"1 à 9 employés (Micro-entreprise)" },
@@ -81,6 +96,76 @@ const TRANCHES_EFFECTIF = [
   { value:"200-499",label:"200 à 499 employés (Grande entreprise)" },
   { value:"500+",   label:"500 employés et plus" },
 ];
+
+/* ══ Secteurs et sous-secteurs d'activité ══ */
+const SECTEURS = [
+  {
+    code: "C", label: "Commerce",
+    sousCategories: [
+      { code:"C01", label:"Petites entreprises de commerce" },
+      { code:"C02", label:"Grandes entreprises de commerce" },
+      { code:"C03", label:"Moyennes entreprises de commerce" },
+    ]
+  },
+  {
+    code: "I", label: "Industrie",
+    sousCategories: [
+      { code:"I04", label:"Grandes industries agroalimentaires" },
+      { code:"I10", label:"Moyennes industries agroalimentaires" },
+      { code:"I12", label:"Petites industries agroalimentaires" },
+      { code:"I05", label:"Industries de transformation cotonnière et textile" },
+      { code:"I06", label:"Industrie métallurgique et de montage industriel" },
+      { code:"I02", label:"Industries du papier, du bois et industries diverses" },
+      { code:"I08", label:"Industries chimiques" },
+      { code:"I01", label:"Industries minières et extractives" },
+      { code:"I03", label:"Industries du ciment" },
+      { code:"I07", label:"Grandes entreprises de BTP" },
+      { code:"I09", label:"Moyennes entreprises de BTP" },
+      { code:"I11", label:"Petites entreprises de BTP" },
+    ]
+  },
+  {
+    code: "A", label: "Artisanat",
+    sousCategories: [
+      { code:"A01", label:"Sous catégorie artisanat" },
+    ]
+  },
+  {
+    code: "S", label: "Services",
+    sousCategories: [
+      { code:"S08", label:"Banques et établissements financiers" },
+      { code:"S25", label:"Institutions de Microfinance" },
+      { code:"S07", label:"Transfert d'argent et activités financières" },
+      { code:"S04", label:"Assurances" },
+      { code:"S17", label:"Etablissements d'enseignements privés" },
+      { code:"S20", label:"Centres de santé privés" },
+      { code:"S01", label:"Services de pharmacie" },
+      { code:"S06", label:"Télécommunications" },
+      { code:"S13", label:"Informatique" },
+      { code:"S11", label:"Grandes entreprises de transports" },
+      { code:"S03", label:"Moyennes entreprises de transports" },
+      { code:"S02", label:"Petites entreprises de transports" },
+      { code:"S15", label:"Transit, gestion de fret et d'entrepôt" },
+      { code:"S12", label:"Hotel et Auberge" },
+      { code:"S16", label:"Restaurant" },
+      { code:"S26", label:"Agences de voyages et de tourisme" },
+      { code:"S14", label:"Etudes et conseil aux entreprises" },
+      { code:"S05", label:"Architectes, géomètres, topographes" },
+      { code:"S21", label:"Experts comptables" },
+      { code:"S23", label:"Avocats et auxiliaires de justice" },
+      { code:"S22", label:"Agences immobilières" },
+      { code:"S18", label:"Agences en communications et de publicité" },
+      { code:"S24", label:"Agences de nettoyage et d'assainissement" },
+      { code:"S19", label:"Services de protection et de gardiennage" },
+      { code:"S27", label:"Enquêtes et sécurité" },
+      { code:"S09", label:"Entreprises culturelles et créatives" },
+      { code:"S10", label:"Autres services marchands" },
+    ]
+  },
+];
+
+/* Secteurs sans Services (pour import/export) */
+const SECTEURS_DOUANE = SECTEURS.filter(s => s.code !== "S");
 
 const STATUT_COLORS = {
   en_attente:{ bg:"rgba(212,168,48,0.1)",  color:"#D4A830", label:"En attente" },
@@ -134,27 +219,16 @@ function genererMessageChat(typeRequete, sousType, user, form) {
     user?.fonction           ? `• Fonction : ${user.fonction}`       : "",
   ].filter(Boolean).join("\n");
 
+  if (typeRequete === "autre_specifique") {
+    return ` Demande spécifique personnalisée\nBonjour,\n\nJe souhaite faire une demande spécifique auprès de la CCI-BF.\n\n Mes coordonnées :\n${coordonnees}\n${form?.description ? `\n Ma demande :\n${form.description}` : ""}\n\nMerci de me contacter pour traiter cette demande.`;
+  }
+
   if (typeRequete === "autre") {
-    return ` Demande de Répertoire Thématique
-Bonjour,
-Je souhaite obtenir un répertoire thématique personnalisé auprès de la CCI-BF.
- Mes coordonnées :
-${coordonnees}
-${form?.description ? `\n Précisions : ${form.description}` : ""}
-Merci de me contacter pour convenir d'un rendez-vous au siège CCI-BF.`;
+    return ` Demande de Répertoire Thématique\nBonjour,\nJe souhaite obtenir un répertoire thématique personnalisé auprès de la CCI-BF.\n Mes coordonnées :\n${coordonnees}\n${form?.description ? `\n Précisions : ${form.description}` : ""}\nMerci de me contacter pour convenir d'un rendez-vous au siège CCI-BF.`;
   }
 
   if (typeRequete === "fiche") {
-    return ` Demande de Fiche — ${sousTypeLabel || "Entreprise / Association"}
-Bonjour,
-
-Je souhaite obtenir une fiche complète pour : ${sousTypeLabel || "une entreprise / association"}.
-
- Mes coordonnées :
-${coordonnees}
-${form?.description ? `\n Précisions : ${form.description}` : ""}
-,
-Merci de me contacter pour convenir d'un rendez-vous au siège CCI-BF.`;
+    return ` Demande de Fiche — ${sousTypeLabel || "Entreprise / Association"}\nBonjour,\n\nJe souhaite obtenir une fiche complète pour : ${sousTypeLabel || "une entreprise / association"}.\n\n Mes coordonnées :\n${coordonnees}\n${form?.description ? `\n Précisions : ${form.description}` : ""}\n\nMerci de me contacter pour convenir d'un rendez-vous au siège CCI-BF.`;
   }
 
   return "";
@@ -176,10 +250,12 @@ export default function DemandeDocument() {
   const [resultatNere, setResultatNere] = useState(null);
 
   const [form, setForm] = useState({
-    typeRequete:"", sousType:"", quantite:"",
+    typeRequete:"", sousType:[], quantite:"",
     regions:[], villes:"", formesJuridiques:[], tranches:[],
+    secteur:"", sousCategories:[],
     description:"", contact:user?.email||"", telephone:"",
   });
+  const [secteurOuvert, setSecteurOuvert] = useState(null);
 
   const [periodeType, setPeriodeType]         = useState("annee_courante");
   const [anneeSpecifique, setAnneeSpecifique] = useState(String(ANNEE_COURANTE));
@@ -195,10 +271,20 @@ export default function DemandeDocument() {
 
   const typeObj    = TYPES_REQUETES.find(t => t.id === form.typeRequete);
   const isDirect   = typeObj?.direct !== false;
-  const isChat     = form.typeRequete === "autre" || form.typeRequete === "fiche";
+  const isChat     = form.typeRequete === "autre" || form.typeRequete === "fiche" || form.typeRequete === "autre_specifique";
   const montant    = typeObj?.prix && form.quantite && form.typeRequete !== "statistique" && isDirect
     ? typeObj.prix * parseInt(form.quantite || 0) : null;
   const nbCriteres = form.regions.length + form.formesJuridiques.length + form.tranches.length;
+
+  // Stat import/export uniquement : secteur + région + période
+  const estStatDouane = form.typeRequete === "statistique" &&
+    form.sousType.some(st => ["stat_importations","stat_exportations"].includes(st)) &&
+    !form.sousType.some(st => ["stat_entreprises","stat_associations"].includes(st));
+
+  // Stat associations uniquement : région + période
+  const estStatAssociation = form.typeRequete === "statistique" &&
+    form.sousType.includes("stat_associations") &&
+    !form.sousType.some(st => ["stat_importations","stat_exportations","stat_entreprises"].includes(st));
   const initiales  = user ? `${user.prenom?.[0]||""}${user.nom?.[0]||""}`.toUpperCase() : "";
 
   const chargerDemandes = useCallback(async () => {
@@ -241,6 +327,14 @@ export default function DemandeDocument() {
     setLoading(true); setErreur("");
 
     try {
+      // autre_specifique = gratuit, pas de déduction
+      if (form.typeRequete === "autre_specifique") {
+        setLoading(false);
+        const msg = genererMessageChat(form.typeRequete, form.sousType, user, form);
+        navigate("/chat", { state: { messagePredefini: msg } });
+        return;
+      }
+
       const cout = form.typeRequete === "fiche" ? 1000 : 5000;
 
       const res  = await fetch(`${API}/abonnements/deduire`, {
@@ -314,6 +408,7 @@ export default function DemandeDocument() {
       if (form.regions.length > 0)          params.append("region",          form.regions[0]);
       if (form.formesJuridiques.length > 0) params.append("forme_juridique", form.formesJuridiques[0]);
       if (form.villes)                       params.append("commune",          form.villes);
+      if (form.sousCategories.length > 0)   params.append("sous_categorie",  form.sousCategories[0]);
       if (form.tranches.length > 0) {
         const t = form.tranches[0];
         if (t !== "500+") {
@@ -326,13 +421,35 @@ export default function DemandeDocument() {
       }
 
       let nereData = null;
+
+      /*  routes /nere/ */
       if (form.typeRequete === "statistique") {
-        const r = await fetch(`${API}/nere/statistiques`, { headers:{ Authorization:`Bearer ${token}` } });
+        /* Statistiques — appels multiples selon les sous-types sélectionnés */
+        const sousTypes = Array.isArray(form.sousType) ? form.sousType : [form.sousType];
+        const STAT_ROUTES = {
+          stat_entreprises:  `${API}/nere/statistiques`,
+          stat_associations: `${API}/nere/statistiques/associations`,
+          stat_importations: `${API}/nere/statistiques/importations`,
+          stat_exportations: `${API}/nere/statistiques/exportations`,
+        };
+        const resultats = await Promise.all(
+          sousTypes.map(st =>
+            fetch(STAT_ROUTES[st] || `${API}/nere/statistiques`,
+              { headers:{ Authorization:`Bearer ${token}` } }
+            ).then(r => r.json()).then(d => ({ type: st, ...d }))
+          )
+        );
+        nereData = { success:true, multi:true, resultats };
+      } else if (['liste_associations'].includes(
+          Array.isArray(form.sousType) ? form.sousType[0] : form.sousType)) {
+        const r = await fetch(`${API}/nere/associations?${params}`, { headers:{ Authorization:`Bearer ${token}` } });
         nereData = await r.json();
       } else {
+        /* Entreprises — multicritere */
         const r = await fetch(`${API}/nere/multicritere?${params}`, { headers:{ Authorization:`Bearer ${token}` } });
         nereData = await r.json();
       }
+
       setResultatNere(nereData);
 
       await fetch(`${API}/demandes`, {
@@ -342,6 +459,7 @@ export default function DemandeDocument() {
           typeRequete:form.typeRequete, sousType:form.sousType, quantite:quantiteEnvoyee,
           regions:form.regions, villes:form.villes,
           formesJuridiques:form.formesJuridiques, tranches:form.tranches,
+          sousCategories:form.sousCategories,
           description:form.description, contact:form.contact, telephone:form.telephone,
           montantEstime: form.typeRequete==="statistique" ? 5000 : montant,
           statut:"traite",
@@ -373,7 +491,7 @@ export default function DemandeDocument() {
 
   const reset = () => {
     setSuccess(false); setEtape(1); setResultatNere(null); setErreur("");
-    setForm({ typeRequete:"", sousType:"", quantite:"", regions:[], villes:"",
+    setForm({ typeRequete:"", sousType:[], quantite:"", regions:[], villes:"",
       formesJuridiques:[], tranches:[], description:"", contact:user?.email||"", telephone:"" });
   };
 
@@ -409,8 +527,6 @@ export default function DemandeDocument() {
     <div style={{ minHeight:"100vh", fontFamily:"Arial, Helvetica, sans-serif" }}>
       <style>{`
         * { font-family: Arial, Helvetica, sans-serif !important; }
-
-        /* ══ NAVBAR — identique Home.jsx ══ */
         .nere-navbar-dem {
           position: sticky; top: 0; z-index: 100;
           display: flex; align-items: center; justify-content: space-between;
@@ -433,9 +549,7 @@ export default function DemandeDocument() {
           border: none; background: transparent;
           font-family: Arial, Helvetica, sans-serif;
         }
-        .nere-navbar-dem .nav-pill .nav-btn:hover {
-          color: #fff; background: rgba(255,255,255,0.12);
-        }
+        .nere-navbar-dem .nav-pill .nav-btn:hover { color: #fff; background: rgba(255,255,255,0.12); }
         .nere-navbar-dem .nav-pill .nav-btn.active {
           color: #0A3D1F; background: #4DC97A;
           font-weight: 700; box-shadow: 0 2px 8px rgba(77,201,122,0.4);
@@ -492,10 +606,8 @@ export default function DemandeDocument() {
       <div className="dash-bg"><div className="grid"/></div>
       <div style={{ position:"relative", zIndex:1 }}>
 
-        {/* ══ NAVBAR — même design que Home.jsx ══ */}
+        {/* ══ NAVBAR ══ */}
         <nav className="nere-navbar-dem">
-
-          {/* Logo */}
           <div style={{ display:"flex", alignItems:"center", gap:"10px", flexShrink:0 }}>
             <img src={logoNERE} alt="NERE"
               style={{ height:"80px", width:"auto", borderRadius:"6px",
@@ -509,7 +621,6 @@ export default function DemandeDocument() {
             </div>
           </div>
 
-          {/* Pilule liens */}
           <div className="nav-pill">
             {NAV_LINKS.map(link => (
               <button key={link.key}
@@ -520,7 +631,6 @@ export default function DemandeDocument() {
             ))}
           </div>
 
-          {/* Actions */}
           <div style={{ display:"flex", alignItems:"center", gap:"8px", flexShrink:0 }}>
             <div style={{ position:"relative" }}>
               <div className="u-chip" onClick={() => setMenuOpen(o => !o)}>
@@ -541,7 +651,7 @@ export default function DemandeDocument() {
                       <div className="dd-email">{user.email||"—"}</div>
                       <div className="dd-role">
                         {user.role==="admin"   ? " Admin" :
-                         user.role==="manager" ? " Gestionnaire" : "👤 Abonné"}
+                         user.role==="manager" ? "Gestionnaire" : " Abonné"}
                       </div>
                     </div>
                     <div style={{ padding:"6px 0" }}>
@@ -616,7 +726,7 @@ export default function DemandeDocument() {
             display:"flex", alignItems:"center", justifyContent:"center", padding:"20px" }}>
             <div style={{ background:"#fff", borderRadius:"20px", padding:"36px",
               maxWidth:"420px", width:"100%", textAlign:"center" }}>
-              <div style={{ fontSize:"48px", marginBottom:"16px" }}>💳</div>
+              <div style={{ fontSize:"48px", marginBottom:"16px" }}></div>
               <h3 style={{ fontSize:"22px", color:"#0A3D1F", marginBottom:"8px", fontWeight:800 }}>
                 Solde insuffisant
               </h3>
@@ -644,6 +754,7 @@ export default function DemandeDocument() {
         <div style={{ background:"#fff", borderBottom:"1px solid var(--border)",
           padding:"0 48px", display:"flex" }}>
           {[
+             { key:"Recherche par un critère",   label:"Recherche par un critère" },
             { key:"nouvelle",   label:"Nouvelle demande" },
             { key:"historique", label:`Mes demandes${demandes.length>0?` (${demandes.length})`:""}`},
           ].map(o=>(
@@ -696,35 +807,65 @@ export default function DemandeDocument() {
                   {resultatNere && (
                     <div style={{ marginBottom:"28px", textAlign:"left" }}>
                       {form.typeRequete==="statistique" ? (
-                        <div style={{ border:"1px solid rgba(0,144,76,0.15)", borderRadius:"14px", overflow:"hidden" }}>
-                          <div style={{ background:"#00904C", padding:"14px 18px" }}>
-                            <span style={{ fontWeight:700, color:"#fff" }}> Statistiques dbNERE</span>
-                          </div>
-                          <div style={{ padding:"16px", display:"grid", gridTemplateColumns:"1fr 1fr", gap:"12px" }}>
-                            <div style={{ background:"#F5FAF7", borderRadius:"10px", padding:"16px", textAlign:"center" }}>
-                              <div style={{ fontSize:"11px", color:"#6B9A7A", textTransform:"uppercase", marginBottom:"4px" }}>
-                                Total entreprises
-                              </div>
-                              <div style={{ fontSize:"32px", fontWeight:900, color:"#00904C" }}>
-                                {resultatNere.data?.total?.toLocaleString("fr-FR") || "—"}
-                              </div>
-                            </div>
-                            {resultatNere.data?.par_region?.slice(0,3).map((r,i)=>(
-                              <div key={i} style={{ background:"#F5FAF7", borderRadius:"10px", padding:"12px 16px" }}>
-                                <div style={{ fontSize:"11px", color:"#6B9A7A", marginBottom:"4px" }}>{r.region||"N/A"}</div>
-                                <div style={{ fontWeight:800, color:"#00904C", fontSize:"18px" }}>
-                                  {r.nb?.toLocaleString("fr-FR")}
+                        <div style={{ display:"flex", flexDirection:"column", gap:"16px" }}>
+                          {(resultatNere?.multi ? resultatNere.resultats : [{ type: form.sousType[0]||"stat_entreprises", ...resultatNere }]).map((stat, idx) => {
+                            const LABELS = {
+                              stat_entreprises:  { titre:"Statistiques Entreprises",  couleur:"#00904C" },
+                              stat_associations: { titre:"Statistiques Associations",  couleur:"#1E60CC" },
+                              stat_importations: { titre:"Statistiques Importations", couleur:"#D4A830" },
+                              stat_exportations: { titre:"Statistiques Exportations", couleur:"#E85555" },
+                            };
+                            const meta = LABELS[stat.type] || LABELS.stat_entreprises;
+                            return (
+                              <div key={idx} style={{ border:`1px solid ${meta.couleur}33`, borderRadius:"14px", overflow:"hidden" }}>
+                                <div style={{ background:meta.couleur, padding:"14px 18px" }}>
+                                  <span style={{ fontWeight:700, color:"#fff" }}>{meta.emoji} {meta.titre}</span>
                                 </div>
+                                <div style={{ padding:"16px", display:"grid", gridTemplateColumns:"1fr 1fr", gap:"12px" }}>
+                                  <div style={{ background:"#F5FAF7", borderRadius:"10px", padding:"16px", textAlign:"center" }}>
+                                    <div style={{ fontSize:"11px", color:"#6B9A7A", textTransform:"uppercase", marginBottom:"4px" }}>Total</div>
+                                    <div style={{ fontSize:"32px", fontWeight:900, color:meta.couleur }}>
+                                      {stat.data?.total?.toLocaleString("fr-FR") || "—"}
+                                    </div>
+                                  </div>
+                                  {stat.data?.valeur_totale && (
+                                    <div style={{ background:"#F5FAF7", borderRadius:"10px", padding:"16px", textAlign:"center" }}>
+                                      <div style={{ fontSize:"11px", color:"#6B9A7A", textTransform:"uppercase", marginBottom:"4px" }}>Valeur totale</div>
+                                      <div style={{ fontSize:"18px", fontWeight:900, color:meta.couleur }}>
+                                        {Number(stat.data.valeur_totale).toLocaleString("fr-FR")} FCFA
+                                      </div>
+                                    </div>
+                                  )}
+                                  {stat.data?.par_region?.slice(0,2).map((r,i)=>(
+                                    <div key={i} style={{ background:"#F5FAF7", borderRadius:"10px", padding:"12px 16px" }}>
+                                      <div style={{ fontSize:"11px", color:"#6B9A7A", marginBottom:"4px" }}>{r.region||r.province||"N/A"}</div>
+                                      <div style={{ fontWeight:800, color:meta.couleur, fontSize:"18px" }}>{r.nb?.toLocaleString("fr-FR")}</div>
+                                    </div>
+                                  ))}
+                                  {stat.data?.par_province?.slice(0,2).map((r,i)=>(
+                                    <div key={i} style={{ background:"#F5FAF7", borderRadius:"10px", padding:"12px 16px" }}>
+                                      <div style={{ fontSize:"11px", color:"#6B9A7A", marginBottom:"4px" }}>{r.province||"N/A"}</div>
+                                      <div style={{ fontWeight:800, color:meta.couleur, fontSize:"18px" }}>{r.nb?.toLocaleString("fr-FR")}</div>
+                                    </div>
+                                  ))}
+                                </div>
+                                {stat.data?.par_forme_juridique?.slice(0,5).map((f,i)=>(
+                                  <div key={i} style={{ padding:"10px 18px", borderTop:`1px solid ${meta.couleur}15`,
+                                    display:"flex", justifyContent:"space-between" }}>
+                                    <span style={{ fontSize:"13px", color:"#0A2410" }}>{f.forme_juridique||f.categorie||"N/A"}</span>
+                                    <span style={{ fontWeight:700, color:meta.couleur }}>{f.nb?.toLocaleString("fr-FR")}</span>
+                                  </div>
+                                ))}
+                                {stat.data?.par_produit?.slice(0,5).map((p,i)=>(
+                                  <div key={i} style={{ padding:"10px 18px", borderTop:`1px solid ${meta.couleur}15`,
+                                    display:"flex", justifyContent:"space-between" }}>
+                                    <span style={{ fontSize:"12px", color:"#0A2410" }}>{p.produit||"N/A"}</span>
+                                    <span style={{ fontWeight:700, color:meta.couleur }}>{p.nb?.toLocaleString("fr-FR")}</span>
+                                  </div>
+                                ))}
                               </div>
-                            ))}
-                          </div>
-                          {resultatNere.data?.par_forme_juridique?.slice(0,5).map((f,i)=>(
-                            <div key={i} style={{ padding:"10px 18px", borderTop:"1px solid rgba(0,144,76,0.08)",
-                              display:"flex", justifyContent:"space-between" }}>
-                              <span style={{ fontSize:"13px", color:"#0A2410" }}>{f.forme_juridique||"N/A"}</span>
-                              <span style={{ fontWeight:700, color:"#00904C" }}>{f.nb?.toLocaleString("fr-FR")}</span>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       ) : resultatNere.data?.length > 0 ? (
                         <div style={{ border:"1px solid rgba(0,144,76,0.15)", borderRadius:"14px", overflow:"hidden" }}>
@@ -737,30 +878,147 @@ export default function DemandeDocument() {
                               {resultatNere.data.length} affichés
                             </span>
                           </div>
-                          <div style={{ maxHeight:"350px", overflowY:"auto" }}>
-                            {resultatNere.data.map((ent,i)=>(
-                              <div key={ent.code_ent||i} style={{ padding:"12px 18px",
-                                borderBottom:"1px solid rgba(0,144,76,0.08)",
-                                display:"flex", justifyContent:"space-between", alignItems:"center",
-                                background:i%2===0?"#fff":"#F9FCF9" }}>
-                                <div>
-                                  <div style={{ fontWeight:700, fontSize:"13px", color:"#0A2410" }}>
-                                    {ent.denomination||ent.nom_commercial||"—"}
+                          <div style={{ maxHeight:"500px", overflowY:"auto" }}>
+                            {resultatNere.data.map((ent,i)=>{
+                              const estAss = !!ent.code_ass || !!ent.recepisse;
+                              return (
+                                <div key={ent.code_ent||ent.code_ass||i} style={{
+                                  padding:"14px 18px",
+                                  borderBottom:"1px solid rgba(0,144,76,0.08)",
+                                  background:i%2===0?"#fff":"#F9FCF9" }}>
+
+                                  {/* Ligne 1 — Nom + badges */}
+                                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:"6px" }}>
+                                    <div>
+                                      <div style={{ fontWeight:700, fontSize:"13px", color:"#0A2410" }}>
+                                        {ent.denomination||ent.nom_commercial||ent.nom||"—"}
+                                      </div>
+                                      {(ent.sigle||ent.enseigne) && (
+                                        <div style={{ fontSize:"11px", color:"#6B9A7A" }}>
+                                          {[ent.sigle, ent.enseigne].filter(Boolean).join(" · ")}
+                                        </div>
+                                      )}
+                                    </div>
+                                    <div style={{ display:"flex", gap:"4px", flexWrap:"wrap", justifyContent:"flex-end" }}>
+                                      {ent.region && (
+                                        <span style={{ background:"rgba(0,144,76,0.08)", color:"#00904C",
+                                          borderRadius:"100px", padding:"2px 10px", fontSize:"10px", fontWeight:600 }}>
+                                          {ent.region}
+                                        </span>
+                                      )}
+                                      {ent.etat && (
+                                        <span style={{
+                                          background:ent.etat==="A"?"rgba(77,201,122,0.1)":"rgba(232,85,85,0.1)",
+                                          color:ent.etat==="A"?"#1A7A40":"#CC3333",
+                                          borderRadius:"100px", padding:"2px 10px", fontSize:"10px", fontWeight:600 }}>
+                                          {ent.etat==="A"?"Actif":"Inactif"}
+                                        </span>
+                                      )}
+                                      {ent.statut_validite && (
+                                        <span style={{
+                                          background:ent.statut_validite==="1"||ent.statut_validite==="A"?"rgba(77,201,122,0.1)":"rgba(232,85,85,0.1)",
+                                          color:ent.statut_validite==="1"||ent.statut_validite==="A"?"#1A7A40":"#CC3333",
+                                          borderRadius:"100px", padding:"2px 10px", fontSize:"10px", fontWeight:600 }}>
+                                          {ent.statut_validite==="1"||ent.statut_validite==="A"?"Valide":"Non valide"}
+                                        </span>
+                                      )}
+                                    </div>
                                   </div>
-                                  <div style={{ fontSize:"11px", color:"#6B9A7A", marginTop:"2px" }}>
-                                    {[ent.rccm, ent.ifu, ent.commune].filter(Boolean).join(" · ")}
-                                  </div>
-                                </div>
-                                <div style={{ textAlign:"right" }}>
-                                  {ent.region && (
-                                    <span style={{ background:"rgba(0,144,76,0.08)", color:"#00904C",
-                                      borderRadius:"100px", padding:"2px 10px", fontSize:"11px", fontWeight:600 }}>
-                                      {ent.region}
-                                    </span>
+
+                                  {/* Identifiants — seulement si non null */}
+                                  {[
+                                    { label:"RCCM",      value:ent.rccm },
+                                    { label:"IFU",       value:ent.ifu },
+                                    { label:"CNSS",      value:ent.cnss },
+                                    { label:"Récépissé", value:ent.recepisse },
+                                  ].filter(f=>f.value).length > 0 && (
+                                    <div style={{ display:"flex", flexWrap:"wrap", gap:"6px", marginBottom:"6px" }}>
+                                      {[
+                                        { label:"RCCM",      value:ent.rccm },
+                                        { label:"IFU",       value:ent.ifu },
+                                        { label:"CNSS",      value:ent.cnss },
+                                        { label:"Récépissé", value:ent.recepisse },
+                                      ].filter(f=>f.value).map(f=>(
+                                        <span key={f.label} style={{ fontSize:"10px", color:"#6B9A7A",
+                                          background:"#F0F4F1", borderRadius:"4px", padding:"2px 8px" }}>
+                                          <strong>{f.label}:</strong> {f.value}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  )}
+
+                                  {/* Forme juridique / sous-catégorie */}
+                                  {(ent.forme_juridique||ent.sous_categorie) && (
+                                    <div style={{ display:"flex", gap:"6px", flexWrap:"wrap", marginBottom:"6px" }}>
+                                      {ent.forme_juridique && (
+                                        <span style={{ fontSize:"10px", background:"rgba(0,144,76,0.06)",
+                                          color:"#00904C", borderRadius:"4px", padding:"2px 8px" }}>
+                                          {ent.forme_juridique}
+                                        </span>
+                                      )}
+                                      {ent.sous_categorie && (
+                                        <span style={{ fontSize:"10px", background:"rgba(30,96,204,0.06)",
+                                          color:"#1E60CC", borderRadius:"4px", padding:"2px 8px" }}>
+                                          {ent.sous_categorie}
+                                        </span>
+                                      )}
+                                    </div>
+                                  )}
+
+                                  {/* Adresse — seulement si disponible */}
+                                  {(ent.adresse_siege||ent.adresse) && (
+                                    <div style={{ fontSize:"11px", color:"#6B9A7A", marginBottom:"6px" }}>
+                                      📍 {ent.adresse_siege||ent.adresse}
+                                      {ent.boite_postale && ` — BP ${ent.boite_postale}`}
+                                    </div>
+                                  )}
+
+                                  {/* Contacts — seulement si disponibles */}
+                                  {[ent.email, ent.telephone_fixe, ent.telephone_mobile, ent.fax, ent.contact_ass, ent.site_web].some(Boolean) && (
+                                    <div style={{ display:"flex", flexWrap:"wrap", gap:"8px", marginBottom:"6px" }}>
+                                      {ent.email           && <span style={{ fontSize:"11px", color:"#6B9A7A" }}> {ent.email}</span>}
+                                      {ent.telephone_fixe  && <span style={{ fontSize:"11px", color:"#6B9A7A" }}> {ent.telephone_fixe}</span>}
+                                      {ent.telephone_mobile && <span style={{ fontSize:"11px", color:"#6B9A7A" }}> {ent.telephone_mobile}</span>}
+                                      {ent.fax             && <span style={{ fontSize:"11px", color:"#6B9A7A" }}> {ent.fax}</span>}
+                                      {ent.contact_ass     && <span style={{ fontSize:"11px", color:"#6B9A7A" }}> {ent.contact_ass}</span>}
+                                      {ent.site_web        && (
+                                        <a href={ent.site_web.startsWith("http")?ent.site_web:`https://${ent.site_web}`}
+                                          target="_blank" rel="noopener noreferrer"
+                                          style={{ fontSize:"11px", color:"#00904C" }}>
+                                           {ent.site_web}
+                                        </a>
+                                      )}
+                                    </div>
+                                  )}
+
+                                  {/* Données financières — seulement si disponibles */}
+                                  {[ent.capital, ent.effectif_permanent, ent.effectif_membres, ent.chiffre_affaires].some(Boolean) && (
+                                    <div style={{ display:"flex", flexWrap:"wrap", gap:"8px", marginBottom:"6px" }}>
+                                      {ent.capital && Number(ent.capital) > 0 && (
+                                        <span style={{ fontSize:"10px", color:"#6B9A7A" }}> {Number(ent.capital).toLocaleString("fr-FR")} FCFA</span>
+                                      )}
+                                      {ent.effectif_permanent && (
+                                        <span style={{ fontSize:"10px", color:"#6B9A7A" }}> {ent.effectif_permanent} employés</span>
+                                      )}
+                                      {ent.effectif_membres && (
+                                        <span style={{ fontSize:"10px", color:"#6B9A7A" }}> {String(ent.effectif_membres).trim()} membres</span>
+                                      )}
+                                      {ent.chiffre_affaires && Number(ent.chiffre_affaires) > 0 && (
+                                        <span style={{ fontSize:"10px", color:"#6B9A7A" }}> CA: {Number(ent.chiffre_affaires).toLocaleString("fr-FR")} FCFA</span>
+                                      )}
+                                    </div>
+                                  )}
+
+                                  {/* Activité / Objectif — seulement si disponible */}
+                                  {(ent.activite||ent.objectif) && (
+                                    <div style={{ fontSize:"11px", color:"#6B9A7A", borderTop:"1px solid rgba(0,144,76,0.06)", paddingTop:"6px" }}>
+                                      {ent.activite && <><strong style={{ color:"#0A2410" }}>Activité : </strong>{ent.activite}</>}
+                                      {ent.objectif && <><strong style={{ color:"#0A2410" }}>Objectif : </strong>{ent.objectif}</>}
+                                    </div>
                                   )}
                                 </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         </div>
                       ) : (
@@ -832,7 +1090,7 @@ export default function DemandeDocument() {
                         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"12px", marginBottom:"20px" }}>
                           {TYPES_REQUETES.map(t=>(
                             <button key={t.id}
-                              onClick={()=>setForm(f=>({...f,typeRequete:t.id,sousType:"",quantite:""}))}
+                              onClick={()=>{ setForm(f=>({...f,typeRequete:t.id,sousType:[],quantite:"",secteur:"",sousCategories:[]})); setSecteurOuvert(null); }}
                               style={{ padding:"18px 20px", borderRadius:"12px", textAlign:"left",
                                 border:form.typeRequete===t.id?`2px solid ${t.couleur}`:"1.5px solid var(--border)",
                                 background:form.typeRequete===t.id?"var(--green-pale)":"#fff",
@@ -875,25 +1133,58 @@ export default function DemandeDocument() {
                           ))}
                         </div>
 
-                        {/* Sous-types — affiché pour liste/detail/statistique/fiche */}
+                        {/* Sous-types */}
                         {typeObj && typeObj.sousTypes.length > 0 && (
                           <div style={{ marginBottom:"20px" }}>
                             <label className="profil-label" style={{ display:"block", marginBottom:"10px" }}>
                               Objet précis *
                             </label>
                             <div style={{ display:"flex", flexWrap:"wrap", gap:"10px" }}>
-                              {typeObj.sousTypes.map(s=>(
-                                <button key={s.value}
-                                  onClick={()=>setForm(f=>({...f,sousType:s.value}))}
-                                  style={{ padding:"10px 18px", borderRadius:"100px",
-                                    border:form.sousType===s.value?"2px solid var(--green-light)":"1.5px solid var(--border)",
-                                    background:form.sousType===s.value?"var(--green-pale)":"#fff",
-                                    color:form.sousType===s.value?"var(--green-dark)":"var(--text-mid)",
-                                    fontWeight:form.sousType===s.value?700:500,
-                                    fontSize:"13px", cursor:"pointer" }}>
-                                  {form.sousType===s.value ? "✓ " : ""}{s.label}
-                                </button>
-                              ))}
+                              {typeObj.sousTypes.map(s=>{
+                                const estStat = form.typeRequete === "statistique";
+                                const selectionne = Array.isArray(form.sousType)
+                                  ? form.sousType.includes(s.value)
+                                  : form.sousType === s.value;
+                                return (
+                                  <button key={s.value}
+                                    onClick={()=>{
+                                      if (estStat) {
+                                        setForm(f => ({
+                                          ...f,
+                                          sousType: Array.isArray(f.sousType)
+                                            ? (f.sousType.includes(s.value)
+                                                ? f.sousType.filter(v => v !== s.value)
+                                                : [...f.sousType, s.value])
+                                            : [s.value]
+                                        }));
+                                      } else {
+                                        setForm(f => ({ ...f, sousType: [s.value] }));
+                                      }
+                                    }}
+                                    style={{
+                                      padding:"10px 18px",
+                                      borderRadius: estStat ? "10px" : "100px",
+                                      border:selectionne?"2px solid var(--green-light)":"1.5px solid var(--border)",
+                                      background:selectionne?"var(--green-pale)":"#fff",
+                                      color:selectionne?"var(--green-dark)":"var(--text-mid)",
+                                      fontWeight:selectionne?700:500,
+                                      fontSize:"13px", cursor:"pointer",
+                                      display:"flex", alignItems:"center", gap:"8px"
+                                    }}>
+                                    <div style={{
+                                      width:"16px", height:"16px", flexShrink:0,
+                                      borderRadius: estStat ? "3px" : "50%",
+                                      border: selectionne ? "2px solid var(--green-light)" : "2px solid #ccc",
+                                      background: selectionne ? "var(--green-light)" : "transparent",
+                                      display:"flex", alignItems:"center", justifyContent:"center",
+                                      fontSize:"10px", color:"#fff", fontWeight:800
+                                    }}>
+                                      {selectionne ? "✓" : ""}
+                                    </div>
+                                    {s.label}
+                                  </button>
+                                );
+                              })}
                             </div>
                           </div>
                         )}
@@ -942,7 +1233,7 @@ export default function DemandeDocument() {
                           </div>
                         )}
 
-                        {/* Info redirection chat pour fiche/répertoire */}
+                        {/* Info redirection chat */}
                         {typeObj && !isDirect && (
                           <div style={{ marginBottom:"20px", background:"rgba(30,96,204,0.06)",
                             border:"1px solid rgba(30,96,204,0.18)", borderRadius:"12px",
@@ -960,7 +1251,7 @@ export default function DemandeDocument() {
                           </div>
                         )}
 
-                        {/* Précisions optionnelles pour fiche/répertoire */}
+                        {/* Précisions pour fiche/répertoire */}
                         {typeObj && !isDirect && (
                           <div className="profil-field" style={{ marginBottom:"20px" }}>
                             <label className="profil-label">
@@ -979,7 +1270,7 @@ export default function DemandeDocument() {
                           disabled={
                             loading ||
                             !form.typeRequete ||
-                            (typeObj?.sousTypes.length > 0 && !form.sousType)
+                            (typeObj?.sousTypes.length > 0 && form.sousType.length === 0)
                           }
                           onClick={async () => {
                             if (isChat) {
@@ -988,12 +1279,12 @@ export default function DemandeDocument() {
                               setEtape(2);
                             }
                           }}>
-                          {loading && isChat ? " Traitement..." : isChat ? " Ouvrir la messagerie " : "Continuer "}
+                          {loading && isChat ? " Traitement..." : isChat ? " Ouvrir la messagerie →" : "Continuer "}
                         </button>
                       </>
                     )}
 
-                    {/* ── ÉTAPE 2 : Critères (seulement pour Liste/Tableaux/Statistiques) ── */}
+                    {/* ── ÉTAPE 2 : Critères ── */}
                     {etape===2 && (
                       <>
                         <div style={{ display:"flex", justifyContent:"space-between",
@@ -1016,6 +1307,84 @@ export default function DemandeDocument() {
                         </div>
 
                         <div style={{ display:"flex", flexDirection:"column", gap:"14px" }}>
+                          {/* ── Secteur & Sous-secteur d'activité ── */}
+                          {(form.typeRequete === "liste" ||
+                            (form.typeRequete === "statistique" && (estStatDouane || form.sousType.includes("stat_entreprises")))) && (
+                            <div style={{ background:"var(--off-white)", borderRadius:"12px",
+                              border:"1px solid var(--border)", padding:"20px" }}>
+                              <div style={{ fontWeight:700, fontSize:"14px", color:"var(--text-dark)", marginBottom:"14px" }}>
+                                 Secteur d'activité
+                                <span style={{ fontSize:"11px", color:"var(--text-muted)", fontWeight:400, marginLeft:"8px" }}>
+                                  (sélection multiple de sous-catégories)
+                                </span>
+                              </div>
+                              {(form.typeRequete === "statistique"
+                                ? SECTEURS_DOUANE.filter(s =>
+                                    !form.sousType.some(st => ["stat_importations","stat_exportations"].includes(st)) || s.code !== "S"
+                                  )
+                                : SECTEURS
+                              ).map(secteur => (
+                                <div key={secteur.code} style={{ marginBottom:"10px" }}>
+                                  {/* Bouton secteur principal */}
+                                  <button onClick={() => setSecteurOuvert(o => o===secteur.code ? null : secteur.code)}
+                                    style={{ width:"100%", padding:"10px 14px", borderRadius:"8px",
+                                      border: form.sousCategories.some(sc => sc.startsWith(secteur.code))
+                                        ? "2px solid var(--green-light)" : "1.5px solid var(--border)",
+                                      background: form.sousCategories.some(sc => sc.startsWith(secteur.code))
+                                        ? "var(--green-pale)" : "#fff",
+                                      cursor:"pointer", display:"flex", justifyContent:"space-between",
+                                      alignItems:"center", fontWeight:600, fontSize:"13px",
+                                      color: form.sousCategories.some(sc => sc.startsWith(secteur.code))
+                                        ? "var(--green-dark)" : "var(--text-dark)" }}>
+                                    <span>{secteur.label}</span>
+                                    <div style={{ display:"flex", alignItems:"center", gap:"8px" }}>
+                                      {form.sousCategories.filter(sc => sc.startsWith(secteur.code)).length > 0 && (
+                                        <span style={{ background:"var(--green-light)", color:"#fff",
+                                          borderRadius:"100px", padding:"1px 8px", fontSize:"10px", fontWeight:700 }}>
+                                          {form.sousCategories.filter(sc => sc.startsWith(secteur.code)).length}
+                                        </span>
+                                      )}
+                                      <span style={{ fontSize:"10px" }}>{secteurOuvert===secteur.code ? "▲" : "▼"}</span>
+                                    </div>
+                                  </button>
+                                  {/* Sous-catégories */}
+                                  {secteurOuvert===secteur.code && (
+                                    <div style={{ marginTop:"8px", paddingLeft:"12px",
+                                      display:"flex", flexWrap:"wrap", gap:"6px" }}>
+                                      {secteur.sousCategories.map(sc => {
+                                        const sel = form.sousCategories.includes(sc.code);
+                                        return (
+                                          <button key={sc.code}
+                                            onClick={() => setForm(f => ({
+                                              ...f,
+                                              sousCategories: sel
+                                                ? f.sousCategories.filter(c => c !== sc.code)
+                                                : [...f.sousCategories, sc.code]
+                                            }))}
+                                            style={{ padding:"6px 12px", borderRadius:"100px", fontSize:"11px",
+                                              border: sel ? "2px solid var(--green-light)" : "1.5px solid var(--border)",
+                                              background: sel ? "var(--green-pale)" : "#fff",
+                                              color: sel ? "var(--green-dark)" : "var(--text-mid)",
+                                              fontWeight: sel ? 700 : 500, cursor:"pointer",
+                                              display:"flex", alignItems:"center", gap:"5px" }}>
+                                            <div style={{
+                                              width:"12px", height:"12px", borderRadius:"2px", flexShrink:0,
+                                              border: sel ? "2px solid var(--green-light)" : "2px solid #ccc",
+                                              background: sel ? "var(--green-light)" : "transparent",
+                                              display:"flex", alignItems:"center", justifyContent:"center",
+                                              fontSize:"8px", color:"#fff", fontWeight:800
+                                            }}>{sel?"✓":""}</div>
+                                            {sc.label}
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
                           <SectionCritere titre="Région" sous="(sélection multiple)">
                             <div style={{ display:"flex", flexWrap:"wrap", gap:"8px" }}>
                               {REGIONS.map(r=>(
@@ -1031,30 +1400,35 @@ export default function DemandeDocument() {
                             </div>
                           </SectionCritere>
 
-                          <div className="profil-field">
-                            <label className="profil-label">Ville / Commune</label>
-                            <input type="text" className="profil-input"
-                              placeholder="ex: Ouagadougou, Bobo-Dioulasso..."
-                              value={form.villes}
-                              onChange={e=>setForm(f=>({...f,villes:e.target.value}))}/>
-                          </div>
+                         
 
-                          <SectionCritere titre="Forme juridique">
+                          {!estStatAssociation && !estStatDouane && <SectionCritere titre="Forme juridique" sous="(sélection multiple)">
                             <div style={{ display:"flex", flexWrap:"wrap", gap:"8px" }}>
-                              {FORMES_JURIDIQUES.map(f=>(
-                                <button key={f} onClick={()=>toggleArr("formesJuridiques",f)}
+                              {FORMES_JURIDIQUES.map(fj=>(
+                                <button key={fj.value} onClick={()=>toggleArr("formesJuridiques", fj.value)}
                                   style={{ padding:"7px 14px", borderRadius:"100px", fontSize:"12px",
-                                    border:form.formesJuridiques.includes(f)?"2px solid var(--green-light)":"1.5px solid var(--border)",
-                                    background:form.formesJuridiques.includes(f)?"var(--green-pale)":"#fff",
-                                    color:form.formesJuridiques.includes(f)?"var(--green-dark)":"var(--text-mid)",
-                                    fontWeight:form.formesJuridiques.includes(f)?700:500, cursor:"pointer" }}>
-                                  {form.formesJuridiques.includes(f)?"✓ ":""}{f}
+                                    border:form.formesJuridiques.includes(fj.value)?"2px solid var(--green-light)":"1.5px solid var(--border)",
+                                    background:form.formesJuridiques.includes(fj.value)?"var(--green-pale)":"#fff",
+                                    color:form.formesJuridiques.includes(fj.value)?"var(--green-dark)":"var(--text-mid)",
+                                    fontWeight:form.formesJuridiques.includes(fj.value)?700:500, cursor:"pointer",
+                                    display:"flex", alignItems:"center", gap:"6px" }}>
+                                  <span style={{
+                                    width:"14px", height:"14px", borderRadius:"3px", flexShrink:0,
+                                    border:form.formesJuridiques.includes(fj.value)?"2px solid var(--green-light)":"2px solid #ccc",
+                                    background:form.formesJuridiques.includes(fj.value)?"var(--green-light)":"transparent",
+                                    display:"flex", alignItems:"center", justifyContent:"center",
+                                    fontSize:"9px", color:"#fff", fontWeight:800
+                                  }}>{form.formesJuridiques.includes(fj.value)?"✓":""}</span>
+                                  {fj.label}
+                                  <span style={{ fontSize:"10px", color:"#aaa" }}>
+                                    ({fj.nb?.toLocaleString("fr-FR")})
+                                  </span>
                                 </button>
                               ))}
                             </div>
-                          </SectionCritere>
+                          </SectionCritere>}
 
-                          <SectionCritere titre="Tranche d'effectif">
+                          {!estStatAssociation && !estStatDouane && <SectionCritere titre="Tranche d'effectif">
                             <div style={{ display:"flex", flexDirection:"column", gap:"8px" }}>
                               {TRANCHES_EFFECTIF.map(t=>(
                                 <button key={t.value} onClick={()=>toggleArr("tranches",t.value)}
@@ -1076,11 +1450,29 @@ export default function DemandeDocument() {
                                 </button>
                               ))}
                             </div>
-                          </SectionCritere>
+                          </SectionCritere>}
 
                           {/* Période statistique */}
                           {form.typeRequete==="statistique" && (
-                            <SectionCritere titre=" Période" sous="(obligatoire)">
+                            <div style={{
+                              background:"rgba(232,85,85,0.04)",
+                              borderRadius:"12px",
+                              border:"2px solid #E85555",
+                              padding:"20px",
+                              boxShadow:"0 0 0 4px rgba(232,85,85,0.08)"
+                            }}>
+                              <div style={{ display:"flex", alignItems:"center", gap:"8px", marginBottom:"14px" }}>
+                                <span style={{ fontSize:"18px" }}></span>
+                                <span style={{ fontWeight:800, fontSize:"14px", color:"#E85555" }}> Période</span>
+                                <span style={{ fontSize:"11px", color:"#E85555", fontWeight:600,
+                                  background:"rgba(232,85,85,0.1)", borderRadius:"100px",
+                                  padding:"2px 10px" }}>
+                                  obligatoire
+                                </span>
+                                <span style={{ fontSize:"11px", color:"#E85555", marginLeft:"auto" }}>
+                                   Sans période, les résultats peuvent être incomplets
+                                </span>
+                              </div>
                               <div style={{ display:"flex", gap:"10px", flexWrap:"wrap", marginBottom:"16px" }}>
                                 {[
                                   { val:"annee_courante",   label:"Année en cours"    },
@@ -1125,7 +1517,7 @@ export default function DemandeDocument() {
                                   </div>
                                 </div>
                               )}
-                            </SectionCritere>
+                            </div>
                           )}
 
                           <div className="profil-field">
@@ -1153,7 +1545,7 @@ export default function DemandeDocument() {
                         </div>
 
                         <div style={{ display:"flex", gap:"10px", marginTop:"24px" }}>
-                          <button className="btn-cancel" onClick={()=>setEtape(1)}>← Retour</button>
+                          <button className="btn-cancel" onClick={()=>setEtape(1)}> Retour</button>
                           <button className="btn-save" style={{ padding:"12px 28px" }}
                             disabled={!form.contact} onClick={()=>setEtape(3)}>
                             Vérifier ma demande 
@@ -1180,7 +1572,9 @@ export default function DemandeDocument() {
                                 {typeObj?.label}
                               </div>
                               <div style={{ fontSize:"12px", color:"var(--text-muted)", marginTop:"3px" }}>
-                                {typeObj?.sousTypes.find(s=>s.value===form.sousType)?.label || typeObj?.description}
+                                {Array.isArray(form.sousType)
+                                  ? form.sousType.map(st => typeObj?.sousTypes.find(s=>s.value===st)?.label).filter(Boolean).join(" + ")
+                                  : typeObj?.sousTypes.find(s=>s.value===form.sousType)?.label || typeObj?.description}
                               </div>
                               {form.quantite && isDirect && form.typeRequete!=="statistique" && (
                                 <div style={{ fontSize:"13px", color:"var(--green-bright)", fontWeight:600, marginTop:"4px" }}>
@@ -1221,7 +1615,10 @@ export default function DemandeDocument() {
                                   Formes juridiques
                                 </div>
                                 <div style={{ display:"flex", flexWrap:"wrap", gap:"6px" }}>
-                                  {form.formesJuridiques.map(f=><Chip key={f} label={f}/>)}
+                                  {form.formesJuridiques.map(v=>{
+                                    const fj = FORMES_JURIDIQUES.find(f=>f.value===v);
+                                    return <Chip key={v} label={fj?.label||v}/>;
+                                  })}
                                 </div>
                               </div>
                             )}
@@ -1245,6 +1642,20 @@ export default function DemandeDocument() {
                                   Ville
                                 </div>
                                 <Chip label={form.villes}/>
+                              </div>
+                            )}
+                            {form.sousCategories.length > 0 && (
+                              <div>
+                                <div style={{ fontSize:"11px", fontWeight:700, color:"var(--text-muted)",
+                                  textTransform:"uppercase", letterSpacing:"0.06em", marginBottom:"6px" }}>
+                                  Secteurs d'activité
+                                </div>
+                                <div style={{ display:"flex", flexWrap:"wrap", gap:"6px" }}>
+                                  {form.sousCategories.map(code => {
+                                    const sc = SECTEURS.flatMap(s=>s.sousCategories).find(s=>s.code===code);
+                                    return <Chip key={code} label={sc?.label||code}/>;
+                                  })}
+                                </div>
                               </div>
                             )}
                             {form.typeRequete==="statistique" && (
@@ -1299,7 +1710,7 @@ export default function DemandeDocument() {
                           <button className="btn-cancel" onClick={()=>setEtape(2)}>← Modifier</button>
                           <button className="btn-save" style={{ padding:"12px 32px" }}
                             disabled={loading} onClick={soumettre}>
-                            {loading ? " Traitement..." : "✅ Obtenir les résultats"}
+                            {loading ? " Traitement..." : " Obtenir les résultats"}
                           </button>
                         </div>
                       </>
@@ -1351,7 +1762,7 @@ export default function DemandeDocument() {
               </div>
 
               {demandesLoading && (
-                <div style={{ textAlign:"center", padding:"40px", color:"var(--text-muted)" }}> Chargement...</div>
+                <div style={{ textAlign:"center", padding:"40px", color:"var(--text-muted)" }}>⏳ Chargement...</div>
               )}
 
               {!demandesLoading && demandesErreur && (

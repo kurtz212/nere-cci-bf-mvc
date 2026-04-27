@@ -3,12 +3,6 @@ import { useNavigate } from "react-router-dom";
 import logoNERE from "../../assets/nere.png";
 import "../../styles/dashboard.css";
 
-/* ══════════════════════════════════════════
-   DÉFINITION DES PACKS
-   - Pack Essentiel  : crédit = 5 000 FCFA exactement
-   - Pack Pro        : crédit entre 5 001 et 14 999 FCFA
-   - Pack Entreprise : crédit ≥ 15 000 FCFA (montant flexible)
-══════════════════════════════════════════ */
 const PACKS = [
   {
     id: "pack1", nom: "Pack Essentiel", niveau: 1,
@@ -18,14 +12,14 @@ const PACKS = [
     couleur: "#22A052",
     bgNiveau: "#e8f8ef",
     avantages: [
-      { label: "Recherche multicritère",            ok: true  },
+      { label: "Recherche multicritère",                      ok: true  },
       { label: "Demandes de données (listes, fiches, stats)", ok: true  },
-      { label: "Chat avec un agent CCI-BF",         ok: true  },
-      { label: "Publications — Communiqués",         ok: true  },
-      { label: "Publications — Notes techniques",    ok: false },
-      { label: "Publications — Classements",         ok: false },
-      { label: "Publications — Rapports / Études",   ok: false },
-      { label: "Téléchargement PDF",                 ok: false },
+      { label: "Converser avec un agent CCI-BF",              ok: true  },
+      { label: "Publications — Communiqués",                  ok: true  },
+      { label: "Publications — Notes techniques",             ok: false },
+      { label: "Publications — Classements",                  ok: false },
+      { label: "Publications — Rapports / Études",            ok: false },
+      { label: "Téléchargement PDF",                         ok: false },
     ],
   },
   {
@@ -37,14 +31,14 @@ const PACKS = [
     couleur: "#00904C",
     bgNiveau: "#d0f0e0",
     avantages: [
-      { label: "Recherche multicritère",            ok: true  },
+      { label: "Recherche multicritère",                      ok: true  },
       { label: "Demandes de données (listes, fiches, stats)", ok: true  },
-      { label: "Chat avec un agent CCI-BF",         ok: true  },
-      { label: "Publications — Communiqués",         ok: true  },
-      { label: "Publications — Notes techniques",    ok: true  },
-      { label: "Publications — Classements",         ok: true  },
-      { label: "Publications — Rapports / Études",   ok: false },
-      { label: "Téléchargement PDF",                 ok: true  },
+      { label: "Converser avec un agent CCI-BF",              ok: true  },
+      { label: "Publications — Communiqués",                  ok: true  },
+      { label: "Publications — Notes techniques",             ok: true  },
+      { label: "Publications — Classements",                  ok: true  },
+      { label: "Publications — Rapports / Études",            ok: false },
+      { label: "Téléchargement PDF",                         ok: true  },
     ],
   },
   {
@@ -56,14 +50,14 @@ const PACKS = [
     couleur: "#b8860b",
     bgNiveau: "#fff3cd",
     avantages: [
-      { label: "Recherche multicritère",            ok: true  },
+      { label: "Recherche multicritère",                      ok: true  },
       { label: "Demandes de données (listes, fiches, stats)", ok: true  },
-      { label: "Chat avec un agent CCI-BF",         ok: true  },
-      { label: "Publications — Communiqués",         ok: true  },
-      { label: "Publications — Notes techniques",    ok: true  },
-      { label: "Publications — Classements",         ok: true  },
-      { label: "Publications — Rapports / Études",   ok: true  },
-      { label: "Téléchargement PDF",                 ok: true  },
+      { label: "Converser avec un agent CCI-BF",              ok: true  },
+      { label: "Publications — Communiqués",                  ok: true  },
+      { label: "Publications — Notes techniques",             ok: true  },
+      { label: "Publications — Classements",                  ok: true  },
+      { label: "Publications — Rapports / Études",            ok: true  },
+      { label: "Téléchargement PDF",                         ok: true  },
     ],
   },
 ];
@@ -77,10 +71,17 @@ const FAQS = [
     r: "Oui, vous pouvez recharger votre compte avec un montant supérieur à tout moment. Le niveau d'accès est mis à jour immédiatement selon le solde disponible." },
   { q: "Comment payer ?",
     r: "Le paiement s'effectue en agence CCI-BF ou par mobile money. Après validation, votre compte est crédité sous 24h ouvrables." },
-  { q: "Le chat est-il accessible à tous ?",
-    r: "Oui, le chat avec les agents CCI-BF est accessible à tous les abonnés, quel que soit le pack choisi." },
+  { q: "La messagerie est-elle accessible à tous ?",
+    r: "Oui, la messagerie avec les agents CCI-BF est accessible à tous les abonnés, quel que soit le pack choisi." },
   { q: "Les prix sont-ils TTC ?",
     r: "Oui, tous les montants affichés sont en FCFA TTC, toutes taxes comprises." },
+];
+
+const NAV_LINKS = [
+  { label:"Accueil",      path:"/",                key:"accueil"      },
+  { label:"Publications", path:"/publications",     key:"publications" },
+  { label:"Contact",      path:"/contact",          key:"contact"      },
+  { label:"Messages",     path:"/chat",             key:"messages"     },
 ];
 
 export default function Formules() {
@@ -88,7 +89,7 @@ export default function Formules() {
   const user     = JSON.parse(localStorage.getItem("user") || "null");
 
   const [hover, setHover]               = useState(null);
-  const [showModal, setShowModal]       = useState(null); // id du pack flexible ouvert
+  const [showModal, setShowModal]       = useState(null);
   const [montantSaisi, setMontantSaisi] = useState("");
   const [erreurModal, setErreurModal]   = useState("");
   const [soldeActuel, setSoldeActuel]   = useState(null);
@@ -126,7 +127,7 @@ export default function Formules() {
   };
 
   const confirmerModal = () => {
-    const pack   = PACKS.find(p => p.id === showModal);
+    const pack    = PACKS.find(p => p.id === showModal);
     const montant = Number(montantSaisi);
     if (!pack) return;
     if (Number.isNaN(montant) || montant < pack.flexibleMin) {
@@ -147,76 +148,189 @@ export default function Formules() {
   return (
     <div style={{ fontFamily:"Arial, Helvetica, sans-serif", background:"#fff",
       color:"#111", minHeight:"100vh" }}>
-      <style>{`* { font-family: Arial, Helvetica, sans-serif !important; }`}</style>
+      <style>{`
+        * { font-family: Arial, Helvetica, sans-serif !important; }
+
+        /* ── NAVBAR identique à Home.jsx ── */
+        .formules-navbar {
+          position: sticky; top: 0; z-index: 100;
+          display: flex; align-items: center; justify-content: space-between;
+          padding: 0 32px; height: 120px;
+          background: #00904C;
+          box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+        }
+        .formules-navbar .logo-zone {
+          display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+        }
+        .formules-navbar .nav-center {
+          display: flex; align-items: center; gap: 3px;
+          background: rgba(255,255,255,0.07);
+          border: 1px solid rgba(255,255,255,0.12);
+          border-radius: 100px; padding: 5px 8px;
+          margin-left: auto; margin-right: 16px;
+        }
+        .formules-navbar .nav-item {
+          padding: 7px 16px; border-radius: 100px;
+          font-size: 20px; font-weight: 600;
+          color: rgba(255,255,255,0.75); cursor: pointer;
+          transition: all 0.2s; white-space: nowrap;
+          border: none; background: transparent;
+          font-family: Arial, Helvetica, sans-serif;
+        }
+        .formules-navbar .nav-item:hover { color:#fff; background:rgba(255,255,255,0.1); }
+        .formules-navbar .nav-item.active {
+          color:#0A3D1F; background:#4DC97A; font-weight:700;
+          box-shadow:0 2px 10px rgba(77,201,122,0.35);
+        }
+        .formules-navbar .nav-actions {
+          display:flex; align-items:center; gap:4px; flex-shrink:0;
+        }
+        .formules-navbar .user-chip {
+          display:flex; align-items:center; gap:8px;
+          padding:5px 12px 5px 5px;
+          background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2);
+          border-radius:100px; cursor:pointer; transition:all 0.2s;
+          color:#fff; font-size:13px; font-weight:600;
+        }
+        .formules-navbar .user-chip:hover { background:rgba(255,255,255,0.18); }
+        .formules-navbar .user-avatar {
+          width:30px; height:30px; border-radius:50%;
+          background:#4DC97A; color:#0A3D1F;
+          display:flex; align-items:center; justify-content:center;
+          font-weight:800; font-size:12px; flex-shrink:0;
+        }
+        .formules-navbar .btn-connexion {
+          padding:7px 18px; border-radius:100px;
+          border:1.5px solid rgba(255,255,255,0.35);
+          background:transparent; color:#fff;
+          font-size:13px; font-weight:600; cursor:pointer;
+          transition:all 0.2s; font-family:Arial,Helvetica,sans-serif;
+        }
+        .formules-navbar .btn-connexion:hover { background:rgba(255,255,255,0.12); }
+        .formules-navbar .btn-inscription {
+          padding:7px 18px; border-radius:100px; border:none;
+          background:#4DC97A; color:#0A3D1F;
+          font-size:13px; font-weight:700; cursor:pointer;
+          transition:all 0.2s; font-family:Arial,Helvetica,sans-serif;
+        }
+        .formules-navbar .btn-inscription:hover {
+          background:#5DD98A; transform:translateY(-1px);
+          box-shadow:0 4px 14px rgba(77,201,122,0.35);
+        }
+        .formules-dropdown {
+          position:absolute; z-index:9999;
+          top:calc(100% + 10px); right:0;
+          background:#fff; border-radius:16px;
+          border:1px solid #E2EDE6; min-width:220px;
+          overflow:hidden; box-shadow:0 16px 48px rgba(0,0,0,0.14);
+          animation:dropInF 0.18s ease;
+        }
+        @keyframes dropInF {
+          from { opacity:0; transform:translateY(-8px); }
+          to   { opacity:1; transform:translateY(0); }
+        }
+        .formules-dropdown .dd-head {
+          padding:16px 18px 12px; border-bottom:1px solid #F0F4F1;
+          background:linear-gradient(135deg,#F5FAF7,#fff);
+        }
+        .formules-dropdown .dd-name  { font-weight:800; color:#0A3D1F; font-size:14px; }
+        .formules-dropdown .dd-email { font-size:12px; color:#6B9A7A; margin-top:2px; }
+        .formules-dropdown .dd-role  {
+          display:inline-flex; align-items:center; gap:5px; margin-top:6px;
+          background:#E8F5EE; color:#00904C; border-radius:100px; padding:3px 10px;
+          font-size:10px; font-weight:700; text-transform:uppercase;
+        }
+        .formules-dropdown .dd-item {
+          padding:11px 18px; font-size:13px; color:#0A3D1F;
+          cursor:pointer; transition:background 0.15s;
+        }
+        .formules-dropdown .dd-item:hover { background:#F5FAF7; }
+        .formules-dropdown .dd-danger { color:#CC3333; }
+        .formules-dropdown .dd-danger:hover { background:#FFF0F0 !important; }
+        .formules-dropdown .dd-sep { height:1px; background:#F0F4F1; margin:6px 0; }
+      `}</style>
 
       {/* ══ NAVBAR ══ */}
-      <nav className="dash-navbar">
-        <div style={{ display:"flex", alignItems:"center", gap:"12px" }}>
+      <nav className="formules-navbar">
+
+        {/* Logo */}
+        <div className="logo-zone">
           <img src={logoNERE} alt="NERE"
-            style={{ height:"90px", width:"auto", borderRadius:"6px",
-              flexShrink:0, backgroundColor:"#fff", padding:"4px" }}/>
-          <div style={{ display:"flex", flexDirection:"column", lineHeight:1.4 }}>
-            <span style={{ fontSize:"11px", fontWeight:800, color:"#fff",
-              letterSpacing:"0.06em", textTransform:"uppercase" }}>Fichier NERE</span>
-            <span style={{ fontSize:"10px", color:"rgba(255,255,255,0.85)" }}>
-              Registre national des entreprises<br/>Du Burkina Faso
+            style={{ height:"80px", width:"auto", borderRadius:"8px",
+              backgroundColor:"#fff", padding:"4px", flexShrink:0 }}/>
+          <div style={{ display:"flex", flexDirection:"column", lineHeight:1.35 }}>
+            <span style={{ fontSize:"18px", fontWeight:800, color:"#fff",
+              letterSpacing:"0.08em", textTransform:"uppercase" }}>
+              Fichier NERE
+            </span>
+            <span style={{ fontSize:"10px", color:"rgba(255,255,255,0.65)" }}>
+              Registre national des entreprises
             </span>
           </div>
         </div>
 
-        <div className="dash-nav-links">
-          {[
-            { label:"Accueil",      path:"/" },
-            { label:"Publications", path:"/publications" },
-            { label:"Recherche",    path:"/rechercheacc" },
-            { label:"Contact",      path:"/contact" },
-            { label:"Chat",         path:"/chat" },
-          ].map(l => (
-            <span key={l.label} className="dash-nav-link"
-              onClick={() => navigate(l.path)}>{l.label}</span>
+        {/* Liens */}
+        <div className="nav-center">
+          {NAV_LINKS.map(link => (
+            <button key={link.key}
+              className={`nav-item ${link.key === "formules" ? "active" : ""}`}
+              onClick={() => navigate(link.path)}>
+              {link.label}
+            </button>
           ))}
-          <span className="dash-nav-link active">Formules</span>
+          <button className="nav-item active">Formules</button>
         </div>
 
-        <div className="dash-nav-actions">
+        {/* Actions */}
+        <div className="nav-actions">
           {user ? (
             <div style={{ position:"relative" }}>
               <div className="user-chip" onClick={() => setMenuOpen(o => !o)}>
                 <div className="user-avatar">{initiales}</div>
-                <span>{user.prenom} {user.nom}</span>
-                <span style={{ fontSize:"10px", opacity:0.5, marginLeft:"2px" }}>▾</span>
+                <span style={{ maxWidth:"100px", overflow:"hidden",
+                  textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                  {user.prenom} {user.nom}
+                </span>
+                <span style={{ fontSize:"9px", opacity:0.5 }}>▾</span>
               </div>
               {menuOpen && (
                 <>
-                  <div style={{ position:"fixed", inset:0, zIndex:50 }} onClick={() => setMenuOpen(false)}/>
-                  <div style={{ position:"absolute", zIndex:9999, background:"#00904C",
-                    top:"calc(100% + 8px)", right:0, borderRadius:"12px",
-                    border:"1px solid rgba(255,255,255,0.15)", minWidth:"200px",
-                    overflow:"hidden", boxShadow:"0 10px 30px rgba(0,0,0,0.25)" }}
-                    onClick={e => e.stopPropagation()}>
-                    <div style={{ padding:"16px", borderBottom:"1px solid rgba(255,255,255,0.1)" }}>
-                      <div style={{ fontWeight:700, color:"#fff", fontSize:"14px" }}>{user.prenom} {user.nom}</div>
-                      <div style={{ fontSize:"12px", color:"rgba(255,255,255,0.6)" }}>{user.email}</div>
-                    </div>
-                    {[
-                      { label:"Mon Profil",     path:"/profil" },
-                      { label:"Mon Abonnement", path:"/paiement" },
-                    ].map(i => (
-                      <div key={i.label}
-                        style={{ padding:"11px 16px", color:"rgba(255,255,255,0.85)", fontSize:"13px", cursor:"pointer" }}
-                        onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
-                        onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-                        onClick={() => { navigate(i.path); setMenuOpen(false); }}>
-                        {i.label}
+                  <div style={{ position:"fixed", inset:0, zIndex:50 }}
+                    onClick={() => setMenuOpen(false)}/>
+                  <div className="formules-dropdown" onClick={e => e.stopPropagation()}>
+                    <div className="dd-head">
+                      <div className="dd-name">{user.prenom} {user.nom}</div>
+                      <div className="dd-email">{user.email || "—"}</div>
+                      <div className="dd-role">
+                        {user.role === "admin"   ? "🛡 Administrateur" :
+                         user.role === "manager" ? "⚙️ Gestionnaire"   : "👤 Abonné"}
                       </div>
-                    ))}
-                    <div style={{ borderTop:"1px solid rgba(255,255,255,0.1)" }}>
-                      <div style={{ padding:"11px 16px", color:"#FF8080", fontSize:"13px",
-                        cursor:"pointer", fontWeight:600 }}
-                        onMouseEnter={e => e.currentTarget.style.background = "rgba(255,107,107,0.1)"}
-                        onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-                        onClick={handleLogout}>
-                        Déconnexion
+                    </div>
+                    <div style={{ padding:"6px 0" }}>
+                      {[
+                        { label:"👤 Mon Profil",     path:"/profil"   },
+                        { label:"💳 Mon Abonnement", path:"/paiement" },
+                      ].map(item => (
+                        <div key={item.label} className="dd-item"
+                          onClick={() => { navigate(item.path); setMenuOpen(false); }}>
+                          {item.label}
+                        </div>
+                      ))}
+                      {user.role === "admin" && (
+                        <div className="dd-item"
+                          onClick={() => { navigate("/admin"); setMenuOpen(false); }}>
+                          🛡 Tableau de bord
+                        </div>
+                      )}
+                      {user.role === "manager" && (
+                        <div className="dd-item"
+                          onClick={() => { navigate("/gestionnaire"); setMenuOpen(false); }}>
+                          ⚙️ Tableau de bord
+                        </div>
+                      )}
+                      <div className="dd-sep"/>
+                      <div className="dd-item dd-danger" onClick={handleLogout}>
+                        🚪 Déconnexion
                       </div>
                     </div>
                   </div>
@@ -225,8 +339,10 @@ export default function Formules() {
             </div>
           ) : (
             <>
-              <button className="btn-nav-outline" onClick={() => navigate("/connexion")}>Connexion</button>
-              <button className="btn-nav-primary" onClick={() => navigate("/inscription")}>S'inscrire</button>
+              <button className="btn-connexion"
+                onClick={() => navigate("/connexion")}>Connexion</button>
+              <button className="btn-inscription"
+                onClick={() => navigate("/inscription")}>S'inscrire</button>
             </>
           )}
         </div>
@@ -253,7 +369,7 @@ export default function Formules() {
           Packs prépayés — déduction directe à chaque requête.
         </p>
         <p style={{ color:"#00904C", fontSize:"13px", fontWeight:700 }}>
-          ✓ Chat avec agents CCI-BF inclus dans tous les packs
+          ✓ Converser avec agents CCI-BF inclus dans tous les packs
         </p>
       </div>
 
@@ -263,9 +379,7 @@ export default function Formules() {
           <div style={{ background:"rgba(0,144,76,0.05)", border:"1px solid rgba(0,144,76,0.15)",
             borderRadius:"14px", padding:"16px 24px",
             display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-            <span style={{ fontSize:"13px", color:"#888" }}>
-              Votre solde actuel
-            </span>
+            <span style={{ fontSize:"13px", color:"#888" }}>Votre solde actuel</span>
             <span style={{ fontSize:"22px", fontWeight:900,
               color: getSoldeColor(soldeActuel.solde) }}>
               {soldeActuel.solde?.toLocaleString("fr-FR")} FCFA
@@ -291,15 +405,23 @@ export default function Formules() {
                 boxShadow: isHover ? "0 16px 40px rgba(0,0,0,0.09)" :
                   pack.populaire ? `0 4px 20px rgba(0,144,76,0.1)` : "none" }}>
 
-             
+              {/* Badge populaire */}
+              {pack.populaire && (
+                <div style={{ position:"absolute", top:"-12px", left:"50%",
+                  transform:"translateX(-50%)",
+                  background:"#00904C", color:"#fff",
+                  fontSize:"10px", fontWeight:800, padding:"4px 14px",
+                  borderRadius:"100px", letterSpacing:"0.06em",
+                  textTransform:"uppercase", whiteSpace:"nowrap" }}>
+                  ⭐ Le plus populaire
+                </div>
+              )}
 
-              {/* En-tête */}
               <div style={{ marginBottom:"20px" }}>
                 <div style={{ display:"inline-flex", alignItems:"center",
                   justifyContent:"center", width:"36px", height:"36px",
                   borderRadius:"10px", fontWeight:900, fontSize:"15px",
-                  marginBottom:"12px",
-                  background: pack.bgNiveau, color: pack.couleur }}>
+                  marginBottom:"12px", background:pack.bgNiveau, color:pack.couleur }}>
                   {pack.niveau}
                 </div>
                 <div style={{ fontSize:"20px", fontWeight:900, color:"#111", marginBottom:"6px" }}>
@@ -310,12 +432,11 @@ export default function Formules() {
                 </p>
               </div>
 
-              {/* Prix */}
               <div style={{ padding:"16px 0", borderTop:"1px solid #f0f0f0",
                 borderBottom:"1px solid #f0f0f0", marginBottom:"20px" }}>
                 <div style={{ display:"flex", alignItems:"flex-end", gap:"6px" }}>
                   <span style={{ fontSize:"38px", fontWeight:900,
-                    color: pack.couleur, lineHeight:1 }}>
+                    color:pack.couleur, lineHeight:1 }}>
                     {pack.prix.toLocaleString("fr-FR")}{pack.flexible ? "+" : ""}
                   </span>
                   <div style={{ paddingBottom:"6px" }}>
@@ -331,15 +452,13 @@ export default function Formules() {
                 </div>
               </div>
 
-              {/* Avantages */}
               <div style={{ display:"flex", flexDirection:"column",
                 gap:"9px", marginBottom:"24px" }}>
                 {pack.avantages.map((av, i) => (
                   <div key={i} style={{ display:"flex", alignItems:"flex-start",
-                    gap:"8px", fontSize:"12px",
-                    color: av.ok ? "#0A2410" : "#bbb" }}>
+                    gap:"8px", fontSize:"12px", color:av.ok ? "#0A2410" : "#bbb" }}>
                     <span style={{ flexShrink:0, fontSize:"13px",
-                      color: av.ok ? pack.couleur : "#ddd" }}>
+                      color:av.ok ? pack.couleur : "#ddd" }}>
                       {av.ok ? "✓" : "✕"}
                     </span>
                     {av.label}
@@ -347,7 +466,6 @@ export default function Formules() {
                 ))}
               </div>
 
-              {/* Bouton */}
               <button onClick={() => handleChoisir(pack)}
                 style={{ width:"100%", padding:"13px", borderRadius:"10px",
                   border:"none", cursor:"pointer", fontWeight:700,
@@ -356,14 +474,8 @@ export default function Formules() {
                     ? "linear-gradient(135deg,#f5c842,#d4a827)"
                     : pack.populaire ? pack.couleur : "#f5f5f5",
                   color: pack.niveau === 3 ? "#5a3d00" :
-                    pack.populaire ? "#fff" : "#333" }}
-                onMouseEnter={e => {
-                  if (pack.populaire) e.currentTarget.style.background = "#007A3F";
-                }}
-                onMouseLeave={e => {
-                  if (pack.populaire) e.currentTarget.style.background = pack.couleur;
-                }}>
-                {pack.flexible ? `Choisir le montant →` : `Souscrire au ${pack.nom}`}
+                    pack.populaire ? "#fff" : "#333" }}>
+                {pack.flexible ? "Choisir le montant →" : `Souscrire au ${pack.nom}`}
               </button>
             </div>
           );
@@ -375,10 +487,10 @@ export default function Formules() {
         <div style={{ background:"rgba(0,144,76,0.05)",
           border:"1px solid rgba(0,144,76,0.2)", borderRadius:"12px",
           padding:"14px 20px", display:"flex", alignItems:"center", gap:"12px" }}>
-          <span style={{ fontSize:"20px" }}></span>
+          <span style={{ fontSize:"20px" }}>💬</span>
           <div>
             <div style={{ fontWeight:700, fontSize:"13px", color:"#00904C" }}>
-              Chat avec les agents CCI-BF — inclus dans tous les packs
+              Converser avec les agents CCI-BF — inclus dans tous les packs
             </div>
             <div style={{ fontSize:"12px", color:"#6B9A7A", marginTop:"2px" }}>
               Posez vos questions directement à un agent, quelle que soit votre formule.
@@ -391,16 +503,16 @@ export default function Formules() {
       <div style={{ display:"flex", gap:"8px", flexWrap:"wrap",
         maxWidth:"1080px", margin:"20px auto 0", padding:"0 48px" }}>
         {[
-          { label:"Renouvellement par recharge",  vert:true  },
+          { label:"Renouvellement par recharge",    vert:true  },
           { label:"Upgrade possible à tout moment", vert:true  },
-          { label:"Paiement en agence CCI-BF",    vert:false },
-          { label:"Activation sous 24h",           vert:true  },
-          { label:"Mobile Money accepté",          vert:true  },
+          { label:"Paiement en agence CCI-BF",      vert:false },
+          { label:"Activation sous 24h",            vert:true  },
+          { label:"Mobile Money accepté",           vert:true  },
         ].map(t => (
           <span key={t.label} style={{ padding:"6px 14px", borderRadius:"100px",
             fontSize:"12px", fontWeight:600,
-            background: t.vert ? "#e8f8ef" : "#fff0f0",
-            color:      t.vert ? "#00904C" : "#ED1C24" }}>
+            background:t.vert ? "#e8f8ef" : "#fff0f0",
+            color:t.vert ? "#00904C" : "#ED1C24" }}>
             {t.label}
           </span>
         ))}
@@ -421,23 +533,21 @@ export default function Formules() {
                   color:"#fff", fontWeight:700, fontSize:"12px" }}>Fonctionnalité</th>
                 {PACKS.map(p => (
                   <th key={p.id} style={{ padding:"14px 16px", textAlign:"center",
-                    color:"#fff", fontWeight:700, fontSize:"12px" }}>
-                    {p.nom}
-                  </th>
+                    color:"#fff", fontWeight:700, fontSize:"12px" }}>{p.nom}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {PACKS[0].avantages.map((av, i) => (
                 <tr key={i} style={{ borderBottom:"1px solid #f0f0f0",
-                  background: i % 2 === 0 ? "#fff" : "#FAFCFB" }}>
+                  background:i%2===0 ? "#fff" : "#FAFCFB" }}>
                   <td style={{ padding:"12px 20px", color:"#333", fontWeight:500 }}>
                     {av.label}
                   </td>
                   {PACKS.map(p => (
                     <td key={p.id} style={{ padding:"12px 16px", textAlign:"center" }}>
                       <span style={{ fontSize:"16px",
-                        color: p.avantages[i].ok ? p.couleur : "#ddd" }}>
+                        color:p.avantages[i].ok ? p.couleur : "#ddd" }}>
                         {p.avantages[i].ok ? "✓" : "✕"}
                       </span>
                     </td>
@@ -445,15 +555,10 @@ export default function Formules() {
                 </tr>
               ))}
               <tr style={{ background:"#f8fff8" }}>
-                <td style={{ padding:"12px 20px", fontWeight:700, color:"#333" }}>
-                  Crédit
-                </td>
-                <td style={{ padding:"12px 16px", textAlign:"center",
-                  fontWeight:700, color:"#22A052" }}>5 000 FCFA</td>
-                <td style={{ padding:"12px 16px", textAlign:"center",
-                  fontWeight:700, color:"#00904C" }}>5 001 – 14 999 FCFA</td>
-                <td style={{ padding:"12px 16px", textAlign:"center",
-                  fontWeight:700, color:"#b8860b" }}>≥ 15 000 FCFA</td>
+                <td style={{ padding:"12px 20px", fontWeight:700, color:"#333" }}>Crédit</td>
+                <td style={{ padding:"12px 16px", textAlign:"center", fontWeight:700, color:"#22A052" }}>5 000 FCFA</td>
+                <td style={{ padding:"12px 16px", textAlign:"center", fontWeight:700, color:"#00904C" }}>5 001 – 14 999 FCFA</td>
+                <td style={{ padding:"12px 16px", textAlign:"center", fontWeight:700, color:"#b8860b" }}>≥ 15 000 FCFA</td>
               </tr>
             </tbody>
           </table>
@@ -505,6 +610,28 @@ export default function Formules() {
         </div>
       </div>
 
+      {/* ══ FOOTER ══ */}
+      <footer style={{ background:"#0A2410", padding:"24px 48px",
+        display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+        <div>
+          <div style={{ fontSize:"16px", fontWeight:800, color:"#fff" }}>
+            NERE <span style={{ color:"#4DC97A" }}>CCI-BF</span>
+          </div>
+          <div style={{ fontSize:"12px", color:"rgba(255,255,255,0.5)", marginTop:"4px" }}>
+            Chambre de Commerce et d'Industrie du Burkina Faso
+          </div>
+        </div>
+        <div style={{ display:"flex", gap:"20px" }}>
+          {["Confidentialité","Contact","Support"].map(l => (
+            <span key={l} style={{ fontSize:"12px", color:"rgba(255,255,255,0.5)",
+              cursor:"pointer" }}
+              onClick={() => l === "Contact" && navigate("/contact")}>
+              {l}
+            </span>
+          ))}
+        </div>
+      </footer>
+
       {/* ══ MODAL MONTANT FLEXIBLE ══ */}
       {showModal && packOuvert && (
         <div style={{ position:"fixed", inset:0, zIndex:1000,
@@ -515,15 +642,13 @@ export default function Formules() {
             maxWidth:"420px", width:"100%", textAlign:"center",
             boxShadow:"0 20px 60px rgba(0,0,0,0.15)" }}
             onClick={e => e.stopPropagation()}>
-
             <div style={{ width:"56px", height:"56px", borderRadius:"16px",
-              background: packOuvert.bgNiveau, display:"flex",
+              background:packOuvert.bgNiveau, display:"flex",
               alignItems:"center", justifyContent:"center",
               fontSize:"24px", margin:"0 auto 16px",
-              color: packOuvert.couleur, fontWeight:900 }}>
+              color:packOuvert.couleur, fontWeight:900 }}>
               {packOuvert.niveau}
             </div>
-
             <h3 style={{ fontSize:"20px", fontWeight:900, color:"#111", marginBottom:"6px" }}>
               {packOuvert.nom}
             </h3>
@@ -532,7 +657,6 @@ export default function Formules() {
                 ? `Saisissez un montant entre ${packOuvert.flexibleMin.toLocaleString("fr-FR")} et ${packOuvert.flexibleMax.toLocaleString("fr-FR")} FCFA`
                 : `Saisissez un montant de ${packOuvert.flexibleMin.toLocaleString("fr-FR")} FCFA minimum`}
             </p>
-
             <div style={{ background:"#fafafa", border:"1px solid #f0f0f0",
               borderRadius:"12px", padding:"20px", marginBottom:"16px" }}>
               <label style={{ display:"block", fontSize:"11px", fontWeight:700,
@@ -561,8 +685,6 @@ export default function Formules() {
                 </p>
               )}
             </div>
-
-            {/* Montants rapides */}
             <div style={{ display:"flex", gap:"8px", justifyContent:"center",
               marginBottom:"20px", flexWrap:"wrap" }}>
               {(packOuvert.id === "pack2"
@@ -572,23 +694,21 @@ export default function Formules() {
                 <button key={m} onClick={() => setMontantSaisi(String(m))}
                   style={{ padding:"6px 14px", borderRadius:"8px",
                     border:`1.5px solid ${Number(montantSaisi)===m ? packOuvert.couleur : "#e8e8e8"}`,
-                    background: Number(montantSaisi)===m ? packOuvert.bgNiveau : "#fff",
-                    color: Number(montantSaisi)===m ? packOuvert.couleur : "#888",
+                    background:Number(montantSaisi)===m ? packOuvert.bgNiveau : "#fff",
+                    color:Number(montantSaisi)===m ? packOuvert.couleur : "#888",
                     fontWeight:700, fontSize:"12px", cursor:"pointer" }}>
                   {m.toLocaleString("fr-FR")}
                 </button>
               ))}
             </div>
-
             <button onClick={confirmerModal}
               style={{ width:"100%", padding:"14px", borderRadius:"12px",
-                background: packOuvert.niveau === 3
+                background:packOuvert.niveau === 3
                   ? "linear-gradient(135deg,#f5c842,#d4a827)"
                   : packOuvert.couleur,
                 border:"none",
-                color: packOuvert.niveau === 3 ? "#5a3d00" : "#fff",
-                fontWeight:800, fontSize:"15px", cursor:"pointer",
-                marginBottom:"10px" }}>
+                color:packOuvert.niveau === 3 ? "#5a3d00" : "#fff",
+                fontWeight:800, fontSize:"15px", cursor:"pointer", marginBottom:"10px" }}>
               Continuer avec {(Number(montantSaisi) || packOuvert.flexibleMin).toLocaleString("fr-FR")} FCFA →
             </button>
             <button onClick={() => setShowModal(null)}

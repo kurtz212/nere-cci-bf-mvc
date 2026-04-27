@@ -7,8 +7,7 @@ const API = "/api";
 const MODES_PAIEMENT = [
   {
     id:          "cinetpay",
-    label:       "CinetPay — Mobile Money",
-    icon:        "📱",
+    label:       "Ligdi-cash — Mobile Money",
     description: "Orange Money, Moov Money, Coris Money. Activation immédiate.",
     badge:       "Instantané",
     badgeColor:  "#4DC97A",
@@ -16,7 +15,6 @@ const MODES_PAIEMENT = [
   {
     id:          "agence",
     label:       "Paiement en agence CCI-BF",
-    icon:        "🏢",
     description: "Rendez-vous à l'agence CCI-BF avec votre référence. Activation sous 24h.",
     badge:       "24h",
     badgeColor:  "#D4A830",
@@ -46,7 +44,7 @@ export default function Paiement() {
         alignItems:"center", justifyContent:"center",
         fontFamily:"Arial, Helvetica, sans-serif" }}>
         <div style={{ textAlign:"center" }}>
-          <div style={{ fontSize:"48px", marginBottom:"16px" }}>⚠️</div>
+          <div style={{ fontSize:"48px", marginBottom:"16px" }}></div>
           <h2 style={{ color:"#0A3D1F" }}>Aucun pack sélectionné</h2>
           <button className="btn-save" style={{ marginTop:"16px" }}
             onClick={() => navigate("/formules")}>
@@ -57,7 +55,7 @@ export default function Paiement() {
     );
   }
 
-  /* ✅ BUG 2 CORRIGÉ — calcul du prix dans le bon ordre :
+  /* calcul du prix dans le bon ordre :
      1. montantState  → montant custom saisi dans Formules.jsx (Pack Pro / Entreprise)
      2. packChoisi.prix si c'est un Number direct
      3. packChoisi.prix.mensuel si c'est un objet (ancien format)
@@ -70,7 +68,7 @@ export default function Paiement() {
   const nomPack = packChoisi.nom || packChoisi.label || "Pack";
   const packId  = packChoisi.id  || "pack1";
 
-  /* ✅ BUG 1 CORRIGÉ — /recharger additionne au solde existant
+  /* recharger additionne au solde existant
      /souscrire remettait le solde à zéro → NE PLUS UTILISER pour les recharges */
   const handlePayer = async () => {
     if (prix <= 0) {
@@ -86,8 +84,8 @@ export default function Paiement() {
         method:  "POST",
         headers: { "Content-Type":"application/json", Authorization:`Bearer ${token}` },
         body: JSON.stringify({
-          montant:       prix,   // ✅ montant exact saisi
-          montantCustom: prix,   // ✅ aussi en custom pour les packs flexibles
+          montant:       prix,   //  montant exact saisi
+          montantCustom: prix,   //  aussi en custom pour les packs flexibles
           nouveauPack:   packId,
         }),
       });
@@ -191,7 +189,7 @@ export default function Paiement() {
               <div style={{ background:"rgba(77,201,122,0.08)", borderRadius:"10px",
                 padding:"12px 14px", marginBottom:"20px",
                 fontSize:"12px", color:"rgba(255,255,255,0.6)", lineHeight:1.6 }}>
-                💡 Ce montant sera <strong>ajouté à votre solde existant</strong>.
+                 Ce montant sera <strong>ajouté à votre solde existant</strong>.
                 Chaque requête déduira le coût correspondant :
                 Liste (250 FCFA), Statistiques (5 000 FCFA), Fiche (1 000 FCFA).
               </div>
@@ -209,21 +207,7 @@ export default function Paiement() {
               </div>
             </div>
 
-            <div style={{ background:"rgba(77,201,122,0.06)",
-              border:"1px solid rgba(77,201,122,0.15)",
-              borderRadius:"12px", padding:"14px 16px" }}>
-              {[
-                "🔒 Paiement sécurisé",
-                "✅ Activation immédiate (CinetPay)",
-                "💰 Solde cumulatif — s'ajoute à votre crédit actuel",
-                "📞 Support CCI-BF : +226 25 30 61 22",
-              ].map(item => (
-                <div key={item} style={{ fontSize:"12px", color:"rgba(255,255,255,0.5)",
-                  padding:"5px 0", borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
-                  {item}
-                </div>
-              ))}
-            </div>
+           
           </div>
 
           {/* ── COLONNE DROITE : formulaire ── */}
@@ -333,7 +317,7 @@ export default function Paiement() {
                     <div style={{ background:"#FFF0F0", border:"1px solid #FFB3B3",
                       borderRadius:"10px", padding:"12px 16px", marginBottom:"20px",
                       color:"#CC3333", fontSize:"13px", fontWeight:600 }}>
-                      ⚠️ {erreur}
+                       {erreur}
                     </div>
                   )}
 
@@ -394,7 +378,7 @@ export default function Paiement() {
 
                       <button className="btn-save" style={{ padding:"13px 32px" }}
                         disabled={!modePaiement} onClick={() => setEtape(2)}>
-                        Continuer →
+                        Continuer 
                       </button>
                     </>
                   )}

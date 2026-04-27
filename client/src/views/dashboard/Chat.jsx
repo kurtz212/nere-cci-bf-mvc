@@ -14,7 +14,6 @@ const NAV_LINKS = [
   { label:"Messages",     path:"/chat",         key:"messages"     },
 ];
 
-/* ── CSS navbar partagé (réutilisable) ── */
 const NAVBAR_CSS = `
   * { font-family: Arial, Helvetica, sans-serif !important; }
   .nere-navbar-ch {
@@ -97,7 +96,6 @@ const NAVBAR_CSS = `
   @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
 `;
 
-/* ── Composant navbar réutilisable ── */
 function Navbar({ user, menuOpen, setMenuOpen, navigate, handleLogout, activeKey }) {
   const initiales = user
     ? `${user.prenom?.[0]||""}${user.nom?.[0]||""}`.toUpperCase()
@@ -105,7 +103,6 @@ function Navbar({ user, menuOpen, setMenuOpen, navigate, handleLogout, activeKey
 
   return (
     <nav className="nere-navbar-ch">
-      {/* Logo */}
       <div style={{ display:"flex", alignItems:"center", gap:"10px", flexShrink:0 }}>
         <img src={logoNERE} alt="NERE"
           style={{ height:"80px", width:"auto", borderRadius:"6px",
@@ -119,7 +116,6 @@ function Navbar({ user, menuOpen, setMenuOpen, navigate, handleLogout, activeKey
         </div>
       </div>
 
-      {/* Pilule liens */}
       <div className="nav-pill">
         {NAV_LINKS.map(link => (
           <button key={link.key}
@@ -130,7 +126,6 @@ function Navbar({ user, menuOpen, setMenuOpen, navigate, handleLogout, activeKey
         ))}
       </div>
 
-      {/* Actions */}
       <div style={{ display:"flex", alignItems:"center", gap:"8px", flexShrink:0 }}>
         {user ? (
           <div style={{ position:"relative" }}>
@@ -168,7 +163,7 @@ function Navbar({ user, menuOpen, setMenuOpen, navigate, handleLogout, activeKey
                     {user.role==="admin" && (
                       <div className="dd-item"
                         onClick={() => { navigate("/admin"); setMenuOpen(false); }}>
-                         Tableau de bord
+                        🛡 Tableau de bord
                       </div>
                     )}
                     {user.role==="manager" && (
@@ -213,8 +208,8 @@ export default function Chat() {
   const user      = JSON.parse(localStorage.getItem("user") || "null");
   const socketRef = useRef(null);
   const endRef    = useRef(null);
+  const textareaRef = useRef(null);
 
-  /* ── Message prédéfini passé depuis DemandeDocument ── */
   const messagePredéfini = location.state?.messagePredefini || "";
 
   const [menuOpen, setMenuOpen]         = useState(false);
@@ -244,7 +239,7 @@ export default function Chat() {
       transports: ["websocket"],
     });
     socketRef.current = socket;
-    socket.on("connect",    () => {
+    socket.on("connect", () => {
       setConnecte(true);
       socket.emit("charger_historique",  { userId:user._id||user.id, role:user.role });
       socket.emit("charger_diffusions");
@@ -253,7 +248,7 @@ export default function Chat() {
     socket.on("historique",            msgs => setMessages(msgs));
     socket.on("historique_diffusions", msgs => setDiffusions(msgs));
     socket.on("message_recu",  msg => { setMessages(m => [...m, msg]); setAdminEcrit(false); });
-    socket.on("message_envoye",msg => {
+    socket.on("message_envoye", msg => {
       setMessages(m => m.find(x => x.id===msg.id) ? m : [...m, msg]);
     });
     socket.on("diffusion_recue", msg => setDiffusions(d => [msg, ...d]));
@@ -266,6 +261,15 @@ export default function Chat() {
     endRef.current?.scrollIntoView({ behavior:"smooth" });
   }, [messages, adminEcrit]);
 
+  // Auto-resize textarea
+  const autoResize = () => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height =
+        Math.min(textareaRef.current.scrollHeight, 150) + "px";
+    }
+  };
+
   const envoyer = () => {
     if (!texte.trim() || !socketRef.current) return;
     socketRef.current.emit("message_envoyer", {
@@ -277,10 +281,15 @@ export default function Chat() {
     });
     socketRef.current.emit("stop_ecrit", { role:user.role, userId:user._id||user.id });
     setTexte("");
+    // Reset hauteur textarea
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "44px";
+    }
   };
 
   const handleTexteChange = (e) => {
     setTexte(e.target.value);
+    autoResize();
     if (socketRef.current) {
       socketRef.current.emit("ecrit", {
         role:user.role, userId:user._id||user.id,
@@ -301,6 +310,7 @@ export default function Chat() {
     boxShadow:"0 2px 8px rgba(0,0,0,0.08)",
     alignSelf:    moi ? "flex-end" : "flex-start",
     border:       moi ? "none"    : "1px solid #E2EDE6",
+    whiteSpace:   "pre-wrap",
   });
 
   /* ══ PAGE NON CONNECTÉ ══ */
@@ -311,7 +321,7 @@ export default function Chat() {
         navigate={navigate} handleLogout={()=>{}} activeKey="messages"/>
 
       <div style={{ display:"flex", alignItems:"center", justifyContent:"center",
-        minHeight:"calc(100vh - 72px)", padding:"40px 20px" }}>
+        minHeight:"calc(100vh - 120px)", padding:"40px 20px" }}>
         <div style={{ background:"#fff", borderRadius:"24px",
           border:"1.5px solid rgba(0,144,76,0.15)", padding:"60px 48px",
           maxWidth:"520px", width:"100%", textAlign:"center",
@@ -379,7 +389,6 @@ export default function Chat() {
       fontFamily:"Arial, Helvetica, sans-serif", background:"#F5FAF7" }}>
       <style>{NAVBAR_CSS}</style>
 
-      {/* ══ NAVBAR — même design que Home.jsx ══ */}
       <Navbar user={user} menuOpen={menuOpen} setMenuOpen={setMenuOpen}
         navigate={navigate} handleLogout={handleLogout} activeKey="messages"/>
 
@@ -406,7 +415,7 @@ export default function Chat() {
       <div style={{ display:"flex", borderBottom:"2px solid #E2EDE6",
         background:"#fff", flexShrink:0 }}>
         {[
-          { key:"chat",       label:" Mes messages"              },
+          { key:"chat",       label:" Mes messages"                    },
           { key:"diffusions", label:` Annonces (${diffusions.length})` },
         ].map(t => (
           <button key={t.key} onClick={() => setOnglet(t.key)} style={{
@@ -473,15 +482,31 @@ export default function Chat() {
             <div ref={endRef}/>
           </div>
 
-          {/* Zone saisie */}
+          {/* ── Zone saisie avec textarea ── */}
           <div style={{ padding:"16px 24px", background:"#fff",
-            borderTop:"1px solid #E2EDE6", display:"flex", gap:"10px", flexShrink:0 }}>
-            <input value={texte} onChange={handleTexteChange}
-              onKeyDown={e => e.key==="Enter" && !e.shiftKey && envoyer()}
-              placeholder="Écrivez votre message à la CCI-BF..."
-              style={{ flex:1, padding:"12px 16px", borderRadius:"12px",
+            borderTop:"1px solid #E2EDE6", display:"flex",
+            gap:"10px", flexShrink:0, alignItems:"flex-end" }}>
+            <textarea
+              ref={textareaRef}
+              value={texte}
+              onChange={handleTexteChange}
+              onKeyDown={e => {
+                if (e.key==="Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  envoyer();
+                }
+              }}
+              placeholder="Écrivez votre message... (Shift+Entrée pour revenir à la ligne)"
+              rows={1}
+              style={{
+                flex:1, padding:"12px 16px", borderRadius:"12px",
                 border:"1.5px solid #E2EDE6", fontSize:"14px",
-                fontFamily:"inherit", outline:"none", color:"#0A2410" }}/>
+                fontFamily:"inherit", outline:"none", color:"#0A2410",
+                resize:"none", minHeight:"44px", maxHeight:"150px",
+                overflowY:"auto", lineHeight:"1.5",
+                boxSizing:"border-box", background:"#fff",
+              }}
+            />
             <button onClick={envoyer} disabled={!texte.trim()}
               style={{ padding:"12px 24px", borderRadius:"12px",
                 background: texte.trim() ? "#00904C" : "#E2EDE6",
@@ -489,8 +514,8 @@ export default function Chat() {
                 color: texte.trim() ? "#fff" : "#6B9A7A",
                 fontWeight:700, fontSize:"14px",
                 cursor: texte.trim() ? "pointer" : "not-allowed",
-                transition:"all 0.2s" }}>
-              Envoyer →
+                transition:"all 0.2s", flexShrink:0, alignSelf:"flex-end" }}>
+              Envoyer 
             </button>
           </div>
         </>
@@ -530,7 +555,9 @@ export default function Chat() {
                     </div>
                     <div style={{ fontSize:"11px", color:"#6B9A7A" }}>{d.date} · {d.heure}</div>
                   </div>
-                  <div style={{ fontSize:"14px", color:"#0A2410", lineHeight:1.7 }}>{d.texte}</div>
+                  <div style={{ fontSize:"14px", color:"#0A2410", lineHeight:1.7, whiteSpace:"pre-wrap" }}>
+                    {d.texte}
+                  </div>
                 </div>
               ))}
             </div>

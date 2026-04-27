@@ -94,7 +94,7 @@ async function deduireSolde(userId, typeRequete, quantite = 1) {
     `Requête ${typeRequete} — ${cout.toLocaleString('fr-FR')} FCFA`
   );
 
-  console.log('✅ Nouveau solde :', nouveauSolde);
+  console.log(' Nouveau solde :', nouveauSolde);
   return { ok:true, cout, solde_restant:nouveauSolde };
 }
 
@@ -132,7 +132,7 @@ router.get('/recherche', proteger, async (req, res) => {
       cout_requete: deduction.cout,
     });
   } catch (err) {
-    console.error('❌ /api/nere/recherche :', err.message);
+    console.error(' /api/nere/recherche :', err.message);
     res.status(500).json({ success:false, message: err.message });
   }
 });
@@ -157,21 +157,21 @@ router.get('/multicritere', proteger, async (req, res) => {
       cout_requete: deduction.cout,
     });
   } catch (err) {
-    console.error('❌ /api/nere/multicritere :', err.message);
+    console.error(' /api/nere/multicritere :', err.message);
     res.status(500).json({ success:false, message: err.message });
   }
 });
 
 /* GET /api/nere/associations — 250 FCFA */
-router.get('/associations', proteger, async (req, res) => {
+router.get('/nere/associations', proteger, async (req, res) => {
   try {
     const { limit=20, page=1, ...criteres } = req.query;
 
-    const deduction = await deduireSolde(req.user.id, 'association', 1);
+    const deduction = await deduireSolde(req.user.id, 'associations', 1);
     if (!deduction.ok) return res.status(400).json({ success:false, ...deduction });
 
     const params  = new URLSearchParams({ limit, page, ...criteres });
-    const nereRes = await appelNere(`/api/entreprises/associations?${params}`);
+    const nereRes = await appelNere(`/api/nere/associations?${params}`);
 
     return res.json({
       success:      true,
@@ -181,19 +181,19 @@ router.get('/associations', proteger, async (req, res) => {
       cout_requete: deduction.cout,
     });
   } catch (err) {
-    console.error('❌ /api/nere/associations :', err.message);
+    console.error(' /api/nere/associations :', err.message);
     res.status(500).json({ success:false, message: err.message });
   }
 });
 
 /* GET /api/nere/associations/:code — 1 000 FCFA */
-router.get('/associations/:code', proteger, async (req, res) => {
+router.get('/nere/associations/:code', proteger, async (req, res) => {
   try {
     const deduction = await deduireSolde(req.user.id, 'fiche', 1);
     if (!deduction.ok) return res.status(400).json({ success:false, ...deduction });
 
     const nereRes = await appelNere(
-      `/api/entreprises/associations/${encodeURIComponent(req.params.code)}`
+      `/api/nere/associations/${encodeURIComponent(req.params.code)}`
     );
 
     return res.json({
@@ -203,7 +203,7 @@ router.get('/associations/:code', proteger, async (req, res) => {
       cout_requete: deduction.cout,
     });
   } catch (err) {
-    console.error('❌ /api/nere/associations/:code :', err.message);
+    console.error(' /api/nere/associations/:code :', err.message);
     res.status(500).json({ success:false, message: err.message });
   }
 });
@@ -227,7 +227,7 @@ router.get('/recherche-globale', proteger, async (req, res) => {
       cout_requete: deduction.cout,
     });
   } catch (err) {
-    console.error('❌ /api/nere/recherche-globale :', err.message);
+    console.error(' /api/nere/recherche-globale :', err.message);
     res.status(500).json({ success:false, message: err.message });
   }
 });
@@ -247,7 +247,7 @@ router.get('/statistiques', proteger, async (req, res) => {
       cout_requete: deduction.cout,
     });
   } catch (err) {
-    console.error('❌ /api/nere/statistiques :', err.message);
+    console.error(' /api/nere/stats :', err.message);
     res.status(500).json({ success:false, message: err.message });
   }
 });
@@ -269,7 +269,7 @@ router.get('/entreprise/:rccm', proteger, async (req, res) => {
       cout_requete: deduction.cout,
     });
   } catch (err) {
-    console.error('❌ /api/nere/entreprise/:rccm :', err.message);
+    console.error(' /api/nere/entreprise/:rccm :', err.message);
     res.status(500).json({ success:false, message: err.message });
   }
 });

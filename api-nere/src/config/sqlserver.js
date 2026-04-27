@@ -24,13 +24,13 @@ const connecterSQLServer = async () => {
     console.log(`🔌 Connexion : ${config.server}:${config.port}/${config.database} (user: ${config.user})`);
     pool = await new sql.ConnectionPool(config).connect();
     pool.on('error', err => {
-      console.error('❌ Pool SQL Server erreur :', err.message);
+      console.error(' Pool SQL Server erreur :', err.message);
       pool = null; // réinitialiser pour reconnecter
     });
     console.log('✅ SQL Server dbNERE connecté');
     return pool;
   } catch (err) {
-    console.error('❌ Erreur connexion SQL Server :', err.message);
+    console.error(' Erreur connexion SQL Server :', err.message);
     throw err;
   }
 };

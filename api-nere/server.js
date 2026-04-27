@@ -7,7 +7,7 @@ dotenv.config();
 const { connecterSQLServer } = require('./src/config/sqlserver');
 
 const app  = express();
-const PORT = process.env.NERE_PORT || 50011;
+const PORT = process.env.NERE_PORT || 5001;
 
 app.use(cors({ origin: '*' }));
 app.use(express.json());

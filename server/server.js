@@ -20,12 +20,12 @@ try {
   app.set('io', io);
   try {
     require('./src/socket')(io);
-    console.log('✅ Socket.io initialisé');
+    console.log(' Socket.io initialisé');
   } catch(e) {
-    console.warn('⚠️  src/socket.js manquant:', e.message);
+    console.warn('  src/socket.js manquant:', e.message);
   }
 } catch(e) {
-  console.warn('⚠️  socket.io non installé:', e.message);
+  console.warn('  socket.io non installé:', e.message);
 }
 
 // ── Middlewares ──
@@ -63,15 +63,15 @@ const ROUTES = [
 ROUTES.forEach(({ path, file }) => {
   try {
     app.use(path, require(file));
-    console.log('✅ Route : ' + path);
+    console.log(' Route : ' + path);
   } catch(e) {
-    console.warn('⚠️  Route ignorée [' + path + '] : ' + e.message);
+    console.warn('  Route ignorée [' + path + '] : ' + e.message);
   }
 });
 
 // ── Middleware erreurs ──
 app.use((err, req, res, next) => {
-  console.error('❌ Erreur:', err.message);
+  console.error(' Erreur:', err.message);
   res.status(err.statusCode || 500).json({
     success: false,
     message: err.message || 'Erreur serveur',
@@ -86,12 +86,12 @@ mongoose.connect(MONGO_URI)
   .then(() => {
     console.log('✅ MongoDB connecté');
     server.listen(PORT, () =>
-      console.log('🚀 Serveur sur http://localhost:' + PORT)
+      console.log(' Serveur sur http://localhost:' + PORT)
     );
   })
   .catch(err => {
     console.error('❌ MongoDB:', err.message);
     server.listen(PORT, () =>
-      console.log('🚀 Serveur sur http://localhost:' + PORT + ' (sans MongoDB)')
+      console.log(' Serveur sur http://localhost:' + PORT + ' (sans MongoDB)')
     );
   });
