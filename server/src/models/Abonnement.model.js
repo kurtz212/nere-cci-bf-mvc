@@ -7,48 +7,52 @@ const AbonnementSchema = new mongoose.Schema({
   montantInitial: { type:Number, required:true },
   solde:          { type:Number, required:true },
   actif:          { type:Boolean, default:true },
-
-  // Statistiques d'usage
   totalDepense:   { type:Number, default:0 },
   nbRequetes:     { type:Number, default:0 },
-
-  // Historique des transactions
   historique: [{
-    type:          { type:String, enum:['credit','debit'] },
-    typeRequete:   { type:String, enum:['liste','statistique','fiche','detail','autre','recharge'] },
-    montant:       Number,
-    description:   String,
-    soldeAvant:    Number,
-    soldeApres:    Number,
-    date:          { type:Date, default:Date.now },
+    type:        { type:String, enum:['credit','debit'] },
+    typeRequete: { type:String, enum:['liste','statistique','fiche','detail','autre','recharge'] },
+    montant:     Number,
+    description: String,
+    soldeAvant:  Number,
+    soldeApres:  Number,
+    date:        { type:Date, default:Date.now },
   }],
 }, { timestamps:true });
 
-// Méthode pour déduire avec historique
-AbonnementSchema.methods.deduire = async function(montant, typeRequete, description) {
+/* ══ deduire ══
+   roleUtilisateur : 'admin' | 'manager' → bypass total, rien n'est enregistré
+*/
+AbonnementSchema.methods.deduire = async function(montant, typeRequete, description, roleUtilisateur = 'abonne') {
+
+  if (roleUtilisateur === 'admin' || roleUtilisateur === 'manager') {
+    return { solde: this.solde, bypasse: true };
+  }
+
   if (this.solde < montant) {
     throw new Error(`SOLDE_INSUFFISANT:${montant}:${this.solde}`);
   }
+
   const soldeAvant  = this.solde;
   this.solde       -= montant;
   this.totalDepense = (this.totalDepense || 0) + montant;
   this.nbRequetes   = (this.nbRequetes   || 0) + 1;
   this.historique.push({
-    type:        'debit',
+    type:       'debit',
     typeRequete,
     montant,
     description,
     soldeAvant,
-    soldeApres:  this.solde,
+    soldeApres: this.solde,
   });
   await this.save();
-  return this.solde;
+  return { solde: this.solde, bypasse: false };
 };
 
-// Méthode pour recharger
+/* ══ recharger ══ */
 AbonnementSchema.methods.recharger = async function(montant, description) {
-  const soldeAvant  = this.solde;
-  this.solde       += montant;
+  const soldeAvant    = this.solde;
+  this.solde         += montant;
   this.montantInitial = montant;
   this.historique.push({
     type:        'credit',

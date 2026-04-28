@@ -114,7 +114,13 @@ function buildParamsAssociation(query) {
   }
   if (region) {
     params.region = { type: sql.NVarChar, value: `%${region}%` };
-    where += ` AND a.code_ville IN (SELECT code_com FROM PCommune WHERE code_prv IN (SELECT code_prv FROM PProvince WHERE code_reg IN (SELECT code_reg FROM PRegion WHERE lib_reg LIKE @region)))`;
+    // Filtre par région géographique PRegion via PCommune → PProvince → PRegion
+    where += ` AND a.code_ville IN (
+      SELECT c.code_com FROM PCommune c
+      JOIN PProvince pv ON c.code_prv = pv.code_prv
+      JOIN PRegion   rg ON pv.code_reg = rg.code_reg
+      WHERE rg.lib_reg LIKE @region
+    )`;
   }
   if (commune) {
     params.commune = { type: sql.NVarChar, value: `%${commune}%` };
@@ -779,28 +785,30 @@ exports.getStatsAssociations = async (req, res) => {
 exports.getStatsImportations = async (req, res) => {
   try {
     const pool = getPool();
-    const { region, sous_categorie, annee, annee_debut, annee_fin } = req.query;
+    const { annee, annee_debut, annee_fin } = req.query;
 
     // Construction du WHERE dynamique
-    let where = `WHERE type_ie = 'I'`;
+    const { province, code_prd } = req.query;
+
+    let whereExtra = '';
     const buildReq = () => {
       const r = pool.request();
-      if (region)        { r.input('region',        sql.NVarChar, `%${region}%`);        }
-      if (sous_categorie){ r.input('sous_categorie', sql.NVarChar, sous_categorie.trim()); }
-      if (annee)         { r.input('annee',          sql.Int,      parseInt(annee));       }
-      if (annee_debut)   { r.input('annee_debut',    sql.Int,      parseInt(annee_debut)); }
-      if (annee_fin)     { r.input('annee_fin',      sql.Int,      parseInt(annee_fin));   }
+      if (province)    { r.input('province', sql.NVarChar, `%${province}%`);  }
+      if (code_prd)    { r.input('code_prd', sql.NVarChar, code_prd.trim());   }
+      if (annee)       { r.input('annee',     sql.Int, parseInt(annee));        }
+      if (annee_debut) { r.input('annee_debut', sql.Int, parseInt(annee_debut));}
+      if (annee_fin)   { r.input('annee_fin',   sql.Int, parseInt(annee_fin));  }
       return r;
     };
 
-    let whereExtra = '';
-    if (region)         whereExtra += ` AND (commune_ent LIKE @region OR province_ent LIKE @region)`;
-    if (annee)          whereExtra += ` AND YEAR(debutp) = @annee`;
-    if (annee_debut && annee_fin) whereExtra += ` AND YEAR(debutp) BETWEEN @annee_debut AND @annee_fin`;
-    else if (annee_debut) whereExtra += ` AND YEAR(debutp) >= @annee_debut`;
-    else if (annee_fin)   whereExtra += ` AND YEAR(debutp) <= @annee_fin`;
+    if (province)                     whereExtra += ` AND province_ent LIKE @province`;
+    if (code_prd)                     whereExtra += ` AND code_prd = @code_prd`;
+    if (annee)                        whereExtra += ` AND YEAR(debutp) = @annee`;
+    if (annee_debut && annee_fin)     whereExtra += ` AND YEAR(debutp) BETWEEN @annee_debut AND @annee_fin`;
+    else if (annee_debut)             whereExtra += ` AND YEAR(debutp) >= @annee_debut`;
+    else if (annee_fin)               whereExtra += ` AND YEAR(debutp) <= @annee_fin`;
 
-    const fullWhere = where + whereExtra;
+    const fullWhere = `WHERE type_ie = 'I'` + whereExtra;
 
     const [total, parProduit, parProvince, totalValeur] = await Promise.all([
       buildReq().query(`SELECT COUNT(*) AS total FROM XDOUANE ${fullWhere}`),
@@ -852,24 +860,25 @@ exports.getStatsImportations = async (req, res) => {
 exports.getStatsExportations = async (req, res) => {
   try {
     const pool = getPool();
-    const { region, sous_categorie, annee, annee_debut, annee_fin } = req.query;
+    const { province, code_prd } = req.query;
 
+    let whereExtra = '';
     const buildReq = () => {
       const r = pool.request();
-      if (region)        { r.input('region',        sql.NVarChar, `%${region}%`);        }
-      if (sous_categorie){ r.input('sous_categorie', sql.NVarChar, sous_categorie.trim()); }
-      if (annee)         { r.input('annee',          sql.Int,      parseInt(annee));       }
-      if (annee_debut)   { r.input('annee_debut',    sql.Int,      parseInt(annee_debut)); }
-      if (annee_fin)     { r.input('annee_fin',      sql.Int,      parseInt(annee_fin));   }
+      if (province)    { r.input('province', sql.NVarChar, `%${province}%`);  }
+      if (code_prd)    { r.input('code_prd', sql.NVarChar, code_prd.trim());   }
+      if (annee)       { r.input('annee',     sql.Int, parseInt(annee));        }
+      if (annee_debut) { r.input('annee_debut', sql.Int, parseInt(annee_debut));}
+      if (annee_fin)   { r.input('annee_fin',   sql.Int, parseInt(annee_fin));  }
       return r;
     };
 
-    let whereExtra = '';
-    if (region)           whereExtra += ` AND (commune_ent LIKE @region OR province_ent LIKE @region)`;
-    if (annee)            whereExtra += ` AND YEAR(debutp) = @annee`;
-    if (annee_debut && annee_fin) whereExtra += ` AND YEAR(debutp) BETWEEN @annee_debut AND @annee_fin`;
-    else if (annee_debut) whereExtra += ` AND YEAR(debutp) >= @annee_debut`;
-    else if (annee_fin)   whereExtra += ` AND YEAR(debutp) <= @annee_fin`;
+    if (province)                     whereExtra += ` AND province_ent LIKE @province`;
+    if (code_prd)                     whereExtra += ` AND code_prd = @code_prd`;
+    if (annee)                        whereExtra += ` AND YEAR(debutp) = @annee`;
+    if (annee_debut && annee_fin)     whereExtra += ` AND YEAR(debutp) BETWEEN @annee_debut AND @annee_fin`;
+    else if (annee_debut)             whereExtra += ` AND YEAR(debutp) >= @annee_debut`;
+    else if (annee_fin)               whereExtra += ` AND YEAR(debutp) <= @annee_fin`;
 
     const fullWhere = `WHERE type_ie = 'E'` + whereExtra;
 

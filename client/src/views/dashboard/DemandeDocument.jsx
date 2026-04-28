@@ -62,11 +62,43 @@ const TYPES_REQUETES = [
   },
 ];
 
-const REGIONS = [
-  "OUAGADOUGOU","BOBO","KOUDOUGOU","BANFORA","OUAHIGOUYA",
-  "KAYA","FADA","DEDOUGOU","TENKODOGO","ZINIARE",
-  "MANGA","KOMBISSIRI","DORI","GAOUA","NOUNA",
+/* Régions géographiques (PRegion) — pour associations */
+const REGIONS_GEO = [
+  { label:"Centre",           value:"Centre"           },
+  { label:"Hauts-Bassins",    value:"Hauts-bassins"    },
+  { label:"Est",              value:"Est"              },
+  { label:"Nord",             value:"Nord"             },
+  { label:"Boucle du Mouhoun",value:"Boucle du Mouhoun"},
+  { label:"Sahel",            value:"Sahel"            },
+  { label:"Sud-Ouest",        value:"Sud-Ouest"        },
+  { label:"Centre-Nord",      value:"Centre-Nord"      },
+  { label:"Centre-Est",       value:"Centre-Est"       },
+  { label:"Centre-Ouest",     value:"Centre-Ouest"     },
+  { label:"Plateau-Central",  value:"Plateau-Central"  },
+  { label:"Centre-Sud",       value:"Centre-Sud"       },
+  { label:"Cascades",         value:"Cascades"         },
 ];
+
+/* Villes (adrsiege_ent) — pour entreprises */
+const REGIONS_VILLES = [
+  { label:"Ouagadougou",   value:"OUAGADOUGOU"   },
+  { label:"Bobo-Dioulasso",value:"BOBO-DIOULASSO" },
+  { label:"Koudougou",     value:"KOUDOUGOU"      },
+  { label:"Banfora",       value:"BANFORA"        },
+  { label:"Ouahigouya",    value:"OUAHIGOUYA"     },
+  { label:"Kaya",          value:"KAYA"           },
+  { label:"Fada N'Gourma", value:"FADA"           },
+  { label:"Dédougou",      value:"DEDOUGOU"       },
+  { label:"Tenkodogo",     value:"TENKODOGO"      },
+  { label:"Ziniaré",       value:"ZINIARE"        },
+  { label:"Manga",         value:"MANGA"          },
+  { label:"Dori",          value:"DORI"           },
+  { label:"Gaoua",         value:"GAOUA"          },
+  { label:"Nouna",         value:"NOUNA"          },
+];
+
+/* Compatibilité — garder REGIONS comme alias */
+const REGIONS = REGIONS_VILLES;
 
 /* Formes juridiques confirmées dans PFormeJ */
 const FORMES_JURIDIQUES = [
@@ -167,6 +199,70 @@ const SECTEURS = [
 /* Secteurs sans Services (pour import/export) */
 const SECTEURS_DOUANE = SECTEURS.filter(s => s.code !== "S");
 
+/* Produits importation — table XDOUANE type_ie='I' */
+const PRODUITS_IMPORT = [
+  { code:"P001", label:"Riz paddy" },
+  { code:"P002", label:"Huile de palme" },
+  { code:"P003", label:"Ciment Portland" },
+  { code:"P004", label:"Véhicules utilitaires" },
+  { code:"P005", label:"Médicaments génériques" },
+  { code:"P006", label:"Engrais NPK" },
+  { code:"P007", label:"Textiles coton" },
+  { code:"P008", label:"Matériel informatique" },
+  { code:"P009", label:"Sucre raffiné" },
+  { code:"P010", label:"Groupes électrogènes" },
+  { code:"P011", label:"Farine de blé" },
+  { code:"P012", label:"Tôles ondulées zinc" },
+  { code:"P013", label:"Pièces automobiles" },
+  { code:"P014", label:"Câbles électriques" },
+  { code:"P015", label:"Produits chimiques agricoles" },
+  { code:"P016", label:"Matériel médical" },
+  { code:"P017", label:"Téléphones mobiles" },
+  { code:"P018", label:"Huile moteur" },
+  { code:"P019", label:"Papier bureau" },
+  { code:"P020", label:"Peintures industrielles" },
+  { code:"P021", label:"Pneumatiques poids lourds" },
+  { code:"P022", label:"Savons et détergents" },
+  { code:"P023", label:"Générateurs solaires" },
+  { code:"P024", label:"Aliments bétail" },
+  { code:"P025", label:"Bouteilles gaz GPL" },
+];
+
+/* Produits exportation — table XDOUANE type_ie='E' */
+const PRODUITS_EXPORT = [
+  { code:"P101", label:"Coton fibre" },
+  { code:"P102", label:"Or brut" },
+  { code:"P103", label:"Sésame graines" },
+  { code:"P104", label:"Noix de cajou" },
+  { code:"P105", label:"Beurre de karité" },
+  { code:"P106", label:"Zinc minerai" },
+  { code:"P107", label:"Haricots verts" },
+  { code:"P108", label:"Mangues fraîches" },
+  { code:"P109", label:"Cuir tanné" },
+  { code:"P110", label:"Arachides décortiquées" },
+  { code:"P111", label:"Gomme arabique" },
+  { code:"P112", label:"Neem feuilles poudre" },
+  { code:"P113", label:"Charbon de bois" },
+  { code:"P114", label:"Artisanat bronze" },
+  { code:"P115", label:"Niébé séché" },
+  { code:"P116", label:"Coton graine" },
+  { code:"P117", label:"Maïs grain" },
+  { code:"P118", label:"Bois de rose sculpture" },
+  { code:"P119", label:"Sorgho grain" },
+  { code:"P120", label:"Peau bovine brute" },
+  { code:"P121", label:"Zinc raffiné lingots" },
+  { code:"P122", label:"Poudre de baobab" },
+  { code:"P123", label:"Coton écru tissu" },
+  { code:"P124", label:"Mil grain" },
+  { code:"P125", label:"Igname fraîche" },
+];
+
+/* Provinces XDOUANE */
+const PROVINCES_DOUANE = [
+  { label:"Kadiogo (Ouagadougou)", value:"KADIOGO" },
+  { label:"Houet (Bobo-Dioulasso)", value:"HOUET"  },
+];
+
 const STATUT_COLORS = {
   en_attente:{ bg:"rgba(212,168,48,0.1)",  color:"#D4A830", label:"En attente" },
   en_cours:  { bg:"rgba(34,160,82,0.1)",   color:"#22A052", label:"En cours"   },
@@ -180,6 +276,250 @@ function formaterMontant(m) {
   if (!m) return "Sur devis";
   return m.toLocaleString("fr-FR") + " FCFA";
 }
+
+
+/* ══════════════════════════════════════════
+   Génération PDF côté navigateur (sans dépendance)
+   Utilise l'API window.print() avec une page HTML stylée
+══════════════════════════════════════════ */
+function genererEtTelechargerPDF(resultats, total, mode, titre, periode) {
+  const now = new Date().toLocaleDateString("fr-FR", {
+    day:"2-digit", month:"long", year:"numeric"
+  });
+
+  const estAssociation = mode === "association" ||
+    (Array.isArray(resultats) && resultats[0]?.code_ass);
+
+  // Générer les lignes du tableau
+  const lignes = resultats.map((item, i) => {
+    const nom = item.denomination || item.nom_commercial || item.nom || "—";
+    const id1 = item.rccm || item.recepisse || "—";
+    const id2 = item.ifu || "—";
+    const contact = [item.email, item.telephone_fixe, item.telephone_mobile]
+      .filter(Boolean).join(" | ") || "—";
+    const localisation = item.region || item.adresse_siege || item.adresse || "—";
+    const statut = item.etat
+      ? (item.etat === "A" ? "Actif" : "Inactif")
+      : (item.statut_validite === "1" || item.statut_validite === "A" ? "Valide" : (item.statut_validite ? "Non valide" : "—"));
+
+    return `
+      <tr style="background:${i%2===0?"#fff":"#f9fdf9"}">
+        <td style="padding:6px 8px;border-bottom:1px solid #e0ede6;font-weight:600;color:#0A2410">${i+1}. ${nom}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #e0ede6;font-size:11px;color:#333">${id1}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #e0ede6;font-size:11px;color:#333">${id2}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #e0ede6;font-size:11px;color:#555">${contact}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #e0ede6;font-size:11px;color:#555">${localisation}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #e0ede6;text-align:center">
+          <span style="background:${statut==="Actif"||statut==="Valide"?"#e8f5ee":"#fff0f0"};color:${statut==="Actif"||statut==="Valide"?"#1A7A40":"#CC3333"};border-radius:100px;padding:2px 8px;font-size:10px;font-weight:700">${statut}</span>
+        </td>
+      </tr>`;
+  }).join("");
+
+  const col1 = estAssociation ? "Récépissé" : "RCCM";
+  const col2 = "IFU";
+
+  const html = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <title>${titre || "Résultats NERE"}</title>
+  <style>
+    @page { size: A4 landscape; margin: 15mm 12mm; }
+    * { font-family: Arial, Helvetica, sans-serif; box-sizing: border-box; }
+    body { margin: 0; padding: 0; font-size: 12px; color: #1A2E1F; }
+
+    .header { background: #00904C; color: #fff; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; border-radius: 8px 8px 0 0; margin-bottom: 0; }
+    .header-left h1 { margin: 0; font-size: 18px; font-weight: 900; letter-spacing: 0.05em; }
+    .header-left p  { margin: 3px 0 0; font-size: 10px; opacity: 0.75; }
+    .header-right   { text-align: right; font-size: 11px; opacity: 0.85; line-height: 1.6; }
+
+    .meta { background: #f5faf7; border: 1px solid #c0deca; border-top: none; padding: 10px 20px; display: flex; gap: 30px; align-items: center; }
+    .meta-item { display: flex; flex-direction: column; }
+    .meta-item span:first-child { font-size: 9px; font-weight: 700; color: #6B9A7A; text-transform: uppercase; letter-spacing: 0.07em; }
+    .meta-item span:last-child  { font-size: 13px; font-weight: 800; color: #00904C; }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 0; }
+    thead tr { background: #00904C; }
+    thead th { padding: 8px 8px; color: #fff; font-size: 10px; font-weight: 700; text-align: left; text-transform: uppercase; letter-spacing: 0.06em; }
+
+    .footer { margin-top: 16px; padding: 10px 0; border-top: 1px solid #e0ede6; display: flex; justify-content: space-between; font-size: 9px; color: #6B9A7A; }
+
+    @media print {
+      .no-print { display: none; }
+      body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-left">
+      <h1>FICHIER NERE — CCI-BF</h1>
+      <p>Chambre de Commerce et d'Industrie du Burkina Faso · Registre National des Entreprises</p>
+    </div>
+    <div class="header-right">
+      <div>Date d'extraction : <strong>${now}</strong></div>
+      <div>Document officiel CCI-BF</div>
+    </div>
+  </div>
+
+  <div class="meta">
+    <div class="meta-item">
+      <span>Type</span>
+      <span>${titre || (estAssociation ? "Associations" : "Entreprises")}</span>
+    </div>
+    <div class="meta-item">
+      <span>Total trouvé</span>
+      <span>${total?.toLocaleString("fr-FR")} résultat(s)</span>
+    </div>
+    <div class="meta-item">
+      <span>Affichés</span>
+      <span>${resultats.length}</span>
+    </div>
+    ${periode ? `<div class="meta-item"><span>Période</span><span>${periode}</span></div>` : ""}
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:28%">Dénomination / Nom</th>
+        <th style="width:14%">${col1}</th>
+        <th style="width:11%">${col2}</th>
+        <th style="width:22%">Contact</th>
+        <th style="width:18%">Localisation</th>
+        <th style="width:7%;text-align:center">Statut</th>
+      </tr>
+    </thead>
+    <tbody>${lignes}</tbody>
+  </table>
+
+  <div class="footer">
+    <span>© CCI-BF — Tous droits réservés — Document généré automatiquement</span>
+    <span>+226 25 30 61 22 · www.cci.bf</span>
+  </div>
+
+  <script>
+    window.onload = function() { window.print(); };
+  </script>
+</body>
+</html>`;
+
+  // Ouvrir dans une nouvelle fenêtre et déclencher l'impression
+  const popup = window.open("", "_blank", "width=1200,height=800");
+  if (popup) {
+    popup.document.write(html);
+    popup.document.close();
+  } else {
+    // Fallback : blob URL
+    const blob = new Blob([html], { type:"text/html;charset=utf-8" });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    a.href     = url;
+    a.target   = "_blank";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+}
+
+/* Fonction pour statistiques */
+function genererStatsPDF(resultatNere, typeObj, getPeriodeLabel) {
+  const now = new Date().toLocaleDateString("fr-FR", {
+    day:"2-digit", month:"long", year:"numeric"
+  });
+  const resultats = resultatNere?.multi ? resultatNere.resultats : [{ type: "stats", ...resultatNere }];
+
+  const LABELS = {
+    stat_entreprises:  { titre:"Statistiques Entreprises",  couleur:"#00904C" },
+    stat_associations: { titre:"Statistiques Associations",  couleur:"#1E60CC" },
+    stat_importations: { titre:"Statistiques Importations", couleur:"#D4A830" },
+    stat_exportations: { titre:"Statistiques Exportations", couleur:"#CC3333" },
+  };
+
+  let sections = resultats.map(stat => {
+    const meta = LABELS[stat.type] || LABELS.stat_entreprises;
+    let rows = "";
+    const items = stat.data?.par_region || stat.data?.par_province || stat.data?.par_produit || [];
+    items.slice(0, 20).forEach((r, i) => {
+      rows += `<tr style="background:${i%2===0?"#fff":"#f9f9f9"}">
+        <td style="padding:6px 10px;border-bottom:1px solid #eee">${r.region||r.province||r.produit||r.categorie||r.forme_juridique||"N/A"}</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:right;font-weight:700;color:${meta.couleur}">${r.nb?.toLocaleString("fr-FR") || "—"}</td>
+        ${r.valeur_totale ? `<td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:right">${Number(r.valeur_totale).toLocaleString("fr-FR")} FCFA</td>` : ""}
+      </tr>`;
+    });
+
+    return `
+      <div style="margin-bottom:24px;border:1px solid ${meta.couleur}44;border-radius:8px;overflow:hidden;page-break-inside:avoid">
+        <div style="background:${meta.couleur};padding:10px 16px;color:#fff;font-weight:800;font-size:14px">
+          ${meta.titre}
+        </div>
+        <div style="padding:14px 16px;background:#f9fdf9;display:flex;gap:24px">
+          <div>
+            <div style="font-size:10px;color:#6B9A7A;text-transform:uppercase;font-weight:700">Total</div>
+            <div style="font-size:26px;font-weight:900;color:${meta.couleur}">${stat.data?.total?.toLocaleString("fr-FR") || "—"}</div>
+          </div>
+          ${stat.data?.valeur_totale ? `
+          <div>
+            <div style="font-size:10px;color:#6B9A7A;text-transform:uppercase;font-weight:700">Valeur totale</div>
+            <div style="font-size:18px;font-weight:800;color:${meta.couleur}">${Number(stat.data.valeur_totale).toLocaleString("fr-FR")} FCFA</div>
+          </div>` : ""}
+        </div>
+        ${rows ? `
+        <table style="width:100%;border-collapse:collapse">
+          <thead><tr style="background:${meta.couleur}22">
+            <th style="padding:7px 10px;text-align:left;font-size:10px;color:${meta.couleur};text-transform:uppercase">Répartition</th>
+            <th style="padding:7px 10px;text-align:right;font-size:10px;color:${meta.couleur};text-transform:uppercase">Nombre</th>
+            ${(stat.data?.par_produit||stat.data?.par_province) ? `<th style="padding:7px 10px;text-align:right;font-size:10px;color:${meta.couleur};text-transform:uppercase">Valeur</th>` : ""}
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>` : ""}
+      </div>`;
+  }).join("");
+
+  const html = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Statistiques NERE</title>
+  <style>
+    @page { size: A4 portrait; margin: 15mm 12mm; }
+    * { font-family: Arial, Helvetica, sans-serif; box-sizing: border-box; }
+    body { margin: 0; padding: 0; font-size: 12px; color: #1A2E1F; }
+    .header { background: #00904C; color: #fff; padding: 14px 20px; border-radius: 8px 8px 0 0; display:flex; justify-content:space-between; align-items:center; }
+    .header h1 { margin:0; font-size:18px; font-weight:900; }
+    .header p  { margin:3px 0 0; font-size:10px; opacity:0.75; }
+    .meta { background:#f5faf7; border:1px solid #c0deca; border-top:none; padding:10px 20px; display:flex; gap:24px; margin-bottom:20px; }
+    .meta-item span:first-child { display:block; font-size:9px; font-weight:700; color:#6B9A7A; text-transform:uppercase; }
+    .meta-item span:last-child  { display:block; font-size:13px; font-weight:800; color:#00904C; }
+    .footer { margin-top:16px; padding:10px 0; border-top:1px solid #e0ede6; display:flex; justify-content:space-between; font-size:9px; color:#6B9A7A; }
+    @media print { body { print-color-adjust:exact; -webkit-print-color-adjust:exact; } }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1>FICHIER NERE — CCI-BF</h1>
+      <p>Chambre de Commerce et d'Industrie du Burkina Faso · Registre National des Entreprises</p>
+    </div>
+    <div style="text-align:right;font-size:11px;opacity:0.85">
+      <div>Date : <strong>${now}</strong></div>
+    </div>
+  </div>
+  <div class="meta">
+    <div class="meta-item"><span>Type</span><span>${typeObj?.label || "Statistiques"}</span></div>
+    <div class="meta-item"><span>Période</span><span>${getPeriodeLabel()}</span></div>
+  </div>
+  ${sections}
+  <div class="footer">
+    <span>© CCI-BF — Tous droits réservés — Document généré automatiquement</span>
+    <span>+226 25 30 61 22 · www.cci.bf</span>
+  </div>
+  <script>window.onload = function() { window.print(); };</script>
+</body>
+</html>`;
+
+  const popup = window.open("", "_blank", "width=900,height=800");
+  if (popup) { popup.document.write(html); popup.document.close(); }
+}
+
 
 function Chip({ label }) {
   return (
@@ -253,6 +593,7 @@ export default function DemandeDocument() {
     typeRequete:"", sousType:[], quantite:"",
     regions:[], villes:"", formesJuridiques:[], tranches:[],
     secteur:"", sousCategories:[],
+    produitDouane:"", provinceDouane:"",
     description:"", contact:user?.email||"", telephone:"",
   });
   const [secteurOuvert, setSecteurOuvert] = useState(null);
@@ -275,6 +616,10 @@ export default function DemandeDocument() {
   const montant    = typeObj?.prix && form.quantite && form.typeRequete !== "statistique" && isDirect
     ? typeObj.prix * parseInt(form.quantite || 0) : null;
   const nbCriteres = form.regions.length + form.formesJuridiques.length + form.tranches.length;
+
+  // Vrai si sousType = liste_associations
+  const estListeAssociation = form.typeRequete === "liste" &&
+    (Array.isArray(form.sousType) ? form.sousType[0] : form.sousType) === "liste_associations";
 
   // Stat import/export uniquement : secteur + région + période
   const estStatDouane = form.typeRequete === "statistique" &&
@@ -409,6 +754,8 @@ export default function DemandeDocument() {
       if (form.formesJuridiques.length > 0) params.append("forme_juridique", form.formesJuridiques[0]);
       if (form.villes)                       params.append("commune",          form.villes);
       if (form.sousCategories.length > 0)   params.append("sous_categorie",  form.sousCategories[0]);
+      if (form.produitDouane)               params.append("code_prd",         form.produitDouane);
+      if (form.provinceDouane)              params.append("province",          form.provinceDouane);
       if (form.tranches.length > 0) {
         const t = form.tranches[0];
         if (t !== "500+") {
@@ -422,7 +769,7 @@ export default function DemandeDocument() {
 
       let nereData = null;
 
-      /*  routes /nere/ */
+      /*  routes correctes  /nere/ */
       if (form.typeRequete === "statistique") {
         /* Statistiques — appels multiples selon les sous-types sélectionnés */
         const sousTypes = Array.isArray(form.sousType) ? form.sousType : [form.sousType];
@@ -492,7 +839,8 @@ export default function DemandeDocument() {
   const reset = () => {
     setSuccess(false); setEtape(1); setResultatNere(null); setErreur("");
     setForm({ typeRequete:"", sousType:[], quantite:"", regions:[], villes:"",
-      formesJuridiques:[], tranches:[], description:"", contact:user?.email||"", telephone:"" });
+      formesJuridiques:[], tranches:[], produitDouane:"", provinceDouane:"",
+      description:"", contact:user?.email||"", telephone:"" });
   };
 
   const demandesFiltrees = filtreStatut==="tous" ? demandes : demandes.filter(d=>d.statut===filtreStatut);
@@ -651,7 +999,7 @@ export default function DemandeDocument() {
                       <div className="dd-email">{user.email||"—"}</div>
                       <div className="dd-role">
                         {user.role==="admin"   ? " Admin" :
-                         user.role==="manager" ? "Gestionnaire" : " Abonné"}
+                         user.role==="manager" ? " Gestionnaire" : " Abonné"}
                       </div>
                     </div>
                     <div style={{ padding:"6px 0" }}>
@@ -667,7 +1015,7 @@ export default function DemandeDocument() {
                       {user.role==="admin" && (
                         <div className="dd-item"
                           onClick={() => { navigate("/admin"); setMenuOpen(false); }}>
-                           Tableau de bord
+                          🛡 Tableau de bord
                         </div>
                       )}
                       {user.role==="manager" && (
@@ -754,11 +1102,11 @@ export default function DemandeDocument() {
         <div style={{ background:"#fff", borderBottom:"1px solid var(--border)",
           padding:"0 48px", display:"flex" }}>
           {[
-             { key:"Recherche par un critère",   label:"Recherche par un critère" },
-            { key:"nouvelle",   label:"Nouvelle demande" },
-            { key:"historique", label:`Mes demandes${demandes.length>0?` (${demandes.length})`:""}`},
+            { key:"recherche_simple", label:" Recherche par critère", path:"/recherche-entreprise" },
+            { key:"nouvelle",         label:" Nouvelle demande" },
+            { key:"historique",       label:` Mes demandes${demandes.length>0?` (${demandes.length})`:""}`},
           ].map(o=>(
-            <button key={o.key} onClick={()=>setOnglet(o.key)} style={{
+            <button key={o.key} onClick={()=> o.path ? navigate(o.path) : setOnglet(o.key)} style={{
               padding:"14px 24px", background:"transparent", border:"none",
               borderBottom: onglet===o.key?"3px solid var(--green-light)":"3px solid transparent",
               color: onglet===o.key?"var(--green-dark)":"var(--text-muted)",
@@ -1036,7 +1384,28 @@ export default function DemandeDocument() {
                       color:"#CC3333", fontSize:"13px" }}> {erreur}</div>
                   )}
 
-                  <div style={{ display:"flex", gap:"12px", justifyContent:"center" }}>
+                  <div style={{ display:"flex", gap:"12px", justifyContent:"center", flexWrap:"wrap" }}>
+                    {resultatNere && (
+                      <button onClick={() => {
+                        if (form.typeRequete === "statistique") {
+                          genererStatsPDF(resultatNere, typeObj, getPeriodeLabel);
+                        } else {
+                          genererEtTelechargerPDF(
+                            resultatNere.data || [],
+                            resultatNere.total,
+                            Array.isArray(form.sousType) && form.sousType[0]==="liste_associations" ? "association" : "entreprise",
+                            typeObj?.label,
+                            getPeriodeLabel()
+                          );
+                        }
+                      }}
+                        style={{ padding:"13px 28px", borderRadius:"10px",
+                          background:"#1E60CC", color:"#fff", border:"none",
+                          fontWeight:700, fontSize:"14px", cursor:"pointer",
+                          display:"flex", alignItems:"center", gap:"8px" }}>
+                         Télécharger PDF
+                      </button>
+                    )}
                     <button className="btn-save" style={{ padding:"13px 28px" }} onClick={reset}>
                       + Nouvelle demande
                     </button>
@@ -1308,7 +1677,7 @@ export default function DemandeDocument() {
 
                         <div style={{ display:"flex", flexDirection:"column", gap:"14px" }}>
                           {/* ── Secteur & Sous-secteur d'activité ── */}
-                          {(form.typeRequete === "liste" ||
+                          {((form.typeRequete === "liste" && !estListeAssociation) ||
                             (form.typeRequete === "statistique" && (estStatDouane || form.sousType.includes("stat_entreprises")))) && (
                             <div style={{ background:"var(--off-white)", borderRadius:"12px",
                               border:"1px solid var(--border)", padding:"20px" }}>
@@ -1385,24 +1754,111 @@ export default function DemandeDocument() {
                             </div>
                           )}
 
-                          <SectionCritere titre="Région" sous="(sélection multiple)">
-                            <div style={{ display:"flex", flexWrap:"wrap", gap:"8px" }}>
-                              {REGIONS.map(r=>(
-                                <button key={r} onClick={()=>toggleArr("regions",r)}
-                                  style={{ padding:"6px 14px", borderRadius:"100px", fontSize:"12px",
-                                    border:form.regions.includes(r)?"2px solid var(--green-light)":"1.5px solid var(--border)",
-                                    background:form.regions.includes(r)?"var(--green-pale)":"#fff",
-                                    color:form.regions.includes(r)?"var(--green-dark)":"var(--text-mid)",
-                                    fontWeight:form.regions.includes(r)?700:500, cursor:"pointer" }}>
-                                  {form.regions.includes(r)?"✓ ":""}{r}
-                                </button>
-                              ))}
+                          {/* Critères spécifiques import/export */}
+                          {estStatDouane ? (
+                            <>
+                              {/* Produit */}
+                              <SectionCritere
+                                titre={form.sousType.includes("stat_importations") && form.sousType.includes("stat_exportations")
+                                  ? "Produit (import ou export)"
+                                  : form.sousType.includes("stat_importations") ? "Produit importé" : "Produit exporté"}
+                                sous="(optionnel — laisser vide pour tous les produits)">
+                                <select value={form.produitDouane}
+                                  onChange={e=>setForm(f=>({...f,produitDouane:e.target.value}))}
+                                  style={{ width:"100%", padding:"10px 14px", borderRadius:"10px",
+                                    border:"1.5px solid var(--border)", fontSize:"13px",
+                                    fontFamily:"inherit", outline:"none", color:"#0A2410",
+                                    background:"#fff" }}>
+                                  <option value="">— Tous les produits —</option>
+                                  {form.sousType.includes("stat_importations") && !form.sousType.includes("stat_exportations") && (
+                                    PRODUITS_IMPORT.map(p=>(
+                                      <option key={p.code} value={p.code}>{p.label}</option>
+                                    ))
+                                  )}
+                                  {form.sousType.includes("stat_exportations") && !form.sousType.includes("stat_importations") && (
+                                    PRODUITS_EXPORT.map(p=>(
+                                      <option key={p.code} value={p.code}>{p.label}</option>
+                                    ))
+                                  )}
+                                  {form.sousType.includes("stat_importations") && form.sousType.includes("stat_exportations") && (
+                                    <>
+                                      <optgroup label="Importations">
+                                        {PRODUITS_IMPORT.map(p=>(
+                                          <option key={p.code} value={p.code}> {p.label}</option>
+                                        ))}
+                                      </optgroup>
+                                      <optgroup label="Exportations">
+                                        {PRODUITS_EXPORT.map(p=>(
+                                          <option key={p.code} value={p.code}> {p.label}</option>
+                                        ))}
+                                      </optgroup>
+                                    </>
+                                  )}
+                                </select>
+                              </SectionCritere>
+
+                              {/* Province */}
+                              <SectionCritere titre="Province / Région" sous="(localisation de l'entreprise)">
+                                <div style={{ display:"flex", flexWrap:"wrap", gap:"8px" }}>
+                                  {PROVINCES_DOUANE.map(p=>(
+                                    <button key={p.value} onClick={()=>setForm(f=>({...f, provinceDouane: f.provinceDouane===p.value?"":p.value}))}
+                                      style={{ padding:"10px 20px", borderRadius:"100px", fontSize:"13px",
+                                        border:form.provinceDouane===p.value?"2px solid var(--green-light)":"1.5px solid var(--border)",
+                                        background:form.provinceDouane===p.value?"var(--green-pale)":"#fff",
+                                        color:form.provinceDouane===p.value?"var(--green-dark)":"var(--text-mid)",
+                                        fontWeight:form.provinceDouane===p.value?700:500, cursor:"pointer",
+                                        display:"flex", alignItems:"center", gap:"8px" }}>
+                                      <div style={{
+                                        width:"16px", height:"16px", borderRadius:"50%", flexShrink:0,
+                                        border:form.provinceDouane===p.value?"2px solid var(--green-light)":"2px solid #ccc",
+                                        background:form.provinceDouane===p.value?"var(--green-light)":"transparent",
+                                        display:"flex", alignItems:"center", justifyContent:"center",
+                                        fontSize:"10px", color:"#fff"
+                                      }}>{form.provinceDouane===p.value?"✓":""}</div>
+                                      {p.label}
+                                    </button>
+                                  ))}
+                                </div>
+                              </SectionCritere>
+                            </>
+                          ) : (
+                            <SectionCritere
+                              titre={estListeAssociation ? "Région" : "Ville / Région"}
+                              sous={estListeAssociation
+                                ? "(13 régions géographiques du Burkina)"
+                                : "(sélection multiple)"}>
+                              {estListeAssociation && (
+                                <div style={{ marginBottom:"10px", fontSize:"12px", color:"#1E60CC",
+                                  background:"rgba(30,96,204,0.06)", borderRadius:"8px", padding:"8px 12px" }}>
+                                   Pour les associations, la région correspond à la localisation géographique officielle.
+                                </div>
+                              )}
+                              <div style={{ display:"flex", flexWrap:"wrap", gap:"8px" }}>
+                                {(estListeAssociation || estStatAssociation ? REGIONS_GEO : REGIONS_VILLES).map(r=>(
+                                  <button key={r.value} onClick={()=>toggleArr("regions", r.value)}
+                                    style={{ padding:"6px 14px", borderRadius:"100px", fontSize:"12px",
+                                      border:form.regions.includes(r.value)?"2px solid var(--green-light)":"1.5px solid var(--border)",
+                                      background:form.regions.includes(r.value)?"var(--green-pale)":"#fff",
+                                      color:form.regions.includes(r.value)?"var(--green-dark)":"var(--text-mid)",
+                                      fontWeight:form.regions.includes(r.value)?700:500, cursor:"pointer" }}>
+                                    {form.regions.includes(r.value)?"✓ ":""}{r.label}
+                                  </button>
+                                ))}
+                              </div>
+                            </SectionCritere>
+                          )}
+
+                          {!estStatAssociation && !estStatDouane && !estListeAssociation && (
+                            <div className="profil-field">
+                              <label className="profil-label">Ville / Commune</label>
+                              <input type="text" className="profil-input"
+                                placeholder="ex: Ouagadougou, Bobo-Dioulasso..."
+                                value={form.villes}
+                                onChange={e=>setForm(f=>({...f,villes:e.target.value}))}/>
                             </div>
-                          </SectionCritere>
+                          )}
 
-                         
-
-                          {!estStatAssociation && !estStatDouane && <SectionCritere titre="Forme juridique" sous="(sélection multiple)">
+                          {!estStatAssociation && !estStatDouane && !estListeAssociation && <SectionCritere titre="Forme juridique" sous="(sélection multiple)">
                             <div style={{ display:"flex", flexWrap:"wrap", gap:"8px" }}>
                               {FORMES_JURIDIQUES.map(fj=>(
                                 <button key={fj.value} onClick={()=>toggleArr("formesJuridiques", fj.value)}
@@ -1428,7 +1884,7 @@ export default function DemandeDocument() {
                             </div>
                           </SectionCritere>}
 
-                          {!estStatAssociation && !estStatDouane && <SectionCritere titre="Tranche d'effectif">
+                          {!estStatAssociation && !estStatDouane && !estListeAssociation && <SectionCritere titre="Tranche d'effectif">
                             <div style={{ display:"flex", flexDirection:"column", gap:"8px" }}>
                               {TRANCHES_EFFECTIF.map(t=>(
                                 <button key={t.value} onClick={()=>toggleArr("tranches",t.value)}
@@ -1545,7 +2001,7 @@ export default function DemandeDocument() {
                         </div>
 
                         <div style={{ display:"flex", gap:"10px", marginTop:"24px" }}>
-                          <button className="btn-cancel" onClick={()=>setEtape(1)}> Retour</button>
+                          <button className="btn-cancel" onClick={()=>setEtape(1)}>← Retour</button>
                           <button className="btn-save" style={{ padding:"12px 28px" }}
                             disabled={!form.contact} onClick={()=>setEtape(3)}>
                             Vérifier ma demande 
@@ -1778,7 +2234,7 @@ export default function DemandeDocument() {
               {!demandesLoading && !demandesErreur && demandes.length===0 && (
                 <div style={{ background:"#fff", border:"1px solid rgba(0,144,76,0.12)",
                   borderRadius:"16px", padding:"48px", textAlign:"center", color:"var(--text-muted)" }}>
-                  <div style={{ fontSize:"40px", marginBottom:"12px" }}>📭</div>
+                  <div style={{ fontSize:"40px", marginBottom:"12px" }}></div>
                   <p style={{ marginBottom:"16px" }}>Aucune demande enregistrée.</p>
                   <button className="btn-save" onClick={()=>setOnglet("nouvelle")}>
                     Faire une demande

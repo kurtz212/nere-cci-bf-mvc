@@ -48,7 +48,6 @@ const STATUT_COLORS = {
 const NAVBAR_CSS = `
   * { font-family: Arial, Helvetica, sans-serif !important; }
 
-  /* ══ NAVBAR —  ══ */
   .nere-navbar-profil {
     position: sticky; top: 0; z-index: 100;
     display: flex; align-items: center; justify-content: space-between;
@@ -56,7 +55,6 @@ const NAVBAR_CSS = `
     background: #00904C;
     box-shadow: 0 2px 16px rgba(0,0,0,0.15);
   }
-  /* Pilule liens — margin-left:auto la pousse à droite */
   .nere-navbar-profil .nav-pill {
     display: flex; align-items: center; gap: 3px;
     background: rgba(255,255,255,0.08);
@@ -79,7 +77,6 @@ const NAVBAR_CSS = `
     color: #0A3D1F; background: #4DC97A;
     font-weight: 700; box-shadow: 0 2px 8px rgba(77,201,122,0.4);
   }
-  /* User chip */
   .nere-navbar-profil .u-chip {
     display: flex; align-items: center; gap: 8px;
     padding: 5px 12px 5px 5px;
@@ -100,7 +97,6 @@ const NAVBAR_CSS = `
   .nere-navbar-profil .u-chip.active .u-avatar {
     background: #0A3D1F; color: #4DC97A;
   }
-  /* Dropdown blanc */
   .nere-dropdown-profil {
     position: absolute; z-index: 9999;
     top: calc(100% + 10px); right: 0;
@@ -168,24 +164,51 @@ export default function Profil() {
   const [notifs, setNotifs]               = useState([]);
   const [notifsLoading, setNotifsLoading] = useState(false);
 
+  /* ── Helper : rôle privilégié ── */
+  const estPrivilegie = (u) =>
+    u?.role === "admin" || u?.role === "manager";
+
+  /* ── Onglets dynamiques selon le rôle ── */
+  const getOnglets = (u) => [
+    { key:"profil",        label:" Mon Profil"     },
+    { key:"historique",    label:" Historique"     },
+    // Onglet abonnement masqué pour admin et manager
+    ...(!estPrivilegie(u) ? [{ key:"abonnement", label:" Abonnement" }] : []),
+    { key:"securite",      label:" Sécurité"       },
+    { key:"notifications", label:" Notifications"  },
+  ];
+
   useEffect(() => {
     const u     = localStorage.getItem("user");
     const token = localStorage.getItem("token");
     if (!u) { navigate("/connexion"); return; }
     const parsed = JSON.parse(u);
     setUser(parsed);
-    setForm({ nom:parsed.nom||"", prenom:parsed.prenom||"", email:parsed.email||"",
-      telephone:parsed.telephone||"", fonction:parsed.fonction||"", siteWeb:parsed.siteWeb||"" });
+    setForm({
+      nom:parsed.nom||"", prenom:parsed.prenom||"", email:parsed.email||"",
+      telephone:parsed.telephone||"", fonction:parsed.fonction||"", siteWeb:parsed.siteWeb||"",
+    });
+
     if (token) {
-      fetch(`${API}/searchlogs/quota`, { headers:{ Authorization:`Bearer ${token}` } })
-        .then(r=>r.json()).then(d=>{ if(d.success) setQuota(d.data); }).catch(()=>{});
-      fetch(`${API}/abonnements/mon-solde`, { headers:{ Authorization:`Bearer ${token}` } })
-        .then(r=>r.json()).then(d=>{ if(d.success&&d.data) setAbonnement(d.data); }).catch(()=>{});
+      // Quota — seulement pour les abonnés
+      if (!estPrivilegie(parsed)) {
+        fetch(`${API}/searchlogs/quota`, { headers:{ Authorization:`Bearer ${token}` } })
+          .then(r=>r.json()).then(d=>{ if(d.success) setQuota(d.data); }).catch(()=>{});
+        fetch(`${API}/abonnements/mon-solde`, { headers:{ Authorization:`Bearer ${token}` } })
+          .then(r=>r.json()).then(d=>{ if(d.success&&d.data) setAbonnement(d.data); }).catch(()=>{});
+      }
+
       fetch(`${API}/users/profil`, { headers:{ Authorization:`Bearer ${token}` } })
         .then(r=>r.json()).then(d=>{
-          if(d.success){ const u=d.data; setUser(u); localStorage.setItem("user",JSON.stringify(u));
-            setForm({ nom:u.nom||"", prenom:u.prenom||"", email:u.email||"",
-              telephone:u.telephone||"", fonction:u.fonction||"", siteWeb:u.siteWeb||"" }); }
+          if (d.success) {
+            const updated = d.data;
+            setUser(updated);
+            localStorage.setItem("user", JSON.stringify(updated));
+            setForm({
+              nom:updated.nom||"", prenom:updated.prenom||"", email:updated.email||"",
+              telephone:updated.telephone||"", fonction:updated.fonction||"", siteWeb:updated.siteWeb||"",
+            });
+          }
         }).catch(()=>{});
     }
   }, [navigate]);
@@ -258,12 +281,20 @@ export default function Profil() {
         { method:"POST", headers:{ "Content-Type":"application/json", Authorization:`Bearer ${token}` } });
       const data  = await res.json();
       if (data.success) {
-        setReplayMessage({ id:item._id,
-          texte: data.updated ? "Modification détectée : nouvelle requête enregistrée." : "Aucune mise à jour : résultat depuis le cache.",
-          type:"succes" });
+        setReplayMessage({
+          id:item._id,
+          texte: data.updated
+            ? "Modification détectée : nouvelle requête enregistrée."
+            : "Aucune mise à jour : résultat depuis le cache.",
+          type:"succes",
+        });
         chargerHistoRecherches();
-      } else setReplayMessage({ id:item._id, texte:data.message||"Relance impossible.", type:"erreur" });
-    } catch { setReplayMessage({ id:item._id, texte:"Erreur serveur.", type:"erreur" }); }
+      } else {
+        setReplayMessage({ id:item._id, texte:data.message||"Relance impossible.", type:"erreur" });
+      }
+    } catch {
+      setReplayMessage({ id:item._id, texte:"Erreur serveur.", type:"erreur" });
+    }
     setReplayLoadingId(null);
     setTimeout(()=>setReplayMessage({ id:null, texte:"", type:"" }), 5000);
   };
@@ -272,9 +303,11 @@ export default function Profil() {
     setSaving(true);
     const token = localStorage.getItem("token");
     try {
-      const res  = await fetch(`${API}/users/profil`, { method:"PUT",
+      const res  = await fetch(`${API}/users/profil`, {
+        method:"PUT",
         headers:{ "Content-Type":"application/json", Authorization:`Bearer ${token}` },
-        body: JSON.stringify(form) });
+        body: JSON.stringify(form),
+      });
       const data = await res.json();
       const updated = { ...user, ...(data.success ? data.data : form) };
       localStorage.setItem("user", JSON.stringify(updated));
@@ -301,16 +334,22 @@ export default function Profil() {
     setMdpLoading(true); setMdpMsg({ texte:"", type:"" });
     try {
       const token = localStorage.getItem("token");
-      const res   = await fetch(`${API}/users/changer-mot-de-passe`, { method:"PUT",
+      const res   = await fetch(`${API}/users/changer-mot-de-passe`, {
+        method:"PUT",
         headers:{ "Content-Type":"application/json", Authorization:`Bearer ${token}` },
-        body: JSON.stringify({ ancienMotDePasse:mdpForm.ancien, nouveauMotDePasse:mdpForm.nouveau }) });
+        body: JSON.stringify({ ancienMotDePasse:mdpForm.ancien, nouveauMotDePasse:mdpForm.nouveau }),
+      });
       const data  = await res.json();
       if (data.success) {
         setMdpMsg({ texte:" Mot de passe modifié avec succès !", type:"succes" });
         setMdpForm({ ancien:"", nouveau:"", confirm:"" });
         setTimeout(()=>{ setShowMdpForm(false); setMdpMsg({ texte:"", type:"" }); }, 2500);
-      } else setMdpMsg({ texte:data.message||"Erreur lors du changement.", type:"erreur" });
-    } catch { setMdpMsg({ texte:"Serveur inaccessible.", type:"erreur" }); }
+      } else {
+        setMdpMsg({ texte:data.message||"Erreur lors du changement.", type:"erreur" });
+      }
+    } catch {
+      setMdpMsg({ texte:"Serveur inaccessible.", type:"erreur" });
+    }
     setMdpLoading(false);
   };
 
@@ -319,7 +358,9 @@ export default function Profil() {
     setDeconnLoading(true);
     try {
       const token = localStorage.getItem("token");
-      await fetch(`${API}/auth/deconnecter-tout`, { method:"POST", headers:{ Authorization:`Bearer ${token}` } });
+      await fetch(`${API}/auth/deconnecter-tout`, {
+        method:"POST", headers:{ Authorization:`Bearer ${token}` },
+      });
     } catch {}
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -333,12 +374,18 @@ export default function Profil() {
   };
 
   if (!user) return null;
-  const initiales = `${user.prenom?.[0]||""}${user.nom?.[0]||""}`.toUpperCase();
+
+  const initiales    = `${user.prenom?.[0]||""}${user.nom?.[0]||""}`.toUpperCase();
+  const onglets      = getOnglets(user);
+  const rolePriv     = estPrivilegie(user);
 
   const Chip = ({ label, color }) => (
-    <span style={{ background:color?`${color}15`:"var(--green-pale)",
-      color:color||"var(--green-dark)", border:`1px solid ${color?`${color}33`:"rgba(34,160,82,0.2)"}`,
-      borderRadius:"100px", padding:"2px 10px", fontSize:"11px", fontWeight:600 }}>
+    <span style={{
+      background:color?`${color}15`:"var(--green-pale)",
+      color:color||"var(--green-dark)",
+      border:`1px solid ${color?`${color}33`:"rgba(34,160,82,0.2)"}`,
+      borderRadius:"100px", padding:"2px 10px", fontSize:"11px", fontWeight:600,
+    }}>
       {label}
     </span>
   );
@@ -369,10 +416,8 @@ export default function Profil() {
       <div className="dash-bg"><div className="grid"/></div>
       <div style={{ position:"relative", zIndex:1 }}>
 
-        {/* ══ NAVBAR — même design que Home.jsx ══ */}
+        {/* ══ NAVBAR ══ */}
         <nav className="nere-navbar-profil">
-
-          {/* Logo */}
           <div style={{ display:"flex", alignItems:"center", gap:"10px", flexShrink:0 }}>
             <img src={logoNERE} alt="NERE"
               style={{ height:"80px", width:"auto", borderRadius:"6px",
@@ -386,7 +431,6 @@ export default function Profil() {
             </div>
           </div>
 
-          {/* Pilule liens */}
           <div className="nav-pill">
             {NAV_LINKS.map(link => (
               <button key={link.key} className="nav-btn"
@@ -396,7 +440,6 @@ export default function Profil() {
             ))}
           </div>
 
-          {/* Actions droite — chip profil actif + déconnexion */}
           <div style={{ display:"flex", alignItems:"center", gap:"8px", flexShrink:0 }}>
             <div style={{ position:"relative" }}>
               <div className="u-chip active" onClick={() => setMenuOpen(o => !o)}>
@@ -407,6 +450,7 @@ export default function Profil() {
                 </span>
                 <span style={{ fontSize:"9px", opacity:0.7 }}>▾</span>
               </div>
+
               {menuOpen && (
                 <>
                   <div style={{ position:"fixed", inset:0, zIndex:50 }}
@@ -421,15 +465,10 @@ export default function Profil() {
                       </div>
                     </div>
                     <div style={{ padding:"6px 0" }}>
-                      {[
-                        { label:" Mon Profil",     tab:"profil"        },
-                        { label:" Historique",     tab:"historique"    },
-                          { label:" Abonnement",     tab:"abonnement"    },
-                        { label:" Sécurité",       tab:"securite"      },
-                        { label:" Notifications",  tab:"notifications" },
-                      ].map(item => (
-                        <div key={item.tab} className="dd-item"
-                          onClick={() => { setActiveTab(item.tab); setMenuOpen(false); }}>
+                      {/* ── Onglets dropdown filtrés selon le rôle ── */}
+                      {onglets.map(item => (
+                        <div key={item.key} className="dd-item"
+                          onClick={() => { setActiveTab(item.key); setMenuOpen(false); }}>
                           {item.label}
                         </div>
                       ))}
@@ -468,13 +507,8 @@ export default function Profil() {
               <div className="profil-email">{user.email}</div>
             </div>
             <nav className="profil-menu">
-              {[
-                { key:"profil",        label:" Mon Profil"     },
-                { key:"historique",    label:" Historique"     },
-                  { key:"abonnement",    label:" Abonnement"     },
-                { key:"securite",      label:" Sécurité"       },
-                { key:"notifications", label:" Notifications"  },
-              ].map(item => (
+              {/* ── Onglets sidebar filtrés selon le rôle ── */}
+              {onglets.map(item => (
                 <div key={item.key}
                   className={`profil-menu-item ${activeTab===item.key?"active":""}`}
                   onClick={() => setActiveTab(item.key)}>
@@ -505,9 +539,14 @@ export default function Profil() {
                         <button className="btn-save" onClick={handleSave} disabled={saving}>
                           {saving ? <span className="spinner-sm"/> : "Enregistrer"}
                         </button>
-                      </div>}
+                      </div>
+                  }
                 </div>
-                {saved && <div className="success-banner"> Profil mis à jour avec succès !</div>}
+
+                {saved && (
+                  <div className="success-banner"> Profil mis à jour avec succès !</div>
+                )}
+
                 <div className="profil-form-grid">
                   {[{name:"nom",label:"Nom"},{name:"prenom",label:"Prénom"}].map(f=>(
                     <div key={f.name} className="profil-field">
@@ -515,7 +554,8 @@ export default function Profil() {
                       {editing
                         ? <input className="profil-input" name={f.name} value={form[f.name]}
                             onChange={e=>setForm(p=>({...p,[e.target.name]:e.target.value}))}/>
-                        : <div className="profil-value">{user[f.name]||<span className="empty">—</span>}</div>}
+                        : <div className="profil-value">{user[f.name]||<span className="empty">—</span>}</div>
+                      }
                     </div>
                   ))}
                   <div className="profil-field full">
@@ -523,7 +563,11 @@ export default function Profil() {
                     {editing
                       ? <input className="profil-input" name="email" type="email"
                           value={form.email} onChange={e=>setForm(p=>({...p,email:e.target.value}))}/>
-                      : <div className="profil-value">{user.email}<span className="verified-chip">✓ Vérifié</span></div>}
+                      : <div className="profil-value">
+                          {user.email}
+                          <span className="verified-chip">✓ Vérifié</span>
+                        </div>
+                    }
                   </div>
                   <div className="profil-field full">
                     <label className="profil-label">Organisation / Entreprise</label>
@@ -531,7 +575,10 @@ export default function Profil() {
                       ? <input className="profil-input" name="fonction" value={form.fonction}
                           onChange={e=>setForm(p=>({...p,fonction:e.target.value}))}
                           placeholder="Nom de votre société"/>
-                      : <div className="profil-value">{user.fonction||<span className="empty">Non renseigné</span>}</div>}
+                      : <div className="profil-value">
+                          {user.fonction||<span className="empty">Non renseigné</span>}
+                        </div>
+                    }
                   </div>
                   <div className="profil-field">
                     <label className="profil-label">Téléphone</label>
@@ -539,7 +586,10 @@ export default function Profil() {
                       ? <input className="profil-input" name="telephone" value={form.telephone}
                           onChange={e=>setForm(p=>({...p,telephone:e.target.value}))}
                           placeholder="+226 07 XX XX XX"/>
-                      : <div className="profil-value">{user.telephone||<span className="empty">Non renseigné</span>}</div>}
+                      : <div className="profil-value">
+                          {user.telephone||<span className="empty">Non renseigné</span>}
+                        </div>
+                    }
                   </div>
                   <div className="profil-field">
                     <label className="profil-label">Ville</label>
@@ -550,11 +600,16 @@ export default function Profil() {
                           {["Ouagadougou","Bobo-Dioulasso","Koudougou","Ouahigouya","Banfora","Fada N'Gourma"]
                             .map(v=><option key={v}>{v}</option>)}
                         </select>
-                      : <div className="profil-value">{user.siteWeb||<span className="empty">Non renseigné</span>}</div>}
+                      : <div className="profil-value">
+                          {user.siteWeb||<span className="empty">Non renseigné</span>}
+                        </div>
+                    }
                   </div>
                   <div className="profil-field">
                     <label className="profil-label">Rôle</label>
-                    <div className="profil-value"><span className="role-chip">{user.role||"subscriber"}</span></div>
+                    <div className="profil-value">
+                      <span className="role-chip">{user.role||"subscriber"}</span>
+                    </div>
                   </div>
                   <div className="profil-field">
                     <label className="profil-label">Membre depuis</label>
@@ -566,8 +621,8 @@ export default function Profil() {
               </div>
             )}
 
-            {/* ══ ABONNEMENT ══ */}
-            {activeTab==="abonnement" && (
+            {/* ══ ABONNEMENT — masqué pour admin et manager ══ */}
+            {activeTab==="abonnement" && !rolePriv && (
               <div className="profil-section">
                 <div className="profil-section-header">
                   <div>
@@ -579,7 +634,7 @@ export default function Profil() {
                 {abonnement && abonnement.solde<=0 && (
                   <div style={{ background:"#FFE5E5", border:"2px solid #FF6B6B", borderRadius:"10px",
                     padding:"16px", marginBottom:"20px", display:"flex", alignItems:"center", gap:"12px" }}>
-                    <span style={{ fontSize:"24px" }}>⚠️</span>
+                    <span style={{ fontSize:"24px" }}></span>
                     <div>
                       <div style={{ fontWeight:700, color:"#FF3333" }}>Crédit épuisé</div>
                       <div style={{ fontSize:"13px", color:"#D32F2F", marginTop:"4px" }}>
@@ -588,10 +643,11 @@ export default function Profil() {
                     </div>
                   </div>
                 )}
+
                 {abonnement && abonnement.solde>0 && abonnement.solde<1000 && (
                   <div style={{ background:"#FFF4E5", border:"2px solid #D4A830", borderRadius:"10px",
                     padding:"16px", marginBottom:"20px", display:"flex", alignItems:"center", gap:"12px" }}>
-                    <span style={{ fontSize:"24px" }}>⚡</span>
+                    <span style={{ fontSize:"24px" }}></span>
                     <div>
                       <div style={{ fontWeight:700, color:"#D4A830" }}>Crédit faible</div>
                       <div style={{ fontSize:"13px", color:"#B8860B", marginTop:"4px" }}>
@@ -687,7 +743,8 @@ export default function Profil() {
                       cursor:"pointer", fontFamily:"inherit", marginBottom:"-2px",
                       display:"flex", alignItems:"center", gap:"8px" }}>
                       {s.label}
-                      <span style={{ background:sectionHisto===s.key?"var(--green-pale)":"rgba(0,0,0,0.06)",
+                      <span style={{
+                        background:sectionHisto===s.key?"var(--green-pale)":"rgba(0,0,0,0.06)",
                         color:sectionHisto===s.key?"var(--green-dark)":"var(--text-muted)",
                         borderRadius:"100px", padding:"1px 8px", fontSize:"11px", fontWeight:700 }}>
                         {s.count}
@@ -696,10 +753,13 @@ export default function Profil() {
                   ))}
                 </div>
 
+                {/* Recherches */}
                 {sectionHisto==="recherches" && (
                   <div>
                     {histoRechercheLoading && (
-                      <div style={{ textAlign:"center", padding:"40px", color:"var(--text-muted)" }}> Chargement...</div>
+                      <div style={{ textAlign:"center", padding:"40px", color:"var(--text-muted)" }}>
+                         Chargement...
+                      </div>
                     )}
                     {!histoRechercheLoading && histoRechercheErreur && (
                       <div style={{ background:"#FFF0F0", border:"1px solid #FFB3B3",
@@ -711,7 +771,7 @@ export default function Profil() {
                     )}
                     {!histoRechercheLoading && !histoRechercheErreur && histoRecherches.length===0 && (
                       <div style={{ textAlign:"center", padding:"40px", color:"var(--text-muted)" }}>
-                        <div style={{ fontSize:"40px", marginBottom:"12px" }}>🔍</div>
+                        <div style={{ fontSize:"40px", marginBottom:"12px" }}></div>
                         <p style={{ marginBottom:"16px" }}>Aucune recherche enregistrée.</p>
                         <button className="btn-save" onClick={()=>navigate("/rechercheacc")}>
                           Faire une recherche
@@ -727,8 +787,10 @@ export default function Profil() {
                               {h.criteres && (
                                 <div style={{ display:"flex", flexWrap:"wrap", gap:"6px", marginTop:"6px" }}>
                                   {h.criteres.rccm && <Chip label={`RCCM: ${h.criteres.rccm}`} color="#1E60CC"/>}
-                                  {h.criteres.ifu  && <Chip label={`IFU: ${h.criteres.ifu}`}  color="#1E60CC"/>}
-                                  {h.criteres.raisonSociale && <Chip label={`Raison: ${h.criteres.raisonSociale}`} color="#1E60CC"/>}
+                                  {h.criteres.ifu  && <Chip label={`IFU: ${h.criteres.ifu}`}   color="#1E60CC"/>}
+                                  {h.criteres.raisonSociale && (
+                                    <Chip label={`Raison: ${h.criteres.raisonSociale}`} color="#1E60CC"/>
+                                  )}
                                 </div>
                               )}
                               <div className="histo-date">
@@ -748,8 +810,10 @@ export default function Profil() {
                                 </div>
                               )}
                             </div>
-                            <button className="btn-relancer" onClick={()=>relancerRecherche(h)}
-                              disabled={replayLoadingId===h._id} style={{ minWidth:"110px" }}>
+                            <button className="btn-relancer"
+                              onClick={()=>relancerRecherche(h)}
+                              disabled={replayLoadingId===h._id}
+                              style={{ minWidth:"110px" }}>
                               {replayLoadingId===h._id ? "Vérification..." : " Relancer"}
                             </button>
                           </div>
@@ -759,10 +823,13 @@ export default function Profil() {
                   </div>
                 )}
 
+                {/* Demandes */}
                 {sectionHisto==="demandes" && (
                   <div>
                     {histoDemandeLoading && (
-                      <div style={{ textAlign:"center", padding:"40px", color:"var(--text-muted)" }}>⏳ Chargement...</div>
+                      <div style={{ textAlign:"center", padding:"40px", color:"var(--text-muted)" }}>
+                         Chargement...
+                      </div>
                     )}
                     {!histoDemandeLoading && histoDemandeErreur && (
                       <div style={{ background:"#FFF0F0", border:"1px solid #FFB3B3",
@@ -796,8 +863,9 @@ export default function Profil() {
                                     {typ?.label||d.typeRequete}
                                   </div>
                                   <div style={{ fontSize:"11px", color:"var(--text-muted)", marginTop:"3px" }}>
-                                    {d.createdAt ? new Date(d.createdAt).toLocaleDateString("fr-FR",
-                                      {day:"2-digit",month:"long",year:"numeric"}) : "—"}
+                                    {d.createdAt
+                                      ? new Date(d.createdAt).toLocaleDateString("fr-FR",{day:"2-digit",month:"long",year:"numeric"})
+                                      : "—"}
                                     {" · "}Réf. <strong>{d._id?.slice(-6).toUpperCase()}</strong>
                                   </div>
                                 </div>
@@ -846,13 +914,17 @@ export default function Profil() {
                   <div>
                     <div className="security-label"> Mot de passe</div>
                     <div className="security-hint">
-                      {showMdpForm ? "Remplissez le formulaire ci-dessous"
+                      {showMdpForm
+                        ? "Remplissez le formulaire ci-dessous"
                         : "Cliquez sur Modifier pour changer votre mot de passe"}
                     </div>
                   </div>
                   <button className="btn-edit"
-                    onClick={()=>{ setShowMdpForm(o=>!o); setMdpMsg({ texte:"", type:"" });
-                      setShowMdpVis({ ancien:false, nouveau:false, confirm:false }); }}>
+                    onClick={()=>{
+                      setShowMdpForm(o=>!o);
+                      setMdpMsg({ texte:"", type:"" });
+                      setShowMdpVis({ ancien:false, nouveau:false, confirm:false });
+                    }}>
                     {showMdpForm ? "✕ Fermer" : " Modifier"}
                   </button>
                 </div>
@@ -861,9 +933,9 @@ export default function Profil() {
                   <div style={{ background:"var(--off-white)", border:"1px solid var(--border)",
                     borderRadius:"12px", padding:"20px", marginBottom:"16px" }}>
                     <div style={{ display:"flex", flexDirection:"column", gap:"14px" }}>
-                      <InputMdp name="ancien"  label="Mot de passe actuel *" placeholder="••••••••"/>
-                      <InputMdp name="nouveau" label="Nouveau mot de passe *" placeholder="Min. 6 caractères"/>
-                      <InputMdp name="confirm" label="Confirmer le nouveau *" placeholder="••••••••"/>
+                      <InputMdp name="ancien"  label="Mot de passe actuel *"  placeholder="••••••••"/>
+                      <InputMdp name="nouveau" label="Nouveau mot de passe *"  placeholder="Min. 6 caractères"/>
+                      <InputMdp name="confirm" label="Confirmer le nouveau *"  placeholder="••••••••"/>
                     </div>
                     {mdpMsg.texte && (
                       <div style={{ marginTop:"12px", padding:"10px 14px", borderRadius:"8px", fontSize:"13px",
@@ -877,9 +949,12 @@ export default function Profil() {
                         {mdpLoading ? <span className="spinner-sm"/> : " Enregistrer"}
                       </button>
                       <button className="btn-cancel"
-                        onClick={()=>{ setShowMdpForm(false); setMdpMsg({ texte:"", type:"" });
+                        onClick={()=>{
+                          setShowMdpForm(false);
+                          setMdpMsg({ texte:"", type:"" });
                           setMdpForm({ ancien:"", nouveau:"", confirm:"" });
-                          setShowMdpVis({ ancien:false, nouveau:false, confirm:false }); }}>
+                          setShowMdpVis({ ancien:false, nouveau:false, confirm:false });
+                        }}>
                         Annuler
                       </button>
                     </div>
@@ -964,16 +1039,20 @@ export default function Profil() {
                       </div>
                     )}
 
-                    {abonnement && (
+                    {/* Solde — seulement pour les abonnés */}
+                    {!rolePriv && abonnement && (
                       <div className="notif-item read">
                         <div className="notif-icon"></div>
                         <div style={{ flex:1 }}>
                           <div className="notif-msg">Solde disponible</div>
                           <div className="notif-date">
-                            <strong style={{ color: abonnement.solde<=0?"#FF3333":abonnement.solde<1000?"#D4A830":"#00904C" }}>
+                            <strong style={{
+                              color: abonnement.solde<=0?"#FF3333"
+                                : abonnement.solde<1000?"#D4A830":"#00904C",
+                            }}>
                               {abonnement.solde?.toLocaleString("fr-FR")} FCFA
                             </strong>
-                            {abonnement.solde<=0 ? " — Crédit épuisé, rechargez." :
+                            {abonnement.solde<=0  ? " — Crédit épuisé, rechargez." :
                              abonnement.solde<1000 ? " — Crédit faible, pensez à recharger." :
                              " — Compte actif."}
                           </div>
@@ -984,6 +1063,19 @@ export default function Profil() {
                             fontSize:"12px", cursor:"pointer", flexShrink:0 }}>
                           Recharger
                         </button>
+                      </div>
+                    )}
+
+                    {/* Accès illimité pour admin/manager */}
+                    {rolePriv && (
+                      <div className="notif-item read">
+                        <div className="notif-icon"></div>
+                        <div style={{ flex:1 }}>
+                          <div className="notif-msg">Accès illimité</div>
+                          <div className="notif-date">
+                            Toutes les recherches et requêtes sont gratuites pour votre rôle.
+                          </div>
+                        </div>
                       </div>
                     )}
 
@@ -1005,7 +1097,8 @@ export default function Profil() {
                     ))}
 
                     {notifs.filter(n=>n.type==="diffusion").length===0 && (
-                      <div style={{ textAlign:"center", padding:"24px", color:"var(--text-muted)", fontSize:"13px" }}>
+                      <div style={{ textAlign:"center", padding:"24px",
+                        color:"var(--text-muted)", fontSize:"13px" }}>
                         <div style={{ fontSize:"32px", marginBottom:"8px" }}></div>
                         Aucune annonce de la CCI-BF pour le moment
                       </div>
@@ -1025,8 +1118,9 @@ export default function Profil() {
                       </div>
                       <button onClick={()=>navigate("/chat")}
                         style={{ padding:"8px 16px", borderRadius:"8px", background:"#00904C",
-                          border:"none", color:"#fff", fontWeight:700, fontSize:"13px", cursor:"pointer" }}>
-                        Ouvrir →
+                          border:"none", color:"#fff", fontWeight:700,
+                          fontSize:"13px", cursor:"pointer" }}>
+                        Ouvrir 
                       </button>
                     </div>
                   </div>
