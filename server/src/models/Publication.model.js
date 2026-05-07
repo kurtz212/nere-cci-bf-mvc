@@ -6,6 +6,7 @@ const PublicationSchema = new mongoose.Schema({
   extrait:   { type:String, default:'' },
   categorie: {
     type:String,
+    vues: { type: Number, default: 0 },
     enum:['Rapport','Étude','Classement','Note technique','Communiqué'],
     default:'Rapport',
   },

@@ -525,8 +525,8 @@ export default function Formules() {
           Comparatif des <span style={{ color:"#00904C" }}>fonctionnalités</span>
         </h2>
         <div style={{ background:"#fff", borderRadius:"16px",
-          border:"1.5px solid #e8e8e8", overflow:"hidden" }}>
-          <table style={{ width:"100%", borderCollapse:"collapse", fontSize:"13px" }}>
+          border:"1.5px solid #e8e8e8", overflowX:"auto" }}>
+          <table style={{ width:"100%", borderCollapse:"collapse", fontSize:"13px", minWidth: '600px' }}>
             <thead>
               <tr style={{ background:"#00904C" }}>
                 <th style={{ padding:"14px 20px", textAlign:"left",

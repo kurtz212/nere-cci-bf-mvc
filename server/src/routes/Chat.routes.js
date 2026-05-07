@@ -34,4 +34,49 @@ router.get('/diffusions', proteger, async (req, res) => {
   } catch(e) { res.status(500).json({ success:false, message:e.message }); }
 });
 
+// POST /api/messages/alerte-blocage — Envoyer une alerte quand un gestionnaire bloqué essaie de rechercher
+router.post('/alerte-blocage', proteger, async (req, res) => {
+  try {
+    const Message = require('../models/Message.model');
+    const User    = require('../models/User.model');
+    
+    const { gestionnaire_id, gestionnaire_nom, gestionnaire_email, gestionnaire_telephone, type_recherche, criteres, timestamp } = req.body;
+    
+    // Trouver tous les administrateurs
+    const admins = await User.find({ role: 'admin' }).select('_id id email');
+    
+    if (admins.length === 0) {
+      return res.json({ success: true, message: 'Aucun admin trouvé' });
+    }
+    
+    // Créer un message d'alerte pour chaque administrateur
+    const alerteMessage = `⚠️ ALERTE BLOCAGE - Gestionnaire refusé de recherche\n\n` +
+      `Gestionnaire: ${gestionnaire_nom}\n` +
+      `Email: ${gestionnaire_email}\n` +
+      `Téléphone: ${gestionnaire_telephone}\n` +
+      `Type de recherche: ${type_recherche}\n` +
+      `Critères utilisés: ${JSON.stringify(criteres)}\n` +
+      `Heure de la tentative: ${new Date(timestamp).toLocaleString('fr-FR')}\n\n` +
+      `Ce gestionnaire a tenté d'effectuer une recherche alors qu'il n'était pas autorisé. ` +
+      `Veuillez vérifier ses permissions.`;
+    
+    for (const admin of admins) {
+      await Message.create({
+        texte: alerteMessage,
+        expediteurId: req.user.id || 'system',
+        expediteurNom: 'Système',
+        expediteurRole: 'system',
+        destinataireId: admin.id || admin._id.toString(),
+        type: 'individuel',
+        lu: false,
+      });
+    }
+    
+    res.json({ success: true, message: 'Alerte envoyée aux administrateurs' });
+  } catch (e) {
+    console.error('Erreur alerte blocage:', e);
+    res.status(500).json({ success: false, message: e.message });
+  }
+});
+
 module.exports = router;

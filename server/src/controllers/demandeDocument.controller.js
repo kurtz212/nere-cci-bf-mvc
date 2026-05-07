@@ -13,17 +13,22 @@ exports.creerDemande = async (req, res) => {
     const {
       typeRequete, sousType, quantite,
       regions, villes, activites, formesJuridiques, tranches,
-      description, contact, telephone, montantEstime,
+      description, contact, telephone, montantEstime, statut,
     } = req.body;
 
     if (!typeRequete) {
       return res.status(400).json({ success: false, message: 'Le type de requête est obligatoire.' });
     }
 
+    const statutsValides = ['en_attente','en_cours','traite','rejete','annule'];
+    // Pour les demandes directes (liste et statistique), le statut est automatiquement "traite"
+    const demandesDirectes = ['liste', 'statistique'];
+    const statutInitial = demandesDirectes.includes(typeRequete) ? 'traite' : (statutsValides.includes(statut) ? statut : 'en_attente');
+
     const demande = await Demande.create({
       user:             req.user.id,
       typeRequete,
-      sousType:         sousType         || '',
+      sousType:         Array.isArray(sousType) ? sousType : (sousType ? [sousType] : []),
       quantite:         quantite         || null,
       regions:          regions          || [],
       villes:           villes           || '',
@@ -34,8 +39,9 @@ exports.creerDemande = async (req, res) => {
       contact:          contact          || req.user.email || '',
       telephone:        telephone        || '',
       montantEstime:    montantEstime     || null,
+      statut:           statutInitial,
       historiqueStatuts: [{
-        statut:    'en_attente',
+        statut:    statutInitial,
         changedBy: req.user.id,
       }],
     });

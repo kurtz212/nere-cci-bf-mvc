@@ -785,10 +785,7 @@ exports.getStatsAssociations = async (req, res) => {
 exports.getStatsImportations = async (req, res) => {
   try {
     const pool = getPool();
-    const { annee, annee_debut, annee_fin } = req.query;
-
-    // Construction du WHERE dynamique
-    const { province, code_prd } = req.query;
+    const { province, code_prd, annee, annee_debut, annee_fin } = req.query;
 
     let whereExtra = '';
     const buildReq = () => {
@@ -836,7 +833,7 @@ exports.getStatsImportations = async (req, res) => {
     res.json({
       success: true,
       type: 'importation',
-      filtres: { region: region||null, sous_categorie: sous_categorie||null, annee: annee||null },
+      filtres: { province: province||null, code_prd: code_prd||null, annee: annee||null },
       data: {
         total:         total.recordset[0].total,
         valeur_totale: totalValeur.recordset[0].valeur_totale,
@@ -860,7 +857,7 @@ exports.getStatsImportations = async (req, res) => {
 exports.getStatsExportations = async (req, res) => {
   try {
     const pool = getPool();
-    const { province, code_prd } = req.query;
+    const { province, code_prd, annee, annee_debut, annee_fin } = req.query;
 
     let whereExtra = '';
     const buildReq = () => {
@@ -908,7 +905,7 @@ exports.getStatsExportations = async (req, res) => {
     res.json({
       success: true,
       type: 'exportation',
-      filtres: { region: region||null, sous_categorie: sous_categorie||null, annee: annee||null },
+      filtres: { province: province||null, code_prd: code_prd||null, annee: annee||null },
       data: {
         total:         total.recordset[0].total,
         valeur_totale: totalValeur.recordset[0].valeur_totale,

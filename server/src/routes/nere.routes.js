@@ -7,8 +7,8 @@ const Abonnement   = require('../models/Abonnement.model');
 const NERE_BASE_URL = process.env.NERE_API_URL || 'http://localhost:5001';
 console.log('>>> NERE_BASE_URL =', NERE_BASE_URL);
 
-/* ── Rôles exemptés de déduction ── */
-const ROLES_PRIVILEGES = ['admin', 'manager'];
+/* ── Rôle exempté de déduction ── */
+const ROLES_PRIVILEGES = ['admin'];
 
 const COUTS = {
   recherche:    250,
@@ -47,13 +47,13 @@ async function appelNere(path) {
   }
 }
 
-/* ══ Déduire le solde — bypass si admin/manager ══ */
-async function deduireSolde(userId, typeRequete, quantite = 1, role = 'abonne') {
+/* ══ Déduire le solde — bypass si admin ou manager autorisé ══ */
+async function deduireSolde(userId, typeRequete, quantite = 1, role = 'abonne', isManagerAuthorized = false) {
   const cout = (COUTS[typeRequete] || 250) * Math.max(1, parseInt(quantite) || 1);
 
-  /* ── Accès illimité pour admin et manager ── */
-  if (ROLES_PRIVILEGES.includes(role)) {
-    console.log(`⚡ Accès privilégié (${role}) — aucune déduction`);
+  /* ── Accès illimité pour admin ET manager autorisé ── */
+  if (ROLES_PRIVILEGES.includes(role) || (role === 'manager' && isManagerAuthorized)) {
+    console.log(`⚡ Accès privilégié (${role}${isManagerAuthorized ? ' autorisé' : ''}) — aucune déduction`);
     return { ok: true, cout: 0, solde_restant: null, bypasse: true };
   }
 
@@ -115,7 +115,7 @@ router.get('/recherche', proteger, async (req, res) => {
       });
     }
 
-    const deduction = await deduireSolde(req.user.id, 'recherche', 1, req.user.role);
+    const deduction = await deduireSolde(req.user.id, 'recherche', 1, req.user.role, req.user.canSearchMultiCriteria);
     if (!deduction.ok) return res.status(400).json({ success: false, ...deduction });
 
     const params = new URLSearchParams({ limit, page });
@@ -144,7 +144,7 @@ router.get('/multicritere', proteger, async (req, res) => {
     const { limit = 50, page = 1, ...criteres } = req.query;
     const quantite = Math.max(1, parseInt(limit) || 50);
 
-    const deduction = await deduireSolde(req.user.id, 'multicritere', quantite, req.user.role);
+    const deduction = await deduireSolde(req.user.id, 'multicritere', quantite, req.user.role, req.user.canSearchMultiCriteria);
     if (!deduction.ok) return res.status(400).json({ success: false, ...deduction });
 
     const params  = new URLSearchParams({ limit, page, ...criteres });
@@ -168,7 +168,7 @@ router.get('/associations', proteger, async (req, res) => {
   try {
     const { limit = 20, page = 1, ...criteres } = req.query;
 
-    const deduction = await deduireSolde(req.user.id, 'association', 1, req.user.role);
+    const deduction = await deduireSolde(req.user.id, 'association', 1, req.user.role, req.user.canSearchMultiCriteria);
     if (!deduction.ok) return res.status(400).json({ success: false, ...deduction });
 
     const params  = new URLSearchParams({ limit, page, ...criteres });
@@ -259,7 +259,7 @@ router.get('/statistiques/associations', proteger, async (req, res) => {
     const deduction = await deduireSolde(req.user.id, 'statistique', 1, req.user.role);
     if (!deduction.ok) return res.status(400).json({ success: false, ...deduction });
 
-    const nereRes = await appelNere('/api/nere/associations/stats');
+    const nereRes = await appelNere('/api/nere/associations/statistiques');
 
     return res.json({
       success:       true,
@@ -279,7 +279,7 @@ router.get('/statistiques/importations', proteger, async (req, res) => {
     const deduction = await deduireSolde(req.user.id, 'statistique', 1, req.user.role);
     if (!deduction.ok) return res.status(400).json({ success: false, ...deduction });
 
-    const nereRes = await appelNere('/api/douane/importations/stats');
+    const nereRes = await appelNere('/api/douane/importations/statistiques');
 
     return res.json({
       success:       true,

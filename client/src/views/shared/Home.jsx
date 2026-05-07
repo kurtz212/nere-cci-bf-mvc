@@ -1,54 +1,42 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "../../styles/home.css";
-import logoCCI              from "../../assets/ccibf.png";
-import logoNERE             from "../../assets/nere.png";
-import logoCEFORE           from "../../assets/cefore.png";
-import logoDouanes          from "../../assets/douanes.png";
-import logoCNSS             from "../../assets/cnss.png";
-import logoJustice          from "../../assets/justice.png";
-import logoCommerce         from "../../assets/tribunal.jpg";
-import logoDGI              from "../../assets/impots.jpg";
-import logoINSD             from "../../assets/INSD.png";
-import logoSONABEL          from "../../assets/SONABEL.jpg";
-import logoLA_POSTE         from "../../assets/LaPoste.jpg";
+import logoCCI               from "../../assets/ccibf.png";
+import logoNERE              from "../../assets/nere.png";
+import logoCEFORE            from "../../assets/cefore.png";
+import logoDouanes           from "../../assets/douanes.png";
+import logoCNSS              from "../../assets/cnss.png";
+import logoJustice           from "../../assets/justice.png";
+import logoCommerce          from "../../assets/tribunal.jpg";
+import logoDGI               from "../../assets/impots.jpg";
+import logoINSD              from "../../assets/INSD.png";
+import logoSONABEL           from "../../assets/SONABEL.jpg";
+import logoLA_POSTE          from "../../assets/LaPoste.jpg";
 import logoMAISON_ENTREPRISE from "../../assets/MDE.png";
 
-const FLOATING_TEXTS = [
-  "RCCM: BF-OUA-2024-A142","IFU: 000-24856-X","CA: 2,4 Mrd FCFA",
-  "Secteur: BTP","Région: Centre","Employés: 142",
-  "RCCM: BF-BDO-2021-B088","IFU: 000-18723-A","CA: 480 M FCFA",
-  "Secteur: Commerce","Région: Hauts-Bassins","Employés: 38",
-  "NERE v2.0","CCI-BF","Registre National",
-  "RCCM: BF-KDG-2019-C055","IFU: 000-30011-B","CA: 1,1 Mrd FCFA",
-  "Secteur: Agriculture","Région: Nord","Employés: 210",
+const PARTENAIRES = [
+  { logo: logoCCI,              nom: "CCI-BF",                  type: "Institution consulaire",   contribution: "Gestion et mise à jour du fichier NERE.",    badge: "Partenaire principal",     lien: "https://www.cci.bf/" },
+  { logo: logoCEFORE,           nom: "CEFORE",                  type: "Centre de formalités",     contribution: "Facilite la création d'entreprises.",         badge: "Création entreprise",      lien: "https://creerentreprise.me.bf/" },
+  { logo: logoDouanes,          nom: "Douanes",                 type: "Administration douanière", contribution: "Données import/export.",                      badge: "Commerce certifié",        lien: "https://www.douanes.gov.bf/" },
+  { logo: logoCNSS,             nom: "CNSS",                    type: "Sécurité sociale",         contribution: "Données sociales des employés.",              badge: "Emploi vérifié",           lien: "https://www.cnss.bf/" },
+  { logo: logoJustice,          nom: "Ministère de la Justice", type: "Institution judiciaire",   contribution: "Validation juridique des entreprises.",       badge: "Conformité légale",        lien: "https://www.justice.gov.bf/" },
+  { logo: logoCommerce,         nom: "Tribunal de Commerce",    type: "Institution judiciaire",   contribution: "Enregistrement légal des entreprises.",       badge: "RCCM validé",              lien: "#" },
+  { logo: logoDGI,              nom: "DGI",                     type: "Administration fiscale",   contribution: "Validation des numéros IFU.",                 badge: "IFU vérifié",              lien: "https://www.impots.gov.bf/" },
+  { logo: logoINSD,             nom: "INSD",                    type: "Statistique nationale",    contribution: "Fournit les indicateurs économiques.",        badge: "Statistiques officielles", lien: "https://www.insd.bf/" },
+  { logo: logoSONABEL,          nom: "SONABEL",                 type: "Entreprise publique",      contribution: "Fourniture d'électricité.",                   badge: "Service énergétique",      lien: "https://www.sonabel.bf/" },
+  { logo: logoLA_POSTE,         nom: "La Poste BF",             type: "Service postal",           contribution: "Services postaux et financiers.",             badge: "Service postal",           lien: "https://laposte.bf/" },
+  { logo: logoMAISON_ENTREPRISE,nom: "Maison de l'Entreprise",  type: "Accompagnement",           contribution: "Appui aux entreprises.",                      badge: "Support PME",              lien: "#" },
 ];
 
-const PARTENAIRES = [
-  { logo:logoCCI,    nom:"CCI-BF",                 type:"Institution consulaire",  contribution:"Gestion et mise à jour du fichier NERE.",      badge:"Partenaire principal",    lien:"https://www.cci.bf/" },
-  { logo:logoCEFORE, nom:"CEFORE",                 type:"Centre de formalités",    contribution:"Facilite la création d'entreprises.",           badge:"Création entreprise",     lien:"https://creerentreprise.me.bf/" },
-  { logo:logoDouanes,nom:"Douanes",                type:"Administration douanière",contribution:"Données import/export.",                        badge:"Commerce certifié",       lien:"https://www.douanes.gov.bf/" },
-  { logo:logoCNSS,   nom:"CNSS",                   type:"Sécurité sociale",        contribution:"Données sociales des employés.",                badge:"Emploi vérifié",          lien:"https://www.cnss.bf/" },
-  { logo:logoJustice,nom:"Ministère de la Justice",type:"Institution judiciaire",  contribution:"Validation juridique des entreprises.",         badge:"Conformité légale",       lien:"https://www.justice.gov.bf/" },
-  { logo:logoCommerce,nom:"Tribunal de Commerce",  type:"Institution judiciaire",  contribution:"Enregistrement légal des entreprises.",         badge:"RCCM validé",             lien:"#" },
-  { logo:logoDGI,    nom:"DGI",                    type:"Administration fiscale",  contribution:"Validation des numéros IFU.",                   badge:"IFU vérifié",             lien:"https://www.impots.gov.bf/" },
-  { logo:logoINSD,   nom:"INSD",                   type:"Statistique nationale",   contribution:"Fournit les indicateurs économiques.",          badge:"Statistiques officielles",lien:"https://www.insd.bf/" },
-  { logo:logoSONABEL,nom:"SONABEL",                type:"Entreprise publique",     contribution:"Fourniture d'électricité.",                     badge:"Service énergétique",     lien:"https://www.sonabel.bf/" },
-  { logo:logoLA_POSTE,nom:"La Poste BF",           type:"Service postal",          contribution:"Services postaux et financiers.",               badge:"Service postal",          lien:"https://laposte.bf/" },
-  { logo:logoMAISON_ENTREPRISE,nom:"Maison de l'Entreprise",type:"Accompagnement", contribution:"Appui aux entreprises.",                        badge:"Support PME",             lien:"#" },
+const NAV_LINKS = [
+  { label: "Accueil",      path: "/",            key: "accueil"      },
+  { label: "Publications", path: "/publications", key: "publications" },
+  { label: "Recherche",    path: "/rechercheacc", key: "recherche"    },
+  { label: "Contact",      path: "/contact",      key: "contact"      },
+  { label: "Messages",     path: "/chat",         key: "messages"     },
 ];
 
 const API = "/api";
 const getToken = () => localStorage.getItem("token");
-
-/* ── NAV LINKS définition ── */
-const NAV_LINKS = [
-  { label:"Accueil",      path:"/",             key:"accueil"      },
-  { label:"Publications", path:"/publications",  key:"publications" },
-  { label:"Recherche",    path:"/rechercheacc",  key:"recherche"    },
-  { label:"Contact",      path:"/contact",       key:"contact"      },
-  { label:"Messages",     path:"/chat",          key:"messages"     },
-];
 
 export default function Home() {
   const navigate = useNavigate();
@@ -63,38 +51,6 @@ export default function Home() {
     if (u) setUser(JSON.parse(u));
   }, []);
 
-  useEffect(() => {
-    const bg = document.querySelector(".animated-bg");
-    if (!bg) return;
-    for (let i = 0; i < 20; i++) {
-      const p = document.createElement("div");
-      p.className = "particle";
-      const size = Math.random() * 50 + 8;
-      p.style.cssText = `width:${size}px;height:${size}px;left:${Math.random()*100}%;animation-duration:${Math.random()*14+8}s;animation-delay:${Math.random()*12}s;`;
-      bg.appendChild(p);
-    }
-    const linesContainer = document.querySelector(".connection-lines");
-    for (let i = 0; i < 6; i++) {
-      const line = document.createElement("div");
-      line.className = "conn-line";
-      line.style.cssText = `width:${Math.random()*40+30}%;top:${Math.random()*100}%;left:0;animation-duration:${Math.random()*8+6}s;animation-delay:${Math.random()*8}s;opacity:${Math.random()*0.4+0.2};`;
-      linesContainer?.appendChild(line);
-    }
-    const interval = setInterval(() => {
-      const text = FLOATING_TEXTS[Math.floor(Math.random()*FLOATING_TEXTS.length)];
-      const el = document.createElement("div");
-      el.className = `floating-data ${Math.random()>0.6?"gold":""}`;
-      el.textContent = text;
-      el.style.cssText = `left:${Math.random()*90}%;bottom:-20px;animation-duration:${Math.random()*10+12}s;animation-delay:0s;font-size:${Math.random()>0.5?"9px":"11px"};`;
-      bg.appendChild(el);
-      setTimeout(()=>el.remove(), 22000);
-    }, 1800);
-    return () => {
-      clearInterval(interval);
-      document.querySelectorAll(".particle,.conn-line,.conn-line-v").forEach(e=>e.remove());
-    };
-  }, []);
-
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -102,583 +58,480 @@ export default function Home() {
     setMenuOpen(false);
   };
 
-  const initiales = user ? `${user.prenom?.[0]||""}${user.nom?.[0]||""}`.toUpperCase() : "";
+  const initiales = user
+    ? `${user.prenom?.[0] || ""}${user.nom?.[0] || ""}`.toUpperCase()
+    : "";
 
   return (
     <>
       <style>{`
-        @keyframes carousel { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
-        @keyframes adminBounce { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }
+        @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;1,400&display=swap');
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+          --green:      #00904C;
+          --green-dark: #006635;
+          --green-pale: #F0F9F4;
+          --green-soft: #E2F4EA;
+          --green-mid:  #4DC97A;
+          --text:       #0D1F0D;
+          --muted:      #6A7F6A;
+          --border:     #E4EBE4;
+          --white:      #ffffff;
+          --off:        #F8FBF8;
+        }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Sora', sans-serif; background: var(--white); color: var(--text); -webkit-font-smoothing: antialiased; }
 
-        /* ── NAVBAR  ── */
-        .nere-navbar {
-          position: sticky;
-          top: 0;
-          z-index: 100;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 0 32px;
-          height: 120px;
-        background: #00904C;
-          backdrop-filter: none;
-          -webkit-backdrop-filter: none;
-          border-bottom: 1px solid rgba(77,201,122,0.18);
-          box-shadow: 0 4px 24px rgba(0,0,0,0.18);
-        }
+        /* ── NAVBAR INTACTE ── */
+        .h-navbar { position: sticky; top: 0; z-index: 100; background: #00904C; height: 120px; display: flex; align-items: center; justify-content: space-between; padding: 0 32px; border-bottom: 1px solid rgba(77,201,122,0.18); box-shadow: 0 4px 24px rgba(0,0,0,0.18); }
+        .h-logo-zone { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+        .h-logo-zone img { height: 80px; width: auto; border-radius: 8px; background: #fff; padding: 4px; }
+        .h-logo-text { display: flex; flex-direction: column; line-height: 1.35; }
+        .h-logo-text strong { font-size: 18px; font-weight: 800; color: #fff; letter-spacing: 0.08em; text-transform: uppercase; }
+        .h-logo-text span { font-size: 10px; color: rgba(255,255,255,0.65); font-weight: 400; }
+        .h-nav-links { display: flex; align-items: center; gap: 3px; margin-left: auto; margin-right: 16px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); border-radius: 100px; padding: 5px 8px; }
+        .h-nl { padding: 7px 16px; border-radius: 100px; font-size: 20px; font-weight: 600; color: rgba(255,255,255,0.75); cursor: pointer; border: none; background: transparent; font-family: 'Sora', sans-serif; white-space: nowrap; letter-spacing: 0.02em; }
+        .h-nl:hover { color: #fff; background: rgba(255,255,255,0.1); }
+        .h-nl.active { color: #0A3D1F; background: #4DC97A; font-weight: 700; box-shadow: 0 2px 10px rgba(77,201,122,0.35); }
+        .h-nav-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+        .h-btn-login { padding: 7px 18px; border-radius: 100px; border: 1.5px solid rgba(255,255,255,0.35); background: transparent; color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Sora', sans-serif; }
+        .h-btn-login:hover { background: rgba(255,255,255,0.12); }
+        .h-btn-register { padding: 7px 18px; border-radius: 100px; border: none; background: #4DC97A; color: #0A3D1F; font-size: 13px; font-weight: 700; cursor: pointer; font-family: 'Sora', sans-serif; }
+        .h-btn-register:hover { background: #5DD98A; box-shadow: 0 4px 14px rgba(77,201,122,0.35); }
+        .h-user-chip { display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 5px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 100px; cursor: pointer; font-size: 13px; font-weight: 600; color: #fff; }
+        .h-user-chip:hover { background: rgba(255,255,255,0.18); }
+        .h-user-avatar { width: 30px; height: 30px; border-radius: 50%; background: #4DC97A; color: #0A3D1F; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px; flex-shrink: 0; }
+        .h-dropdown { position: absolute; top: calc(100% + 10px); right: 0; background: #fff; border: 1px solid #E2EDE6; border-radius: 16px; min-width: 220px; box-shadow: 0 16px 48px rgba(0,0,0,0.14); overflow: hidden; z-index: 9999; }
+        .h-dh { padding: 16px 18px 12px; border-bottom: 1px solid #F0F4F1; background: linear-gradient(135deg,#F5FAF7,#fff); }
+        .h-dh-name { font-weight: 800; font-size: 14px; color: #0A3D1F; }
+        .h-dh-email { font-size: 12px; color: #6B9A7A; margin-top: 2px; }
+        .h-dh-role { display: inline-flex; align-items: center; margin-top: 6px; background: #E8F5EE; color: #00904C; border-radius: 100px; padding: 3px 10px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+        .h-di { padding: 11px 18px; font-size: 13px; color: #0A3D1F; cursor: pointer; display: flex; align-items: center; gap: 15px; font-weight: 500; }
+        .h-di:hover { background: #F5FAF7; }
+        .h-di.red { color: #CC3333; }
+        .h-di.red:hover { background: #FFF0F0; }
+        .h-dsep { height: 1px; background: #F0F4F1; margin: 8px 0; }
 
-        /* Logo zone */
-        .nere-navbar .logo-zone {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          flex-shrink: 0;
-        }
+        /* ── HERO ── */
+        .hero-section { border-bottom: 1px solid var(--border); background: var(--white); }
+        .hero-wrap { max-width: 1280px; margin: 0 auto; padding: 96px 60px 88px; display: grid; grid-template-columns: 1fr 1fr; gap: 72px; align-items: center; }
+        .hero-pill { display: inline-flex; align-items: center; gap: 8px; background: var(--green-soft); color: var(--green-dark); border-radius: 100px; padding: 6px 16px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 28px; }
+        .hero-pill-dot { width: 6px; height: 6px; background: var(--green); border-radius: 50%; }
+        .hero-h1 { font-family: 'Playfair Display', serif; font-size: clamp(36px, 4vw, 58px); line-height: 1.1; color: var(--text); margin-bottom: 22px; }
+        .hero-h1 em { font-style: italic; color: var(--green); }
+        .hero-p { font-size: 16px; color: var(--muted); line-height: 1.8; max-width: 420px; margin-bottom: 38px; font-weight: 400; }
+        .hero-actions { display: flex; gap: 12px; }
+        .btn-primary { padding: 14px 30px; background: var(--green); color: #fff; border: none; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: 'Sora', sans-serif; }
+        .btn-primary:hover { background: var(--green-dark); }
+        .btn-ghost { padding: 14px 26px; background: transparent; color: var(--text); border: 1.5px solid var(--border); border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Sora', sans-serif; }
+        .btn-ghost:hover { border-color: var(--green); color: var(--green); }
 
-        /* Liens centrés */
-        .nere-navbar .nav-center {
-          position: static;
-transform: none;
-margin-left: auto;
-margin-right: 16px;
-          gap: 3px;
-          background: rgba(255,255,255,0.07);
-          border: 1px solid rgba(255,255,255,0.12);
-          border-radius: 100px;
-          padding: 5px 8px;
-        }
+        /* Hero stats grid */
+        .hero-right { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .hstat { background: var(--off); border: 1px solid var(--border); border-radius: 16px; padding: 28px 24px; display: flex; flex-direction: column; gap: 6px; }
+        .hstat.big { grid-column: span 2; background: var(--green); border-color: var(--green); flex-direction: row; align-items: center; justify-content: space-between; padding: 28px 32px; }
+        .hstat.big .hstat-num { color: #fff; font-size: 40px; }
+        .hstat.big .hstat-lbl { color: rgba(255,255,255,0.8); }
+        .hstat.big .hstat-icon { font-size: 44px; opacity: 0.25; }
+        .hstat.accent { background: var(--green-soft); border-color: var(--green-soft); }
+        .hstat.accent .hstat-num { color: var(--green); }
+        .hstat-num { font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 700; color: var(--green-dark); line-height: 1; }
+        .hstat-lbl { font-size: 12px; color: var(--muted); font-weight: 500; }
 
-        .nere-navbar .nav-center .nav-item {
-          position: relative;
-          padding: 7px 16px;
-          border-radius: 100px;
-          font-size: 20px;
-          font-weight: 600;
-          color: rgba(255,255,255,0.75);
-          cursor: pointer;
-          transition: all 0.2s;
-          white-space: nowrap;
-          letter-spacing: 0.02em;
-          border: none;
-          background: transparent;
-          font-family: Arial, Helvetica, sans-serif;
-        }
+        /* ── FEATURES ── */
+        .features-section { background: var(--off); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 80px 60px; }
+        .section-inner { max-width: 1280px; margin: 0 auto; }
+        .section-header { text-align: center; margin-bottom: 52px; }
+        .s-tag { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--green); margin-bottom: 10px; }
+        .s-title { font-family: 'Playfair Display', serif; font-size: clamp(26px, 3vw, 38px); color: var(--text); line-height: 1.2; margin-bottom: 10px; }
+        .s-sub { font-size: 15px; color: var(--muted); max-width: 480px; margin: 0 auto; line-height: 1.7; }
+        .feat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+        .feat-card { background: var(--white); border: 1px solid var(--border); border-radius: 16px; padding: 30px 26px; display: flex; flex-direction: column; gap: 12px; }
+        .feat-card:hover { border-color: var(--green-mid); box-shadow: 0 4px 20px rgba(0,144,76,0.07); }
+        .feat-icon { width: 46px; height: 46px; border-radius: 12px; background: var(--green-soft); display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .feat-title { font-size: 15px; font-weight: 700; color: var(--text); }
+        .feat-desc { font-size: 13px; color: var(--muted); line-height: 1.7; }
 
-        .nere-navbar .nav-center .nav-item:hover {
-          color: #fff;
-          background: rgba(255,255,255,0.1);
-        }
+        /* ── PARTENAIRES ── */
+        .partners-section { background: var(--white); border-bottom: 1px solid var(--border); padding: 80px 60px; }
+        @keyframes slide { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+        .carousel-outer { overflow: hidden; position: relative; border-radius: 14px; border: 1px solid var(--border); background: var(--off); padding: 22px 0; }
+        .carousel-outer::before, .carousel-outer::after { content:''; position: absolute; top:0; bottom:0; width:80px; z-index:2; pointer-events:none; }
+        .carousel-outer::before { left:0; background: linear-gradient(90deg, var(--off), transparent); }
+        .carousel-outer::after { right:0; background: linear-gradient(-90deg, var(--off), transparent); }
+        .carousel-track { display: flex; gap: 12px; width: max-content; animation: slide 42s linear infinite; }
+        .pcard { width: 228px; flex-shrink:0; background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px; text-decoration: none; }
+        .pcard:hover { border-color: var(--green); box-shadow: 0 4px 16px rgba(0,144,76,0.08); }
+        .pcard-logo { width: 40px; height: 40px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); background: var(--white); display: flex; align-items: center; justify-content: center; flex-shrink:0; }
+        .pcard-logo img { width:100%; height:100%; object-fit:contain; padding:3px; }
+        .pcard-name { font-size: 13px; font-weight: 700; color: var(--text); }
+        .pcard-type { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+        .pcard-desc { font-size: 12px; color: var(--muted); line-height: 1.6; }
+        .pcard-badge { display: inline-flex; padding: 3px 10px; background: var(--green-soft); color: var(--green-dark); border-radius: 100px; font-size: 10px; font-weight: 700; width: fit-content; }
 
-        .nere-navbar .nav-center .nav-item.active {
-          color: #0A3D1F;
-          background: #4DC97A;
-          font-weight: 700;
-          box-shadow: 0 2px 10px rgba(77,201,122,0.35);
-        }
+        /* ── FORMULES ── */
+        .packs-section { background: var(--off); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 80px 60px; }
+        .packs-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 1000px; margin: 0 auto; }
+        .pack { background: var(--white); border: 1.5px solid var(--border); border-radius: 18px; padding: 34px 28px; display: flex; flex-direction: column; gap: 14px; position: relative; }
+        .pack.featured { border-color: var(--green); box-shadow: 0 0 0 4px rgba(0,144,76,0.06), 0 8px 32px rgba(0,144,76,0.1); }
+        .pack-chip { position: absolute; top: -13px; left: 50%; transform: translateX(-50%); background: var(--green); color: #fff; font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; padding: 5px 16px; border-radius: 100px; white-space: nowrap; }
+        .pack-tier { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em; color: var(--muted); }
+        .pack-price { font-family: 'Playfair Display', serif; font-size: 32px; color: var(--text); line-height: 1; }
+        .pack-price sub { font-family: 'Sora', sans-serif; font-size: 13px; font-weight: 600; color: var(--muted); vertical-align: baseline; }
+        .pack-divider { height: 1px; background: var(--border); }
+        .pack-feats { display: flex; flex-direction: column; gap: 8px; }
+        .pack-feat { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text); font-weight: 500; }
+        .pack-feat-dot { width: 18px; height: 18px; border-radius: 50%; background: var(--green-soft); color: var(--green); display: flex; align-items: center; justify-content: center; font-size: 10px; flex-shrink:0; font-weight: 700; }
+        .pack-desc { font-size: 13px; color: var(--muted); line-height: 1.75; }
+        .pack-btn { padding: 13px; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: 'Sora', sans-serif; border: 1.5px solid var(--border); background: var(--white); color: var(--text); margin-top: 4px; }
+        .pack-btn:hover { border-color: var(--green); color: var(--green); }
+        .pack-btn.filled { background: var(--green); border-color: var(--green); color: #fff; }
+        .pack-btn.filled:hover { background: var(--green-dark); }
 
-        /* Actions droite */
-        .nere-navbar .nav-actions {
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          flex-shrink: 0;
-        }
+        /* ── CTA BAND ── */
+        .cta-band { background: var(--green); padding: 80px 60px; text-align: center; }
+        .cta-band-inner { max-width: 620px; margin: 0 auto; }
+        .cta-band h2 { font-family: 'Playfair Display', serif; font-size: clamp(26px, 3.5vw, 42px); color: #fff; margin-bottom: 14px; line-height: 1.2; }
+        .cta-band p { font-size: 16px; color: rgba(255,255,255,0.78); line-height: 1.7; margin-bottom: 36px; }
+        .cta-white { display: inline-block; padding: 15px 40px; background: #fff; color: var(--green-dark); border: none; border-radius: 10px; font-size: 15px; font-weight: 800; cursor: pointer; font-family: 'Sora', sans-serif; }
+        .cta-white:hover { background: var(--green-soft); }
 
-        /* Chip utilisateur */
-        .nere-navbar .user-chip {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 5px 12px 5px 5px;
-          background: rgba(255,255,255,0.1);
-          border: 1px solid rgba(255,255,255,0.2);
-          border-radius: 100px;
-          cursor: pointer;
-          transition: all 0.2s;
-          color: #fff;
-          font-size: 13px;
-          font-weight: 600;
-        }
-        .nere-navbar .user-chip:hover {
-          background: rgba(255,255,255,0.18);
-        }
-        .nere-navbar .user-avatar {
-          width: 30px;
-          height: 30px;
-          border-radius: 50%;
-          background: #4DC97A;
-          color: #0A3D1F;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: 800;
-          font-size: 12px;
-          flex-shrink: 0;
-        }
+        /* ── FOOTER ── */
+        .footer { background: var(--white); border-top: 1px solid var(--border); padding: 36px 60px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px; }
+        .footer-brand strong { font-size: 15px; font-weight: 800; color: var(--text); letter-spacing: 0.04em; }
+        .footer-brand strong em { color: var(--green); font-style: normal; }
+        .footer-copy { font-size: 12px; color: var(--muted); margin-top: 3px; }
+        .footer-links { display: flex; gap: 28px; }
+        .footer-link { font-size: 13px; color: var(--muted); cursor: pointer; font-weight: 500; }
+        .footer-link:hover { color: var(--green); }
 
-        /* Boutons connexion / inscription */
-        .nere-navbar .btn-connexion {
-          padding: 7px 18px;
-          border-radius: 100px;
-          border: 1.5px solid rgba(255,255,255,0.35);
-          background: transparent;
-          color: #fff;
-          font-size: 13px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s;
-          font-family: Arial, Helvetica, sans-serif;
-        }
-        .nere-navbar .btn-connexion:hover {
-          background: rgba(255,255,255,0.12);
-        }
-        .nere-navbar .btn-inscription {
-          padding: 7px 18px;
-          border-radius: 100px;
-          border: none;
-          background: #4DC97A;
-          color: #0A3D1F;
-          font-size: 13px;
-          font-weight: 700;
-          cursor: pointer;
-          transition: all 0.2s;
-          font-family: Arial, Helvetica, sans-serif;
-        }
-        .nere-navbar .btn-inscription:hover {
-          background: #5DD98A;
-          transform: translateY(-1px);
-          box-shadow: 0 4px 14px rgba(77,201,122,0.35);
-        }
-
-        /* Dropdown */
-        .nere-dropdown {
-          position: absolute;
-          z-index: 9999;
-          top: calc(100% + 10px);
-          right: 0;
-          background: #fff;
-          border-radius: 16px;
-          border: 1px solid #E2EDE6;
-          min-width: 220px;
-          overflow: hidden;
-          box-shadow: 0 16px 48px rgba(0,0,0,0.14);
-          animation: dropIn 0.18s ease;
-        }
-        @keyframes dropIn {
-          from { opacity:0; transform:translateY(-8px); }
-          to   { opacity:1; transform:translateY(0); }
-        }
-        .nere-dropdown .dd-header {
-          padding: 16px 18px 12px;
-          border-bottom: 1px solid #F0F4F1;
-          background: linear-gradient(135deg,#F5FAF7,#fff);
-        }
-        .nere-dropdown .dd-name  { font-weight:800; color:#0A3D1F; font-size:14px; }
-        .nere-dropdown .dd-email { font-size:12px; color:#6B9A7A; margin-top:2px; }
-        .nere-dropdown .dd-role  {
-          display:inline-flex; align-items:center; gap:5px;
-          margin-top:6px; background:#E8F5EE; color:#00904C;
-          border-radius:100px; padding:3px 10px;
-          font-size:10px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase;
-        }
-        .nere-dropdown .dd-item {
-          padding: 11px 18px;
-          font-size: 13px;
-          color: #0A3D1F;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          gap: 15px;
-          transition: background 0.15s;
-          font-weight: 500;
-        }
-        .nere-dropdown .dd-item:hover { background: #F5FAF7; }
-        .nere-dropdown .dd-item.danger { color: #CC3333; }
-        .nere-dropdown .dd-item.danger:hover { background: #FFF0F0; }
-        .nere-dropdown .dd-sep { height:1px; background:#F0F4F1; margin:8px 0; }
+        /* ── ADMIN FAB ── */
+        .h-fab { position: fixed; bottom: 28px; right: 28px; z-index: 1000; width: 52px; height: 52px; border-radius: 50%; background: var(--green); border: 2px solid #fff; box-shadow: 0 4px 20px rgba(0,144,76,0.3); cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; color: #fff; }
+        .h-fab.open { background: #CC3333; }
       `}</style>
 
-      {/* ══ FOND ANIMÉ ══ */}
-      <div className="animated-bg">
-        <div className="blob1"/><div className="blob2"/><div className="blob3"/>
-        <div className="grid"/><div className="connection-lines"/>
-        <svg className="skyline" viewBox="0 0 1400 260" preserveAspectRatio="xMidYMax meet"
-          fill="rgba(46,111,204,0.5)" xmlns="http://www.w3.org/2000/svg">
-          <rect x="40" y="60" width="80" height="200"/>
-          <rect x="240" y="20" width="100" height="240"/>
-          <rect x="470" y="50" width="120" height="210"/>
-          <rect x="790" y="40" width="90" height="220"/>
-          <rect x="1010" y="30" width="110" height="230"/>
-          <rect x="1240" y="50" width="85" height="210"/>
-          <rect x="0" y="255" width="1400" height="5" fill="rgba(46,111,204,0.6)"/>
-        </svg>
-      </div>
+      {/* ══════════════ NAVBAR — INTACTE ══════════════ */}
+      <nav className="h-navbar">
+        <div className="h-logo-zone">
+          <img src={logoNERE} alt="NERE"
+            style={{ height:"80px", width:"auto", borderRadius:"8px", backgroundColor:"#fff", padding:"4px", flexShrink:0 }}/>
+          <div className="h-logo-text">
+            <strong>Fichier NERE</strong>
+            <span>Registre national des entreprises</span>
+          </div>
+        </div>
 
-      <div className="site-wrapper">
+        <div className="h-nav-links">
+          {NAV_LINKS.map(link => (
+            <button key={link.key}
+              className={`h-nl ${activeNav === link.key ? "active" : ""}`}
+              onClick={() => { setActiveNav(link.key); navigate(link.path); }}>
+              {link.label}
+            </button>
+          ))}
+        </div>
 
-        {/* ══ NAVBAR REDESIGNÉE ══ */}
-        <nav className="nere-navbar">
+        <div className="h-nav-actions">
+          {user ? (
+            <div style={{ position:"relative" }}>
+              <div className="h-user-chip" onClick={() => setMenuOpen(o => !o)}>
+                <div className="h-user-avatar">{initiales}</div>
+                <span style={{ maxWidth:"90px", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                  {user.prenom} {user.nom}
+                </span>
+                <span style={{ fontSize:"9px", color:"rgba(255,255,255,0.5)" }}>▾</span>
+              </div>
+              {menuOpen && (
+                <>
+                  <div style={{ position:"fixed", inset:0, zIndex:50 }} onClick={() => setMenuOpen(false)}/>
+                  <div className="h-dropdown" onClick={e => e.stopPropagation()}>
+                    <div className="h-dh">
+                      <div className="h-dh-name">{user.prenom} {user.nom}</div>
+                      <div className="h-dh-email">{user.email || "—"}</div>
+                      <div className="h-dh-role">
+                        {user.role === "admin" ? "Administrateur" : user.role === "manager" ? "Gestionnaire" : "Abonné"}
+                      </div>
+                    </div>
+                    <div style={{ padding:"6px 0" }}>
+                      <div className="h-di" onClick={() => { navigate("/profil");       setMenuOpen(false); }}>Mon Profil</div>
+                      <div className="h-di" onClick={() => { navigate("/profil");       setMenuOpen(false); }}>Historique</div>
+                      <div className="h-di" onClick={() => { navigate("/profil");       setMenuOpen(false); }}>Sécurité</div>
+                      {user.role === "admin"   && <div className="h-di" onClick={() => { navigate("/admin");        setMenuOpen(false); }}>Tableau de bord</div>}
+                      {user.role === "manager" && <div className="h-di" onClick={() => { navigate("/gestionnaire"); setMenuOpen(false); }}>Tableau de bord</div>}
+                      <div className="h-dsep"/>
+                      <div className="h-di red" onClick={handleLogout}>Déconnexion</div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          ) : (
+            <>
+              <button className="h-btn-login"    onClick={() => navigate("/connexion")}>Connexion</button>
+              <button className="h-btn-register" onClick={() => navigate("/inscription")}>S'inscrire</button>
+            </>
+          )}
+        </div>
+      </nav>
 
-          {/* Logo */}
-          <div className="logo-zone">
-            <img src={logoNERE} alt="NERE"
-              style={{ height:"80px", width:"auto", borderRadius:"8px",
-                backgroundColor:"#fff", padding:"4px", flexShrink:0 }}/>
-            <div style={{ display:"flex", flexDirection:"column", lineHeight:1.35 }}>
-              <span style={{ fontSize:"18px", fontWeight:800, color:"#fff",
-                letterSpacing:"0.08em", textTransform:"uppercase" }}>
-                Fichier NERE
-              </span>
-              <span style={{ fontSize:"10px", color:"rgba(255,255,255,0.65)" }}>
-                Registre national des entreprises
-              </span>
+      {/* ══════════════ HERO ══════════════ */}
+      <section className="hero-section">
+        <div className="hero-wrap">
+          {/* Gauche */}
+          <div>
+            <div className="hero-pill">
+              <span className="hero-pill-dot"/>
+              Plateforme officielle — CCI-BF
+            </div>
+            <h1 className="hero-h1">
+              Accédez aux données<br/>économiques du <em style={{ color: "#ED1C24" }}>Burkina Faso</em>
+            </h1>
+            <p className="hero-p">
+              Consultez les informations officielles des entreprises enregistrées au NERE —
+              secteur d'activité, chiffre d'affaires, localisation et bien plus.
+            </p>
+            <div className="hero-actions">
+              <button className="btn-primary" onClick={() => navigate("/formules")}>Voir les formules</button>
             </div>
           </div>
 
-          {/* ── Liens centrés dans une "pilule" ── */}
-          <div className="nav-center">
-            {NAV_LINKS.map(link => (
-              <button key={link.key}
-                className={`nav-item ${activeNav === link.key ? "active" : ""}`}
-                onClick={() => { setActiveNav(link.key); navigate(link.path); }}>
-                {link.label}
-              </button>
+          {/* Droite — 4 stats */}
+          <div className="hero-right">
+            <div className="hstat big">
+              <div>
+                <div className="hstat-num">233 000+</div>
+                <div className="hstat-lbl">Entreprises indexées au Burkina Faso</div>
+              </div>             
+            </div>
+            <div className="hstat">
+              <div className="hstat-num">17</div>
+              <div className="hstat-lbl">Régions couvertes</div>
+            </div>
+            <div className="hstat">
+              <div className="hstat-num">120+</div>
+              <div className="hstat-lbl">Secteurs d'activité</div>
+            </div>
+            <div className="hstat accent" style={{ gridColumn:"span 2" }}>
+              <div className="hstat-num">3</div>
+              <div className="hstat-lbl">Formules d'abonnement flexibles</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════ FEATURES ══════════════ */}
+      <section className="features-section">
+        <div className="section-inner">
+          <div className="section-header">
+            <div className="s-tag">Pourquoi NERE ?</div>
+            <div className="s-title">Une plateforme de référence nationale</div>
+            <p className="s-sub">Des données officielles, fiables et actualisées sur l'écosystème entrepreneurial du Burkina Faso.</p>
+          </div>
+          <div className="feat-grid">
+            {[
+              {  title:"Recherche avancée",     desc:"Filtrez par secteur, région, chiffre d'affaires, effectifs et bien d'autres critères." },
+              {  title:"Données certifiées",    desc:"Issues des registres officiels : RCCM, IFU, CNSS, DGI — toujours à jour et authentifiées." },
+              {  title:"Rapports & Études",     desc:"Accédez aux publications de la CCI-BF : classements, études sectorielles et notes techniques." },
+              { title:"Accès sécurisé",        desc:"Trois formules d'abonnement adaptées à chaque profil : particulier, professionnel ou entreprise." },
+              { title:"Messagerie intégrée",   desc:"Échangez directement avec nos équipes pour toute question relative aux données." },
+              {  title:"Couverture nationale",  desc:"Les 17 régions du Burkina Faso couvertes, de Ouagadougou aux zones périphériques." },
+            ].map((f, i) => (
+              <div key={i} className="feat-card">                
+                <div className="feat-title">{f.title}</div>
+                <div className="feat-desc">{f.desc}</div>
+              </div>
             ))}
           </div>
+        </div>
+      </section>
 
-          {/* Actions droite */}
-          <div className="nav-actions">
-            {user ? (
-              <div style={{ position:"relative" }}>
-                <div className="user-chip" onClick={() => setMenuOpen(o => !o)}>
-                  <div className="user-avatar">{initiales}</div>
-                  <span style={{ maxWidth:"100px", overflow:"hidden",
-                    textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                    {user.prenom} {user.nom}
-                  </span>
-                  <span style={{ fontSize:"9px", opacity:0.5 }}>▾</span>
-                </div>
-
-                {menuOpen && (
-                  <>
-                    <div style={{ position:"fixed", inset:0, zIndex:50 }}
-                      onClick={() => setMenuOpen(false)}/>
-                    <div className="nere-dropdown" onClick={e => e.stopPropagation()}>
-                      <div className="dd-header">
-                        <div className="dd-name">{user.prenom} {user.nom}</div>
-                        <div className="dd-email">{user.email || "—"}</div>
-                        <div className="dd-role">
-                          {user.role === "admin"   ? " Administrateur" :
-                           user.role === "manager" ? " Gestionnaire"   : " Abonné"}
-                        </div>
-                      </div>
-
-                      <div style={{ padding:"6px 0" }}>
-                        <div className="dd-item"
-                          onClick={() => { navigate("/profil"); setMenuOpen(false); }}>
-                           Mon Profil
-                        </div>
-                        <div className="dd-item"
-                          onClick={() => { navigate("/profil"); setMenuOpen(false); }}>
-                           Historique
-                        </div>
-                        <div className="dd-item"
-                          onClick={() => { navigate("/profil"); setMenuOpen(false); }}>
-                           Sécurité
-                        </div>
-
-                        {user.role === "admin" && (
-                          <div className="dd-item"
-                            onClick={() => { navigate("/admin"); setMenuOpen(false); }}>
-                             Tableau de bord
-                          </div>
-                        )}
-                        {user.role === "manager" && (
-                          <div className="dd-item"
-                            onClick={() => { navigate("/gestionnaire"); setMenuOpen(false); }}>
-                             Tableau de bord
-                          </div>
-                        )}
-
-                        <div className="dd-sep"/>
-                        <div className="dd-item danger" onClick={handleLogout}>
-                           Déconnexion
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-            ) : (
-              <>
-                <button className="btn-connexion"
-                  onClick={() => navigate("/connexion")}>
-                  Connexion
-                </button>
-                <button className="btn-inscription"
-                  onClick={() => navigate("/inscription")}>
-                  S'inscrire
-                </button>
-              </>
-            )}
-          </div>
-        </nav>
-
-        {/* ══ HERO ══ */}
-        <section className="hero">
-          <div className="hero-content">
-            <div className="hero-badge">
-              <span className="badge-dot"/>Bienvenu sur la plateforme officielle du NERE
-            </div>
-            <h1 className="hero-title">
-              Accédez aux données<br/>économiques du <em>Burkina Faso</em>
-            </h1>
-            <p className="hero-desc">
-              Consultez les informations officielles des entreprises enregistrées au NERE —
-              secteur d'activité, chiffre d'affaires, localisation et bien plus,
-              selon votre formule d'abonnement.
-            </p>
-            <div className="hero-btns">
-              <button className="btn btn-outline btn-lg"
-                onClick={() => navigate("/formules")}>
-                Voir les formules
-              </button>
-            </div>
-            <div className="stats-row">
-              {[
-                { num:"45 000+", label:"Entreprises indexées"  },
-                { num:"13",      label:"Régions couvertes"     },
-                { num:"120+",    label:"Secteurs d'activité"   },
-                { num:"3",       label:"Formules d'abonnement" },
-              ].map((s, i) => (
-                <div key={i} className="stat-item">
-                  <div className="stat-num">{s.num}</div>
-                  <div className="stat-label">{s.label}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ══ PARTENAIRES ══ */}
-        <section className="publications-section">
-          <div style={{ display:"flex", flexDirection:"column", alignItems:"center",
-            textAlign:"center", marginBottom:"36px", gap:"14px" }}>
-            <img src={logoCCI} alt="Logo CCI-BF"
-              style={{ height:"90px", width:"auto", objectFit:"contain" }}/>
-            <div className="section-title" style={{ margin:0, color:"#ED1C24" }}>
-              NOS PARTENAIRES OFFICIELS
-            </div>
-            <div className="section-title" style={{ margin:0, fontSize:"16px" }}>
-              Accédez en un clic aux sites de nos partenaires qui assurent la fiabilité
-              et l'authenticité des informations
+      {/* ══════════════ PARTENAIRES ══════════════ */}
+      <section className="partners-section">
+        <div className="section-inner">
+          <div style={{ display:"flex", alignItems:"flex-end", gap:"40px", marginBottom:"40px", flexWrap:"wrap" }}>
+            <div>
+              <img src={logoCCI} alt="CCI-BF"
+                style={{ height:"120px", objectFit:"contain", marginBottom:"14px", display:"block" }}/>
+              <div className="s-tag">Partenaires officiels</div>
+              <div className="s-title">Des institutions qui garantissent la fiabilité</div>
+              <p style={{ fontSize:"14px", color:"var(--muted)", lineHeight:1.7, maxWidth:"420px", marginTop:"6px" }}>
+                Accédez en un clic aux sites de nos partenaires qui assurent l'authenticité des informations.
+              </p>
             </div>
           </div>
 
-          <div style={{ position:"relative", overflow:"hidden", borderRadius:"16px",
-            background:"linear-gradient(135deg,#00904C,#006B38)", padding:"32px 0" }}>
-            <div style={{ position:"absolute", left:0, top:0, bottom:0, width:"100px",
-              background:"linear-gradient(90deg,rgba(0,144,76,0.8),transparent)",
-              zIndex:2, pointerEvents:"none" }}/>
-            <div style={{ position:"absolute", right:0, top:0, bottom:0, width:"100px",
-              background:"linear-gradient(-90deg,rgba(0,144,76,0.8),transparent)",
-              zIndex:2, pointerEvents:"none" }}/>
-            <div style={{ display:"flex", gap:"16px",
-              animation:"carousel 40s linear infinite", width:"max-content" }}>
+          <div className="carousel-outer">
+            <div className="carousel-track">
               {[...PARTENAIRES, ...PARTENAIRES].map((p, idx) => (
-                <a key={`${p.nom}-${idx}`} href={p.lien||"#"}
-                  target="_blank" rel="noopener noreferrer"
-                  style={{ background:"rgba(255,255,255,0.05)",
-                    border:"1px solid rgba(77,201,122,0.15)", borderRadius:"14px",
-                    padding:"20px 22px", width:"260px", flexShrink:0,
-                    display:"flex", flexDirection:"column", gap:"12px",
-                    textDecoration:"none", cursor:"pointer", transition:"all 0.3s ease" }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.transform="scale(1.05)";
-                    e.currentTarget.style.boxShadow="0 10px 25px rgba(0,0,0,0.4)";
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.transform="scale(1)";
-                    e.currentTarget.style.boxShadow="none";
-                  }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:"12px" }}>
-                    <div style={{ width:"52px", height:"52px", borderRadius:"10px",
-                      background:"rgba(255,255,255,0.1)", display:"flex",
-                      alignItems:"center", justifyContent:"center",
-                      flexShrink:0, overflow:"hidden" }}>
-                      {p.logo
-                        ? <img src={p.logo} alt={p.nom}
-                            style={{ width:"100%", height:"100%", objectFit:"contain", padding:"4px" }}/>
-                        : p.icone}
-                    </div>
+                <a key={`${p.nom}-${idx}`} href={p.lien || "#"}
+                  target="_blank" rel="noopener noreferrer" className="pcard">
+                  <div style={{ display:"flex", alignItems:"center", gap:"10px" }}>
+                    <div className="pcard-logo"><img src={p.logo} alt={p.nom}/></div>
                     <div>
-                      <div style={{ fontWeight:800, fontSize:"13px", color:"#fff", lineHeight:1.3 }}>
-                        {p.nom}
-                      </div>
-                      <div style={{ fontSize:"10px", color:"#E1F5E8", fontWeight:600,
-                        textTransform:"uppercase", letterSpacing:"0.06em", marginTop:"2px" }}>
-                        {p.type}
-                      </div>
+                      <div className="pcard-name">{p.nom}</div>
+                      <div className="pcard-type">{p.type}</div>
                     </div>
                   </div>
-                  <div style={{ fontSize:"12px", color:"rgba(255,255,255,0.85)", lineHeight:1.6 }}>
-                    {p.contribution}
-                  </div>
-                  <div style={{ display:"inline-flex", alignItems:"center", gap:"5px",
-                    background:"#fff", borderRadius:"100px", padding:"3px 10px", width:"fit-content" }}>
-                    <span style={{ fontSize:"11px", fontWeight:600, color:"#ED1C24" }}>{p.badge}</span>
-                  </div>
+                  <div className="pcard-desc">{p.contribution}</div>
+                  <div className="pcard-badge">{p.badge}</div>
                 </a>
               ))}
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* ══ FORMULES ══ */}
-        <section className="packs-section">
-          <div className="section-header" style={{ marginBottom:"36px" }}>
-            <div>
-              <div className="section-tag" style={{ color:"var(--gold)" }}>Crédit Prépayé</div>
-              <div className="packs-title">Choisissez votre formule</div>
-            </div>
+      {/* ══════════════ FORMULES ══════════════ */}
+      <section className="packs-section">
+        <div className="section-inner">
+          <div className="section-header">
+            <div className="s-tag">Crédit Prépayé</div>
+            <div className="s-title">Choisissez votre formule</div>
+            <p className="s-sub">Rechargez votre compte et accédez aux données selon votre niveau.</p>
           </div>
           <div className="packs-grid">
             {[
-              { nom:"Pack Essentiel",     prix:"5 000",        description:"Créditez votre compte avec 5 000 FCFA. Accès aux communiqués, recherche et chat.",        btn:"btn-outline-pack"  },
-              { nom:"Pack Professionnel", prix:"5 001–14 999",  description:"Entre 5 001 et 14 999 FCFA. Notes techniques, classements et téléchargement PDF.",        btn:"btn-primary-pack"  },
-              { nom:"Pack Entreprise",    prix:"15 000+",       description:"15 000 FCFA ou plus. Accès complet à toute la plateforme, rapports et études inclus.",     btn:"btn-outline-pack"  },
+              {
+                tier:"Essentiel", prix:"5 000", sfx:"FCFA", featured:false, btn:"ghost",
+                feats:["Communiqués publics","Recherche d'entreprises","Messagerie intégrée"],
+                desc:"Idéal pour démarrer. Accédez aux communiqués, à la recherche de base et au chat.",
+              },
+              {
+                tier:"Professionnel", prix:"5 001 – 14 999", sfx:"FCFA", featured:true, btn:"filled",
+                feats:["Tout l'Essentiel","Notes techniques","Classements sectoriels","Export PDF"],
+                desc:"Pour les professionnels. Notes techniques, classements et exports PDF inclus.",
+              },
+              {
+                tier:"Entreprise", prix:"15 000 +", sfx:"FCFA", featured:false, btn:"ghost",
+                feats:["Tout le Professionnel","Études & rapports","Données avancées","Support prioritaire"],
+                desc:"Accès complet. Rapports d'études, données avancées et support dédié.",
+              },
             ].map((pack, i) => (
-              <div key={i} className="pack-card-home">
-                <div className="pack-card-name">{pack.nom}</div>
-                <div className="pack-card-price">
-                  {pack.prix} <span>FCFA</span>
+              <div key={i} className={`pack ${pack.featured ? "featured" : ""}`}>
+                <div className="pack-tier">{pack.tier}</div>
+                <div className="pack-price">{pack.prix} <sub>{pack.sfx}</sub></div>
+                <div className="pack-divider"/>
+                <div className="pack-feats">
+                  {pack.feats.map(f => (
+                    <div key={f} className="pack-feat">
+                      <div className="pack-feat-dot">✓</div>{f}
+                    </div>
+                  ))}
                 </div>
-                <div style={{ fontSize:"13px", color:"rgba(10,36,16,0.55)",
-                  lineHeight:1.6, marginBottom:"16px" }}>
-                  {pack.description}
-                </div>
-                <button className={pack.btn} onClick={() => navigate("/formules")}>
-                  Choisir {pack.nom}
+                <div className="pack-desc">{pack.desc}</div>
+                <button className={`pack-btn ${pack.btn === "filled" ? "filled" : ""}`}
+                  onClick={() => navigate("/formules")}>
+                  Choisir ce pack
                 </button>
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ══════════════ CTA BAND — visible uniquement si non connecté ══════════════ */}
+      {!user && (
+        <section className="cta-band">
+          <div className="cta-band-inner">
+            <h2>Prêt à accéder aux données économiques du Burkina Faso ?</h2>
+            <p>Inscrivez-vous gratuitement et explorez la plateforme dès aujourd'hui.</p>
+            <button className="cta-white" onClick={() => navigate("/inscription")}>
+              Créer mon compte
+            </button>
+          </div>
         </section>
+      )}
 
-        {/* ══ FOOTER ══ */}
-        <footer className="site-footer">
-          <div>
-            <div className="footer-logo-text">NERE <span>CCI-BF</span></div>
-            <div className="footer-copy">Chambre de Commerce et d'Industrie du Burkina Faso</div>
-          </div>
-          <div className="footer-links">
-            <span className="footer-link">Confidentialité</span>
-            <span className="footer-link" style={{ cursor:"pointer" }}
-              onClick={() => navigate("/contact")}>Contact</span>
-            <span className="footer-link">Support</span>
-          </div>
-        </footer>
-      </div>
+      {/* ══════════════ FOOTER ══════════════ */}
+      <footer className="footer">
+        <div className="footer-brand">
+          <strong>NERE <em>CCI-BF</em></strong>
+          <div className="footer-copy">Chambre de Commerce et d'Industrie du Burkina Faso</div>
+        </div>
+        <div className="footer-links">
+         
+        </div>
+      </footer>
 
-      {/* ══ BOUTON FLOTTANT ADMIN ══ */}
+      {/* ══════════════ ADMIN FAB ══════════════ */}
       {user?.role === "admin" && (
-        <button onClick={() => setAdminPanel(o => !o)} title="Panneau Admin"
-          style={{ position:"fixed", bottom:"28px", right:"28px", zIndex:1000,
-            width:"56px", height:"56px", borderRadius:"50%",
-            background:adminPanel?"#CC3333":"#00904C",
-            border:"3px solid #fff",
-            boxShadow:"0 4px 20px rgba(0,0,0,0.3)",
-            cursor:"pointer", fontSize:"22px",
-            display:"flex", alignItems:"center", justifyContent:"center",
-            transition:"all 0.3s",
-            animation:!adminPanel?"adminBounce 2s ease-in-out infinite":"none" }}>
+        <button className={`h-fab ${adminPanel ? "open" : ""}`}
+          onClick={() => setAdminPanel(o => !o)} title="Panneau Admin">
           {adminPanel ? "✕" : "⚙️"}
         </button>
       )}
 
-      {/* ══ PANNEAU ADMIN SLIDE-IN ══ */}
+      {/* ══════════════ PANNEAU ADMIN ══════════════ */}
       {user?.role === "admin" && (
         <>
           {adminPanel && (
             <div onClick={() => setAdminPanel(false)}
-              style={{ position:"fixed", inset:0, zIndex:998,
-                background:"rgba(0,0,0,0.35)", backdropFilter:"blur(3px)" }}/>
+              style={{ position:"fixed", inset:0, zIndex:998, background:"rgba(0,0,0,0.2)" }}/>
           )}
           <div style={{
             position:"fixed", top:0, right:0, bottom:0, zIndex:999,
-            width:"440px", background:"#fff",
-            boxShadow:"-8px 0 48px rgba(0,0,0,0.2)",
-            transform:adminPanel?"translateX(0)":"translateX(100%)",
-            transition:"transform 0.35s cubic-bezier(0.34,1.1,0.64,1)",
+            width:"420px", background:"#fff",
+            boxShadow:"-4px 0 32px rgba(0,0,0,0.10)",
+            transform: adminPanel ? "translateX(0)" : "translateX(100%)",
+            transition:"transform 0.3s ease",
             display:"flex", flexDirection:"column",
-            fontFamily:"Arial, Helvetica, sans-serif",
+            fontFamily:"'Sora', sans-serif",
           }}>
             <div style={{ background:"#00904C", padding:"20px 24px",
               display:"flex", alignItems:"center", justifyContent:"space-between", flexShrink:0 }}>
               <div>
-                <div style={{ fontSize:"18px", fontWeight:900, color:"#fff" }}>
-                  NERE <span style={{ color:"#4DC97A" }}>Admin</span>
+                <div style={{ fontSize:"16px", fontWeight:800, color:"#fff" }}>
+                  NERE <span style={{ color:"#A8E8C4" }}>Admin</span>
                 </div>
-                <div style={{ fontSize:"11px", color:"rgba(255,255,255,0.5)", marginTop:"2px" }}>
+                <div style={{ fontSize:"11px", color:"rgba(255,255,255,0.6)", marginTop:"2px" }}>
                   Panneau d'administration rapide
                 </div>
               </div>
-              <div style={{ display:"flex", gap:"8px", alignItems:"center" }}>
+              <div style={{ display:"flex", gap:"8px" }}>
                 <button onClick={() => { setAdminPanel(false); navigate("/admin"); }}
-                  style={{ padding:"7px 14px", borderRadius:"8px",
+                  style={{ padding:"6px 12px", borderRadius:"7px",
                     background:"rgba(255,255,255,0.15)", border:"1px solid rgba(255,255,255,0.2)",
                     color:"#fff", fontSize:"12px", fontWeight:700, cursor:"pointer" }}>
                   Dashboard →
                 </button>
                 <button onClick={() => setAdminPanel(false)}
-                  style={{ width:"32px", height:"32px", borderRadius:"8px",
+                  style={{ width:"30px", height:"30px", borderRadius:"7px",
                     background:"rgba(255,255,255,0.1)", border:"none",
-                    color:"#fff", cursor:"pointer", fontSize:"16px" }}>
-                  ✕
+                    color:"#fff", cursor:"pointer", fontSize:"16px" }}>✕
                 </button>
               </div>
             </div>
-
-            <div style={{ display:"flex", borderBottom:"2px solid #E2EDE6",
-              background:"#F5FAF7", flexShrink:0 }}>
-              {[
-                { key:"stats", label:" Stats"        },
-                { key:"pubs",  label:" Publications" },
-                { key:"users", label:" Utilisateurs" },
-                { key:"chat",  label:" Messages"     },
-              ].map(t => (
+            <div style={{ display:"flex", borderBottom:"1px solid #E8EDE9", flexShrink:0 }}>
+              {[{key:"stats",label:"Stats"},{key:"pubs",label:"Publications"},{key:"users",label:"Utilisateurs"},{key:"chat",label:"Messages"}].map(t => (
                 <button key={t.key} onClick={() => setAdminTab(t.key)}
-                  style={{ flex:1, padding:"12px 6px", background:"transparent", border:"none",
-                    borderBottom:adminTab===t.key?"3px solid #00904C":"3px solid transparent",
-                    color:adminTab===t.key?"#00904C":"#6B9A7A",
-                    fontWeight:adminTab===t.key?700:500,
-                    fontSize:"11px", cursor:"pointer",
-                    fontFamily:"inherit", transition:"all 0.2s", marginBottom:"-2px" }}>
+                  style={{ flex:1, padding:"12px 4px", background:"transparent", border:"none",
+                    borderBottom: adminTab===t.key ? "2px solid #00904C" : "2px solid transparent",
+                    color: adminTab===t.key ? "#00904C" : "#7A9A85",
+                    fontWeight: adminTab===t.key ? 700 : 500,
+                    fontSize:"12px", cursor:"pointer", fontFamily:"inherit", marginBottom:"-1px" }}>
                   {t.label}
                 </button>
               ))}
             </div>
-
             <div style={{ flex:1, overflowY:"auto", padding:"20px" }}>
               {adminTab === "stats" && <AdminPanelStats navigate={navigate}/>}
               {adminTab === "pubs"  && <AdminPanelPubs  navigate={navigate}/>}
               {adminTab === "users" && <AdminPanelUsers navigate={navigate}/>}
               {adminTab === "chat"  && <AdminPanelChat  navigate={navigate}/>}
             </div>
-
-            <div style={{ padding:"14px 20px", borderTop:"1px solid #E2EDE6",
+            <div style={{ padding:"14px 20px", borderTop:"1px solid #E8EDE9",
               display:"flex", gap:"8px", flexShrink:0 }}>
               <button onClick={() => { setAdminPanel(false); navigate("/admin"); }}
-                style={{ flex:1, padding:"11px", borderRadius:"10px", background:"#00904C",
+                style={{ flex:1, padding:"11px", borderRadius:"9px", background:"#00904C",
                   border:"none", color:"#fff", fontWeight:700, fontSize:"13px",
                   cursor:"pointer", fontFamily:"inherit" }}>
-                 Dashboard complet
+                Dashboard complet
               </button>
               <button onClick={() => { setAdminPanel(false); navigate("/chatadmin"); }}
-                style={{ flex:1, padding:"11px", borderRadius:"10px", background:"#E6F4EC",
+                style={{ flex:1, padding:"11px", borderRadius:"9px", background:"#E8F5EE",
                   border:"none", color:"#00904C", fontWeight:700, fontSize:"13px",
                   cursor:"pointer", fontFamily:"inherit" }}>
-                 Chat Admin
+                Chat Admin
               </button>
             </div>
           </div>
@@ -688,8 +541,7 @@ margin-right: 16px;
   );
 }
 
-/* ─── Sous-composants panneau admin ─── */
-
+/* ─── Panneaux admin ─── */
 function AdminPanelStats({ navigate }) {
   const [stats, setStats] = useState(null);
   useEffect(() => {
@@ -698,102 +550,53 @@ function AdminPanelStats({ navigate }) {
       fetch(`${API}/users`, { headers:{ Authorization:`Bearer ${token}` } }).then(r=>r.json()),
       fetch(`${API}/publications?all=true&limit=100`, { headers:{ Authorization:`Bearer ${token}` } }).then(r=>r.json()),
     ]).then(([u, p]) => {
-      setStats({
-        users:    u.success ? u.data.length : 0,
-        abonnes:  u.success ? u.data.filter(x=>x.role==="subscriber").length : 0,
-        pubs:     p.success ? p.data.length : 0,
-        publiees: p.success ? p.data.filter(x=>/^publi/i.test(x.statut)).length : 0,
-      });
-    }).catch(() => {});
+      setStats({ users: u.success?u.data.length:0, abonnes: u.success?u.data.filter(x=>x.role==="subscriber").length:0, pubs: p.success?p.data.length:0, publiees: p.success?p.data.filter(x=>/^publi/i.test(x.statut)).length:0 });
+    }).catch(()=>{});
   }, []);
-
-  const kpis = stats ? [
-    { label:"Utilisateurs",   val:stats.users,    color:"#4DC97A" },
-    { label:"Abonnés actifs", val:stats.abonnes,  color:"#D4A830" },
-    { label:"Publications",   val:stats.pubs,     color:"#4A9EFF" },
-    { label:"Publiées",       val:stats.publiees, color:"#00904C" },
-  ] : [];
-
   return (
     <div>
-      <div style={{ fontWeight:700, fontSize:"14px", color:"#0A2410", marginBottom:"16px" }}>
-        Vue d'ensemble
-      </div>
-      {!stats ? (
-        <div style={{ textAlign:"center", padding:"24px", color:"#6B9A7A" }}>⏳ Chargement...</div>
-      ) : (
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr",
-          gap:"12px", marginBottom:"20px" }}>
-          {kpis.map(k => (
-            <div key={k.label} style={{ background:"#F5FAF7", borderRadius:"12px",
-              padding:"16px", border:"1px solid #E2EDE6" }}>
-              <div style={{ fontSize:"24px", fontWeight:900, color:k.color }}>{k.val}</div>
-              <div style={{ fontSize:"11px", color:"#6B9A7A", fontWeight:600,
-                textTransform:"uppercase", letterSpacing:"0.06em" }}>{k.label}</div>
+      <div style={{ fontWeight:700, fontSize:"13px", color:"#0A2410", marginBottom:"16px" }}>Vue d'ensemble</div>
+      {!stats ? <div style={{ textAlign:"center", padding:"24px", color:"#7A9A85" }}>⏳ Chargement...</div> : (
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"10px", marginBottom:"20px" }}>
+          {[{label:"Utilisateurs",val:stats.users,color:"#00904C"},{label:"Abonnés actifs",val:stats.abonnes,color:"#D4A830"},{label:"Publications",val:stats.pubs,color:"#4A9EFF"},{label:"Publiées",val:stats.publiees,color:"#00904C"}].map(k=>(
+            <div key={k.label} style={{ background:"#F7FAF8", borderRadius:"10px", padding:"14px", border:"1px solid #E8EDE9" }}>
+              <div style={{ fontSize:"22px", fontWeight:900, color:k.color }}>{k.val}</div>
+              <div style={{ fontSize:"10px", color:"#7A9A85", fontWeight:600, textTransform:"uppercase", letterSpacing:"0.06em", marginTop:"2px" }}>{k.label}</div>
             </div>
           ))}
         </div>
       )}
       <div style={{ display:"flex", flexDirection:"column", gap:"8px" }}>
-        {[
-          { label:"Gérer les publications", path:"/admin"    },
-          { label:"Gérer les utilisateurs", path:"/admin"    },
-          { label:"Répondre aux messages",  path:"/chatadmin"},
-        ].map(a => (
-          <button key={a.label} onClick={() => navigate(a.path)}
-            style={{ padding:"10px 14px", borderRadius:"10px", background:"#fff",
-              border:"1px solid #E2EDE6", color:"#0A2410",
-              fontSize:"13px", fontWeight:600, cursor:"pointer",
-              fontFamily:"inherit", textAlign:"left" }}>
-            {a.label} 
+        {[{label:"Gérer les publications",path:"/admin"},{label:"Gérer les utilisateurs",path:"/admin"},{label:"Répondre aux messages",path:"/chatadmin"}].map(a=>(
+          <button key={a.label} onClick={()=>navigate(a.path)}
+            style={{ padding:"10px 14px", borderRadius:"9px", background:"#fff", border:"1px solid #E8EDE9", color:"#0A2410", fontSize:"13px", fontWeight:600, cursor:"pointer", fontFamily:"inherit", textAlign:"left" }}>
+            {a.label} →
           </button>
         ))}
       </div>
     </div>
   );
 }
-
 function AdminPanelPubs({ navigate }) {
-  const [pubs, setPubs]       = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [pubs, setPubs] = useState([]); const [loading, setLoad] = useState(true);
   useEffect(() => {
-    fetch(`${API}/publications?all=true&limit=6`,
-      { headers:{ Authorization:`Bearer ${getToken()}` } })
-      .then(r => r.json())
-      .then(d => { if (d.success) setPubs(d.data); setLoading(false); })
-      .catch(() => setLoading(false));
+    fetch(`${API}/publications?all=true&limit=6`, { headers:{ Authorization:`Bearer ${getToken()}` } })
+      .then(r=>r.json()).then(d=>{if(d.success)setPubs(d.data);setLoad(false);}).catch(()=>setLoad(false));
   }, []);
   return (
     <div>
-      <div style={{ display:"flex", justifyContent:"space-between",
-        alignItems:"center", marginBottom:"16px" }}>
-        <div style={{ fontWeight:700, fontSize:"14px", color:"#0A2410" }}>Publications récentes</div>
-        <button onClick={() => navigate("/admin")}
-          style={{ fontSize:"12px", color:"#00904C", background:"none",
-            border:"none", cursor:"pointer", fontWeight:600 }}>Gérer →</button>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"16px" }}>
+        <div style={{ fontWeight:700, fontSize:"13px", color:"#0A2410" }}>Publications récentes</div>
+        <button onClick={()=>navigate("/admin")} style={{ fontSize:"12px", color:"#00904C", background:"none", border:"none", cursor:"pointer", fontWeight:600 }}>Gérer →</button>
       </div>
-      {loading ? (
-        <div style={{ textAlign:"center", padding:"20px", color:"#6B9A7A" }}></div>
-      ) : pubs.length === 0 ? (
-        <div style={{ textAlign:"center", padding:"20px", color:"#6B9A7A", fontSize:"13px" }}>
-          Aucune publication
-        </div>
-      ) : (
+      {loading ? <div style={{ textAlign:"center", padding:"20px", color:"#7A9A85" }}>⏳</div> : pubs.length===0 ? <div style={{ textAlign:"center", padding:"20px", color:"#7A9A85", fontSize:"13px" }}>Aucune publication</div> : (
         <div style={{ display:"flex", flexDirection:"column", gap:"8px" }}>
-          {pubs.map(p => (
-            <div key={p._id} style={{ padding:"10px 12px", background:"#F5FAF7",
-              borderRadius:"10px", border:"1px solid #E2EDE6" }}>
-              <div style={{ fontWeight:600, fontSize:"13px", color:"#0A2410",
-                marginBottom:"3px", overflow:"hidden",
-                textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{p.titre}</div>
+          {pubs.map(p=>(
+            <div key={p._id} style={{ padding:"10px 12px", background:"#F7FAF8", borderRadius:"9px", border:"1px solid #E8EDE9" }}>
+              <div style={{ fontWeight:600, fontSize:"13px", color:"#0A2410", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", marginBottom:"4px" }}>{p.titre}</div>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-                <span style={{ fontSize:"11px", color:"#6B9A7A" }}>{p.categorie}</span>
-                <span style={{ fontSize:"10px", fontWeight:700, padding:"2px 8px",
-                  borderRadius:"100px",
-                  background:/^publi/i.test(p.statut)?"#E8F5EE":"#FFF5E0",
-                  color:/^publi/i.test(p.statut)?"#00904C":"#CC6600" }}>
-                  {p.statut}
-                </span>
+                <span style={{ fontSize:"11px", color:"#7A9A85" }}>{p.categorie}</span>
+                <span style={{ fontSize:"10px", fontWeight:700, padding:"2px 8px", borderRadius:"100px", background:/^publi/i.test(p.statut)?"#E8F5EE":"#FFF5E0", color:/^publi/i.test(p.statut)?"#00904C":"#CC6600" }}>{p.statut}</span>
               </div>
             </div>
           ))}
@@ -802,52 +605,28 @@ function AdminPanelPubs({ navigate }) {
     </div>
   );
 }
-
 function AdminPanelUsers({ navigate }) {
-  const [users, setUsers]     = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [users, setUsers] = useState([]); const [loading, setLoad] = useState(true);
   useEffect(() => {
     fetch(`${API}/users`, { headers:{ Authorization:`Bearer ${getToken()}` } })
-      .then(r => r.json())
-      .then(d => { if (d.success) setUsers(d.data.slice(0, 6)); setLoading(false); })
-      .catch(() => setLoading(false));
+      .then(r=>r.json()).then(d=>{if(d.success)setUsers(d.data.slice(0,6));setLoad(false);}).catch(()=>setLoad(false));
   }, []);
   return (
     <div>
-      <div style={{ display:"flex", justifyContent:"space-between",
-        alignItems:"center", marginBottom:"16px" }}>
-        <div style={{ fontWeight:700, fontSize:"14px", color:"#0A2410" }}>Derniers inscrits</div>
-        <button onClick={() => navigate("/admin")}
-          style={{ fontSize:"12px", color:"#00904C", background:"none",
-            border:"none", cursor:"pointer", fontWeight:600 }}>Gérer </button>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"16px" }}>
+        <div style={{ fontWeight:700, fontSize:"13px", color:"#0A2410" }}>Derniers inscrits</div>
+        <button onClick={()=>navigate("/admin")} style={{ fontSize:"12px", color:"#00904C", background:"none", border:"none", cursor:"pointer", fontWeight:600 }}>Gérer</button>
       </div>
-      {loading ? (
-        <div style={{ textAlign:"center", padding:"20px", color:"#6B9A7A" }}></div>
-      ) : (
+      {loading ? <div style={{ textAlign:"center", padding:"20px", color:"#7A9A85" }}>⏳</div> : (
         <div style={{ display:"flex", flexDirection:"column", gap:"8px" }}>
-          {users.map(u => (
-            <div key={u._id} style={{ display:"flex", alignItems:"center", gap:"10px",
-              padding:"10px 12px", background:"#F5FAF7",
-              borderRadius:"10px", border:"1px solid #E2EDE6" }}>
-              <div style={{ width:"32px", height:"32px", borderRadius:"8px",
-                background:"#E6F4EC", display:"flex", alignItems:"center",
-                justifyContent:"center", fontWeight:800, fontSize:"12px",
-                color:"#00904C", flexShrink:0 }}>
-                {u.prenom?.[0]}{u.nom?.[0]}
-              </div>
+          {users.map(u=>(
+            <div key={u._id} style={{ display:"flex", alignItems:"center", gap:"10px", padding:"10px 12px", background:"#F7FAF8", borderRadius:"9px", border:"1px solid #E8EDE9" }}>
+              <div style={{ width:"30px", height:"30px", borderRadius:"8px", background:"#E8F5EE", display:"flex", alignItems:"center", justifyContent:"center", fontWeight:700, fontSize:"11px", color:"#00904C", flexShrink:0 }}>{u.prenom?.[0]}{u.nom?.[0]}</div>
               <div style={{ flex:1, minWidth:0 }}>
-                <div style={{ fontWeight:600, fontSize:"13px", color:"#0A2410",
-                  overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                  {u.prenom} {u.nom}
-                </div>
-                <div style={{ fontSize:"11px", color:"#6B9A7A" }}>{u.role}</div>
+                <div style={{ fontWeight:600, fontSize:"13px", color:"#0A2410", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{u.prenom} {u.nom}</div>
+                <div style={{ fontSize:"11px", color:"#7A9A85" }}>{u.role}</div>
               </div>
-              <span style={{ fontSize:"10px", fontWeight:700, padding:"2px 8px",
-                borderRadius:"100px",
-                background:u.isActive?"#E8F5EE":"#FFF0F0",
-                color:u.isActive?"#00904C":"#CC3333" }}>
-                {u.isActive ? "actif" : "inactif"}
-              </span>
+              <span style={{ fontSize:"10px", fontWeight:700, padding:"2px 8px", borderRadius:"100px", background:u.isActive?"#E8F5EE":"#FFF0F0", color:u.isActive?"#00904C":"#CC3333" }}>{u.isActive?"actif":"inactif"}</span>
             </div>
           ))}
         </div>
@@ -855,25 +634,14 @@ function AdminPanelUsers({ navigate }) {
     </div>
   );
 }
-
 function AdminPanelChat({ navigate }) {
   return (
     <div>
-      <div style={{ fontWeight:700, fontSize:"14px", color:"#0A2410", marginBottom:"16px" }}>
-        Messagerie
-      </div>
-      <div style={{ textAlign:"center", padding:"32px 20px", background:"#F5FAF7",
-        borderRadius:"12px", border:"1px dashed #C0D8C8" }}>
-        <div style={{ fontSize:"40px", marginBottom:"12px" }}></div>
-        <div style={{ fontSize:"13px", color:"#6B9A7A", marginBottom:"16px" }}>
-          Gérez toutes les conversations utilisateurs depuis l'interface dédiée
-        </div>
-        <button onClick={() => navigate("/chatadmin")}
-          style={{ padding:"10px 20px", borderRadius:"10px", background:"#00904C",
-            border:"none", color:"#fff", fontWeight:700, fontSize:"13px",
-            cursor:"pointer", fontFamily:"inherit" }}>
-          Ouvrir le Chat Admin 
-        </button>
+      <div style={{ fontWeight:700, fontSize:"13px", color:"#0A2410", marginBottom:"16px" }}>Messagerie</div>
+      <div style={{ textAlign:"center", padding:"32px 20px", background:"#F7FAF8", borderRadius:"12px", border:"1px dashed #C8D8CC" }}>
+        <div style={{ fontSize:"36px", marginBottom:"12px" }}></div>
+        <div style={{ fontSize:"13px", color:"#7A9A85", marginBottom:"16px" }}>Gérez toutes les conversations depuis l'interface dédiée.</div>
+        <button onClick={()=>navigate("/chatadmin")} style={{ padding:"10px 20px", borderRadius:"9px", background:"#00904C", border:"none", color:"#fff", fontWeight:700, fontSize:"13px", cursor:"pointer", fontFamily:"inherit" }}>Ouvrir le Chat Admin</button>
       </div>
     </div>
   );

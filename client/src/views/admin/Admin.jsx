@@ -27,7 +27,7 @@ function ModalSuspension({ userId, userName, onConfirm, onClose }) {
       <div style={{ background:"#fff", borderRadius:"16px", padding:"32px", maxWidth:"440px",
         width:"100%", boxShadow:"0 24px 60px rgba(0,0,0,0.2)" }}
         onClick={e => e.stopPropagation()}>
-        <div style={{ fontSize:"32px", marginBottom:"12px", textAlign:"center" }}></div>
+        <div style={{ fontSize:"32px", marginBottom:"12px", textAlign:"center" }}>⏸️</div>
         <h3 style={{ fontSize:"20px", color:"#0A2410", margin:"0 0 6px", textAlign:"center" }}>
           Suspendre l'accès
         </h3>
@@ -69,7 +69,7 @@ function ModalSuspension({ userId, userName, onConfirm, onClose }) {
             style={{ flex:1, padding:"12px", borderRadius:"10px", background:"#CC6600",
               border:"none", color:"#fff", fontWeight:700, fontSize:"14px",
               cursor:"pointer", fontFamily:"inherit" }}>
-             Confirmer la suspension
+            ✅ Confirmer la suspension
           </button>
           <button onClick={onClose}
             style={{ flex:1, padding:"12px", borderRadius:"10px", background:"#fff",
@@ -115,14 +115,13 @@ function AdminLogin({ onSuccess }) {
   return (
     <div style={{ minHeight:"100vh", background:"linear-gradient(135deg,#006B38,#00904C)",
       display:"flex", alignItems:"center", justifyContent:"center",
-      fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
+      fontFamily:"Arial, Helvetica, sans-serif" }}>
       <div style={{ background:"rgba(255,255,255,0.08)", borderRadius:"20px",
         border:"1px solid rgba(255,255,255,0.15)", padding:"48px 40px",
         width:"100%", maxWidth:"400px", backdropFilter:"blur(20px)" }}>
         <div style={{ textAlign:"center", marginBottom:"32px" }}>
           <div style={{ fontSize:"48px", marginBottom:"12px" }}></div>
-          <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:"24px",
-            fontWeight:900, color:"#fff", margin:0 }}>
+          <h2 style={{ fontSize:"24px", fontWeight:900, color:"#fff", margin:0 }}>
             Administration NERE
           </h2>
           <p style={{ color:"rgba(255,255,255,0.6)", fontSize:"13px", marginTop:"8px" }}>
@@ -190,49 +189,91 @@ export default function Admin() {
   const [sidebarOpen, setSidebar]   = useState(true);
 
   /* ── Publications ── */
-  const [pubs, setPubs]             = useState([]);
+  const [pubs, setPubs]               = useState([]);
   const [pubsLoading, setPubsLoading] = useState(false);
-  const [pubsErreur, setPubsErreur] = useState("");
-  const [showForm, setShowForm]     = useState(false);
-  const [editPub, setEditPub]       = useState(null);
-  const [formPub, setFormPub]       = useState({ titre:"", cat:"Rapport", contenu:"", statut:"brouillon" });
-  const [pubLoading, setPubLoading] = useState(false);
-  const [pubError, setPubError]     = useState("");
+  const [pubsErreur, setPubsErreur]   = useState("");
+  const [pubsDiag, setPubsDiag]       = useState(""); // diagnostic détaillé
+  const [showForm, setShowForm]       = useState(false);
+  const [editPub, setEditPub]         = useState(null);
+  const [formPub, setFormPub]         = useState({ titre:"", cat:"Rapport", contenu:"", statut:"brouillon" });
+  const [pubLoading, setPubLoading]   = useState(false);
+  const [pubError, setPubError]       = useState("");
 
   /* ── Utilisateurs ── */
-  const [users, setUsers]           = useState([]);
+  const [users, setUsers]               = useState([]);
   const [usersCharges, setUsersCharges] = useState(false);
-  const [searchUser, setSearchUser] = useState("");
-  const [filtreRole, setFiltreRole] = useState("tous");
+  const [searchUser, setSearchUser]     = useState("");
+  const [filtreRole, setFiltreRole]     = useState("tous");
   const [showUserForm, setShowUserForm] = useState(false);
-  const [formUser, setFormUser]     = useState({
+  const [formUser, setFormUser]         = useState({
     nom:"", prenom:"", email:"", telephone:"",
     fonction:"Gestionnaire", typeCompte:"administration",
     role:"manager", password:"", isActive:true,
   });
-  const [userError, setUserError]   = useState("");
+  const [userError, setUserError]     = useState("");
   const [userLoading, setUserLoading] = useState(false);
 
   /* ── Suspension ── */
-  const [suspModal, setSuspModal]   = useState(null);
-  const [actionMsg, setActionMsg]   = useState({});
+  const [suspModal, setSuspModal] = useState(null);
+  const [actionMsg, setActionMsg] = useState({});
 
   /* ── Activités ── */
-  const [activites, setActivites]   = useState([]);
-  const [activitesLoading, setActivitesLoading] = useState(false);
-  const [activitesErreur, setActivitesErreur]   = useState("");
+  const [activites, setActivites]                 = useState([]);
+  const [activitesLoading, setActivitesLoading]   = useState(false);
+  const [activitesErreur, setActivitesErreur]     = useState("");
 
-  /* ══ CHARGEMENTS ══ */
-
-  /* ✅ CORRIGÉ — pas de MOCK_PUBS, gestion d'erreur propre */
+  /* ══ CHARGEMENT PUBLICATIONS ══ */
   const chargerPubs = useCallback(async () => {
     setPubsLoading(true);
     setPubsErreur("");
+    setPubsDiag("");
+    const token = getToken();
+
+    // Vérification token avant appel
+    if (!token) {
+      setPubsErreur("Session expirée. Reconnectez-vous.");
+      setPubsLoading(false);
+      return;
+    }
+
     try {
-      const res  = await fetch(`${API}/publications?all=true&limit=100`, {
-        headers: { Authorization:`Bearer ${getToken()}` },
+      const url = `${API}/publications?all=true&limit=100`;
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` },
       });
+
+      // Vérifier le status HTTP avant de parser
+      if (res.status === 401) {
+        setPubsErreur("Session expirée ou token invalide. Reconnectez-vous.");
+        setPubsLoading(false);
+        return;
+      }
+      if (res.status === 403) {
+        setPubsErreur("Accès refusé. Votre compte n'a pas les permissions suffisantes.");
+        setPubsLoading(false);
+        return;
+      }
+      if (res.status === 404) {
+        setPubsErreur("Route introuvable : GET /api/publications — vérifiez votre backend.");
+        setPubsLoading(false);
+        return;
+      }
+      if (!res.ok) {
+        setPubsErreur(`Erreur serveur (HTTP ${res.status}) — contactez l'administrateur système.`);
+        setPubsLoading(false);
+        return;
+      }
+
+      // Vérifier que la réponse est bien du JSON
+      const contentType = res.headers.get("content-type") || "";
+      if (!contentType.includes("application/json")) {
+        setPubsErreur("Réponse invalide du serveur (pas du JSON). Vérifiez que le backend tourne sur le bon port.");
+        setPubsLoading(false);
+        return;
+      }
+
       const data = await res.json();
+
       if (data.success) {
         setPubs(data.data.map(p => ({
           id:     p._id,
@@ -244,14 +285,23 @@ export default function Admin() {
           vues:   p.vues || 0,
         })));
       } else {
-        setPubsErreur(data.message || "Impossible de charger les publications.");
+        setPubsErreur(data.message || "Le serveur a retourné une erreur.");
       }
-    } catch {
-      setPubsErreur("Serveur inaccessible. Vérifiez votre connexion.");
+
+    } catch (err) {
+      // Distinguer les types d'erreurs réseau
+      if (err instanceof TypeError && err.message.includes("fetch")) {
+        setPubsErreur("Impossible de joindre le serveur.");
+        setPubsDiag("Causes possibles : serveur backend arrêté, mauvais port (vérifiez que le proxy /api pointe vers votre backend), ou CORS bloqué.");
+      } else {
+        setPubsErreur(`Erreur inattendue : ${err.message}`);
+      }
     }
+
     setPubsLoading(false);
   }, []);
 
+  /* ══ CHARGEMENT UTILISATEURS ══ */
   const chargerUsers = useCallback(async () => {
     try {
       const res  = await fetch(`${API}/users`, {
@@ -260,17 +310,18 @@ export default function Admin() {
       const data = await res.json();
       if (data.success) {
         setUsers(data.data.map(u => ({
-          id:           u._id,
-          nom:          u.nom,
-          prenom:       u.prenom,
-          email:        u.email || "—",
-          type:         u.typeCompte || "autre",
-          role:         u.role,
-          pack:         u.pack || "—",
-          statut:       u.isActive ? "actif" : "suspendu",
+          id:             u._id,
+          nom:            u.nom,
+          prenom:         u.prenom,
+          email:          u.email || "—",
+          type:           u.typeCompte || "autre",
+          role:           u.role,
+          pack:           u.pack || "—",
+          statut:         u.isActive ? "actif" : "suspendu",
           suspendJusquau: u.suspendJusquau || null,
-          raison:       u.raisonSuspension || "",
-          date:         new Date(u.createdAt).toLocaleDateString("fr-FR",
+          raison:         u.raisonSuspension || "",
+          canSearchMultiCriteria: u.canSearchMultiCriteria || false,
+          date:           new Date(u.createdAt).toLocaleDateString("fr-FR",
             { day:"2-digit", month:"short", year:"numeric" }),
         })));
       }
@@ -278,6 +329,7 @@ export default function Admin() {
     setUsersCharges(true);
   }, []);
 
+  /* ══ CHARGEMENT ACTIVITÉS ══ */
   const chargerActivites = useCallback(async () => {
     setActivitesLoading(true);
     setActivitesErreur("");
@@ -300,13 +352,17 @@ export default function Admin() {
     setActivitesLoading(false);
   }, []);
 
-  /* ✅ CORRIGÉ — chargement via useEffect selon la section active */
+  // ── Chargement initial dès la connexion admin ──
+  // Charge TOUT en parallèle : users, activités ET publications
+  // pour que les KPIs soient disponibles immédiatement
   useEffect(() => {
     if (!adminUser) return;
     chargerActivites();
     chargerUsers();
-  }, [adminUser, chargerActivites, chargerUsers]);
+    chargerPubs(); // ← chargé dès la connexion, pas seulement sur l'onglet
+  }, [adminUser, chargerActivites, chargerUsers, chargerPubs]);
 
+  // ── Rechargement à chaque changement de section ──
   useEffect(() => {
     if (!adminUser) return;
     if (section === "publications") chargerPubs();
@@ -335,15 +391,14 @@ export default function Admin() {
         method,
         headers: { "Content-Type":"application/json", Authorization:`Bearer ${getToken()}` },
         body: JSON.stringify({
-          titre:    formPub.titre,
-          categorie:formPub.cat,
-          contenu:  formPub.contenu,
-          statut:   formPub.statut,
+          titre:     formPub.titre,
+          categorie: formPub.cat,
+          contenu:   formPub.contenu,
+          statut:    formPub.statut,
         }),
       });
       const data = await res.json();
       if (data.success) {
-        /* ✅ Recharger depuis l'API pour avoir les vraies données */
         await chargerPubs();
         setShowForm(false);
         setEditPub(null);
@@ -374,7 +429,6 @@ export default function Admin() {
         headers:{ "Content-Type":"application/json", Authorization:`Bearer ${getToken()}` },
         body: JSON.stringify({ statut:"publie" }),
       });
-      /* ✅ Recharger pour avoir le vrai statut depuis MongoDB */
       await chargerPubs();
     } catch {
       setPubs(ps => ps.map(p => p.id===id ? { ...p, statut:"publie" } : p));
@@ -384,7 +438,7 @@ export default function Admin() {
   /* ══ UTILISATEURS ══ */
 
   const sauvegarderUtilisateur = async () => {
-    if (!formUser.nom.trim() || !formUser.prenom.trim() || !formUser.email.trim() || !formUser.password.trim()) {
+    if (!formUser.nom.trim()||!formUser.prenom.trim()||!formUser.email.trim()||!formUser.password.trim()) {
       setUserError("Tous les champs obligatoires."); return;
     }
     setUserLoading(true); setUserError("");
@@ -423,6 +477,23 @@ export default function Admin() {
     } catch {}
   };
 
+  const mettreAJourPermissionRecherche = async (id, permission) => {
+    try {
+      const res  = await fetch(`${API}/users/${id}/search-permission`, {
+        method:"PUT",
+        headers:{ "Content-Type":"application/json", Authorization:`Bearer ${getToken()}` },
+        body: JSON.stringify({ canSearchMultiCriteria: permission }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setUsers(us => us.map(u => u.id===id ? { ...u, canSearchMultiCriteria:permission } : u));
+        afficherAction(id, permission ? " Recherche multicritère autorisée" : "❌ Recherche multicritère refusée", "succes");
+      }
+    } catch {
+      afficherAction(id, " Erreur lors de la mise à jour", "erreur");
+    }
+  };
+
   const reactiver = async (id) => {
     try {
       const res  = await fetch(`${API}/users/${id}/activate`, {
@@ -433,7 +504,7 @@ export default function Admin() {
       const data = await res.json();
       if (data.success) {
         setUsers(us => us.map(u => u.id===id ? { ...u, statut:"actif", suspendJusquau:null, raison:"" } : u));
-        afficherAction(id, "Compte réactivé.", "succes");
+        afficherAction(id, " Compte réactivé.", "succes");
       }
     } catch {}
   };
@@ -456,8 +527,10 @@ export default function Admin() {
       });
       const data = await res.json();
       if (data.success) {
-        setUsers(us => us.map(u => u.id===userId ? { ...u, statut:"suspendu", suspendJusquau, raison } : u));
-        afficherAction(userId, ` Compte suspendu ${duree==="indef"?"indéfiniment":`pour ${duree}`}.`, "warning");
+        setUsers(us => us.map(u => u.id===userId
+          ? { ...u, statut:"suspendu", suspendJusquau, raison } : u));
+        afficherAction(userId,
+          ` Compte suspendu ${duree==="indef"?"indéfiniment":`pour ${duree}`}.`, "warning");
       }
     } catch {}
   };
@@ -468,7 +541,6 @@ export default function Admin() {
   };
 
   /* ══ DONNÉES DÉRIVÉES ══ */
-
   const usersFiltres = users.filter(u => {
     const matchSearch = `${u.nom} ${u.prenom} ${u.email}`.toLowerCase().includes(searchUser.toLowerCase());
     const matchRole   = filtreRole==="tous" || u.role===filtreRole || (filtreRole==="suspendu" && u.statut==="suspendu");
@@ -479,7 +551,7 @@ export default function Admin() {
     { label:"Utilisateurs",   val:usersCharges ? users.length : "...",                                   couleur:"#4DC97A" },
     { label:"Abonnés actifs", val:usersCharges ? users.filter(u=>u.role==="subscriber").length : "...",  couleur:"#D4A830" },
     { label:"Suspendus",      val:usersCharges ? users.filter(u=>u.statut==="suspendu").length : "...",  couleur:"#FF6B6B" },
-    { label:"Publications",   val:pubs.length || "...",                                                   couleur:"#4A9EFF" },
+    { label:"Publications",   val:pubsLoading ? "..." : pubs.length,                                    couleur:"#4A9EFF" },
   ];
 
   const S = {
@@ -505,10 +577,10 @@ export default function Admin() {
   };
 
   const NAV_ITEMS = [
-    { id:"dashboard",    label:"Dashboard"    },
-    { id:"publications", label:"Publications" },
-    { id:"utilisateurs", label:"Utilisateurs" },
-    { id:"activites",    label:"Activités"    },
+    { id:"dashboard",    label:"Tableau de bord" },
+    { id:"publications", label:"Publications"    },
+    { id:"utilisateurs", label:"Utilisateurs"   },
+    { id:"activites",    label:"Activités"       },
   ];
 
   const statutBadge = (s) => ({
@@ -532,7 +604,7 @@ export default function Admin() {
         </div>
         <button style={{ ...S.btn, whiteSpace:"nowrap" }}
           onClick={() => { setSection("utilisateurs"); setShowUserForm(true); }}>
-          + Créer un gestionnaire
+           Créer un gestionnaire
         </button>
       </div>
 
@@ -556,18 +628,16 @@ export default function Admin() {
         ) : activitesErreur ? (
           <div style={{ color:"#CC3333", fontSize:"13px" }}>{activitesErreur}</div>
         ) : activites.length === 0 ? (
-          <div style={{ color:"#090909", fontSize:"13px" }}>Aucune activité récente.</div>
-        ) : (
-          activites.map((a, i) => (
-            <div key={a.id} style={{ display:"flex", gap:"12px", padding:"12px 0",
-              borderBottom:i<activites.length-1?"1px solid #E2EDE6":"none" }}>
-              <div style={{ flex:1 }}>
-                <div style={{ fontSize:"13px", color:"#1A2E1F", lineHeight:1.5 }}>{a.texte}</div>
-                <div style={{ fontSize:"11px", color:"#6B9A7A", marginTop:"2px" }}>{a.heure}</div>
-              </div>
+          <div style={{ color:"#6B9A7A", fontSize:"13px" }}>Aucune activité récente.</div>
+        ) : activites.map((a, i) => (
+          <div key={a.id} style={{ display:"flex", gap:"12px", padding:"12px 0",
+            borderBottom:i<activites.length-1?"1px solid #E2EDE6":"none" }}>
+            <div style={{ flex:1 }}>
+              <div style={{ fontSize:"13px", color:"#1A2E1F", lineHeight:1.5 }}>{a.texte}</div>
+              <div style={{ fontSize:"11px", color:"#6B9A7A", marginTop:"2px" }}>{a.heure}</div>
             </div>
-          ))
-        )}
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -584,28 +654,60 @@ export default function Admin() {
           </p>
         </div>
         <div style={{ display:"flex", gap:"10px" }}>
-          <button style={S.btn} onClick={() => ouvrirForm()}>+ Nouvelle publication</button>
+          <button style={S.btn} onClick={() => ouvrirForm()}>Nouvelle publication</button>
           <button style={S.btnGhost} onClick={chargerPubs} disabled={pubsLoading}>
             {pubsLoading ? " Chargement..." : " Actualiser"}
           </button>
         </div>
       </div>
 
-      {/* ✅ Message d'erreur si le chargement échoue */}
+      {/* ── Bloc erreur détaillé ── */}
       {pubsErreur && (
-        <div style={{ background:"#FFF0F0", border:"1px solid #FFB3B3", borderRadius:"12px",
-          padding:"14px 18px", marginBottom:"20px", color:"#CC3333", fontSize:"13px" }}>
-          ❌ {pubsErreur} —{" "}
-          <span style={{ cursor:"pointer", textDecoration:"underline" }}
-            onClick={chargerPubs}>Réessayer</span>
+        <div style={{ background:"#FFF8E6", border:"1px solid #F0C84A", borderRadius:"12px",
+          padding:"16px 20px", marginBottom:"20px" }}>
+          <div style={{ display:"flex", alignItems:"flex-start", gap:"12px" }}>
+            <span style={{ fontSize:"22px", flexShrink:0 }}></span>
+            <div style={{ flex:1 }}>
+              <div style={{ fontWeight:700, fontSize:"14px", color:"#92700A", marginBottom:"4px" }}>
+                {pubsErreur}
+              </div>
+              {pubsDiag && (
+                <div style={{ fontSize:"12px", color:"#6B5010", lineHeight:1.6, marginBottom:"10px" }}>
+                  {pubsDiag}
+                </div>
+              )}
+              {/* Checklist de diagnostic */}
+              <div style={{ background:"#fff", borderRadius:"8px", padding:"12px 14px",
+                border:"1px solid #E8D88A", fontSize:"12px", color:"#555", marginBottom:"10px" }}>
+                <div style={{ fontWeight:700, marginBottom:"6px", color:"#333" }}>🔍 Vérifications à faire :</div>
+                {[
+                  "Le serveur backend tourne-t-il ? (node server.js ou npm start)",
+                  "Le proxy /api est-il configuré dans vite.config.js ou package.json ?",
+                  "Le token JWT est-il encore valide ? (essayez de vous déconnecter/reconnecter)",
+                  "La route GET /api/publications existe-t-elle dans votre backend ?",
+                  "Le paramètre ?all=true est-il géré par votre contrôleur publications ?",
+                ].map((item, i) => (
+                  <div key={i} style={{ display:"flex", gap:"8px", marginBottom:"3px" }}>
+                    <span style={{ color:"#D4A830", flexShrink:0 }}>→</span>
+                    <span>{item}</span>
+                  </div>
+                ))}
+              </div>
+              <button onClick={chargerPubs}
+                style={{ padding:"7px 16px", background:"#00904C", color:"#fff",
+                  border:"none", borderRadius:"8px", cursor:"pointer",
+                  fontWeight:700, fontSize:"12px", fontFamily:"inherit" }}>
+                 Réessayer
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
       {/* Formulaire */}
       {showForm && (
         <div style={{ ...S.card, marginBottom:"20px", border:"2px solid #4DC97A" }}>
-          <div style={{ fontWeight:700, fontSize:"16px", color:"#0A3D1F",
-            marginBottom:"18px" }}>
+          <div style={{ fontWeight:700, fontSize:"16px", color:"#0A3D1F", marginBottom:"18px" }}>
             {editPub ? " Modifier" : " Nouvelle publication"}
           </div>
           <div style={{ display:"grid", gap:"14px" }}>
@@ -648,7 +750,7 @@ export default function Admin() {
             )}
             <div style={{ display:"flex", gap:"10px" }}>
               <button style={S.btn} onClick={sauvegarderPub} disabled={pubLoading}>
-                {pubLoading ? "⏳ Sauvegarde..." : editPub ? "Enregistrer" : "Créer"}
+                {pubLoading ? " Sauvegarde..." : editPub ? "Enregistrer" : "Créer"}
               </button>
               <button style={S.btnGhost} onClick={() => { setShowForm(false); setPubError(""); }}>
                 Annuler
@@ -663,7 +765,7 @@ export default function Admin() {
         <div style={{ ...S.card, textAlign:"center", padding:"48px", color:"#6B9A7A" }}>
            Chargement des publications...
         </div>
-      ) : (
+      ) : !pubsErreur && (
         <div style={S.card}>
           {pubs.length === 0 ? (
             <div style={{ textAlign:"center", padding:"48px", color:"#6B9A7A" }}>
@@ -671,11 +773,12 @@ export default function Admin() {
               <p>Aucune publication. Créez la première !</p>
             </div>
           ) : (
-            <table style={{ width:"100%", borderCollapse:"collapse", fontSize:"13px" }}>
-              <thead>
-                <tr style={{ borderBottom:"2px solid #E2EDE6" }}>
-                  {["Titre","Catégorie","Date","Statut","Vues","Actions"].map(h => (
-                    <th key={h} style={{ padding:"10px 14px", textAlign:"left", fontSize:"11px",
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width:"100%", borderCollapse:"collapse", fontSize:"13px", minWidth: '800px' }}>
+                <thead>
+                  <tr style={{ borderBottom:"2px solid #E2EDE6" }}>
+                    {["Titre","Catégorie","Date","Statut","Vues","Actions"].map(h => (
+                      <th key={h} style={{ padding:"10px 14px", textAlign:"left", fontSize:"11px",
                       fontWeight:700, color:"#6B9A7A", textTransform:"uppercase", letterSpacing:"0.06em" }}>
                       {h}
                     </th>
@@ -699,26 +802,30 @@ export default function Admin() {
                     <td style={{ padding:"12px 14px" }}>
                       <span style={S.badge(statutBadge(p.statut))}>{p.statut}</span>
                     </td>
-                    <td style={{ padding:"12px 14px", color:"#6B9A7A", fontWeight:600 }}>{p.vues}</td>
+                    <td style={{ padding:"12px 14px" }}>
+                      <span style={{ display:"inline-flex", alignItems:"center", gap:"4px",
+                        fontWeight:700, color: p.vues>0?"#00904C":"#6B9A7A", fontSize:"13px" }}>
+                         {p.vues}
+                      </span>
+                    </td>
                     <td style={{ padding:"12px 14px" }}>
                       <div style={{ display:"flex", gap:"6px" }}>
                         <button onClick={() => ouvrirForm(p)}
                           style={{ padding:"5px 10px", borderRadius:"7px", background:"#E8F5EE",
                             border:"none", color:"#0A3D1F", fontSize:"12px", fontWeight:600, cursor:"pointer" }}>
-                          <span>modifier</span>
+                           Modifier
                         </button>
-                        {/* ✅ Bouton publier uniquement si pas encore publié */}
                         {!/^publi/i.test(p.statut) && (
                           <button onClick={() => publierPub(p.id)}
                             style={{ padding:"5px 10px", borderRadius:"7px", background:"#00904C",
                               border:"none", color:"#fff", fontSize:"12px", fontWeight:600, cursor:"pointer" }}>
-                            Publier
+                             Publier
                           </button>
                         )}
                         <button onClick={() => supprimerPub(p.id)}
                           style={{ padding:"5px 10px", borderRadius:"7px", background:"#FFF0F0",
                             border:"none", color:"#CC3333", fontSize:"12px", fontWeight:600, cursor:"pointer" }}>
-                          <span>supprimer</span>
+                           Supprimer
                         </button>
                       </div>
                     </td>
@@ -726,6 +833,7 @@ export default function Admin() {
                 ))}
               </tbody>
             </table>
+            </div>
           )}
         </div>
       )}
@@ -752,12 +860,12 @@ export default function Admin() {
       {/* Filtres */}
       <div style={{ display:"flex", gap:"8px", marginBottom:"16px", flexWrap:"wrap" }}>
         {[
-          { val:"tous",      label:"Tous"          },
-          { val:"admin",     label:"Admins"        },
-          { val:"manager",   label:"Gestionnaires" },
-          { val:"subscriber",label:"Abonnés"       },
-          { val:"visitor",   label:"Visiteurs"     },
-          { val:"suspendu",  label:"Suspendus"     },
+          { val:"tous",       label:"Tous"          },
+          { val:"admin",      label:"Admins"        },
+          { val:"manager",    label:"Gestionnaires" },
+          { val:"subscriber", label:"Abonnés"       },
+          { val:"visitor",    label:"Visiteurs"     },
+          { val:"suspendu",   label:"Suspendus"     },
         ].map(f => (
           <button key={f.val} onClick={() => setFiltreRole(f.val)}
             style={{ padding:"6px 14px", borderRadius:"100px", fontSize:"12px",
@@ -781,26 +889,19 @@ export default function Admin() {
           <div style={{ display:"flex", justifyContent:"space-between",
             alignItems:"center", marginBottom:"18px" }}>
             <div>
-              <div style={{ fontWeight:700, fontSize:"16px", color:"#0A3D1F" }}>
-                👤 Création d'un gestionnaire
-              </div>
-              <div style={{ fontSize:"13px", color:"#6B9A7A", marginTop:"6px" }}>
-                Ce compte aura accès au tableau de bord gestionnaire.
-              </div>
+              <div style={{ fontWeight:700, fontSize:"16px", color:"#0A3D1F" }}>👤 Création d'un gestionnaire</div>
+              <div style={{ fontSize:"13px", color:"#6B9A7A", marginTop:"6px" }}>Ce compte aura accès au tableau de bord gestionnaire.</div>
             </div>
-            <button style={S.btnGhost}
-              onClick={() => { setShowUserForm(false); setUserError(""); }}>
-              Annuler
-            </button>
+            <button style={S.btnGhost} onClick={() => { setShowUserForm(false); setUserError(""); }}>Annuler</button>
           </div>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"14px" }}>
             {[
-              { k:"nom",      l:"Nom *",          t:"text",     p:"Nom"                  },
-              { k:"prenom",   l:"Prénom *",        t:"text",     p:"Prénom"               },
-              { k:"email",    l:"Email *",          t:"email",    p:"email@exemple.com"    },
-              { k:"telephone",l:"Téléphone",        t:"text",     p:"+226 70 00 00 00"     },
-              { k:"fonction", l:"Fonction",         t:"text",     p:"Gestionnaire"         },
-              { k:"password", l:"Mot de passe *",   t:"password", p:"••••••••"             },
+              { k:"nom",      l:"Nom *",         t:"text",     p:"Nom"               },
+              { k:"prenom",   l:"Prénom *",       t:"text",     p:"Prénom"            },
+              { k:"email",    l:"Email *",         t:"email",    p:"email@exemple.com" },
+              { k:"telephone",l:"Téléphone",       t:"text",     p:"+226 70 00 00 00"  },
+              { k:"fonction", l:"Fonction",        t:"text",     p:"Gestionnaire"      },
+              { k:"password", l:"Mot de passe *",  t:"password", p:"••••••••"          },
             ].map(f => (
               <div key={f.k}>
                 <label style={{ display:"block", fontSize:"11px", fontWeight:700, color:"#6B9A7A",
@@ -817,29 +918,27 @@ export default function Admin() {
           )}
           <div style={{ display:"flex", gap:"10px", marginTop:"18px" }}>
             <button style={S.btn} onClick={sauvegarderUtilisateur} disabled={userLoading}>
-              {userLoading ? " Enregistrement..." : "Enregistrer"}
+              {userLoading ? " Enregistrement..." : " Enregistrer"}
             </button>
-            <button style={S.btnGhost}
-              onClick={() => { setShowUserForm(false); setUserError(""); }}>
-              Fermer
-            </button>
+            <button style={S.btnGhost} onClick={() => { setShowUserForm(false); setUserError(""); }}>Fermer</button>
           </div>
         </div>
       )}
 
       {/* Table utilisateurs */}
       <div style={S.card}>
-        <table style={{ width:"100%", borderCollapse:"collapse", fontSize:"13px" }}>
-          <thead>
-            <tr style={{ borderBottom:"2px solid #E2EDE6" }}>
-              {["Utilisateur","Email","Rôle","Statut","Inscrit le","Actions"].map(h => (
-                <th key={h} style={{ padding:"10px 14px", textAlign:"left", fontSize:"11px",
-                  fontWeight:700, color:"#6B9A7A", textTransform:"uppercase", letterSpacing:"0.06em" }}>
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width:"100%", borderCollapse:"collapse", fontSize:"13px", minWidth: '800px' }}>
+            <thead>
+              <tr style={{ borderBottom:"2px solid #E2EDE6" }}>
+                {["Utilisateur","Email","Rôle","Statut","Inscrit le","Actions"].map(h => (
+                  <th key={h} style={{ padding:"10px 14px", textAlign:"left", fontSize:"11px",
+                    fontWeight:700, color:"#6B9A7A", textTransform:"uppercase", letterSpacing:"0.06em" }}>
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
           <tbody>
             {usersFiltres.map((u, i) => (
               <tr key={u.id} style={{ borderBottom:"1px solid #E2EDE6",
@@ -893,6 +992,15 @@ export default function Admin() {
                           {u.role==="manager"?"Retirer gestionnaire":" Attribuer gestionnaire"}
                         </button>
                       )}
+                      {u.role === "manager" && (
+                        <button onClick={() => mettreAJourPermissionRecherche(u.id, !u.canSearchMultiCriteria)}
+                          style={{ padding:"5px 10px", borderRadius:"7px", border:"none",
+                            fontSize:"11px", fontWeight:700, cursor:"pointer",
+                            background:u.canSearchMultiCriteria?"#E8F5EE":"#FFF4E6",
+                            color:u.canSearchMultiCriteria?"#00904C":"#CC6600" }}>
+                          {u.canSearchMultiCriteria?"🔒 Refuser recherche":" 🔓 Autoriser recherche"}
+                        </button>
+                      )}
                       {u.role !== "admin" && (
                         u.statut==="suspendu" ? (
                           <button onClick={() => reactiver(u.id)}
@@ -923,6 +1031,7 @@ export default function Admin() {
             ))}
           </tbody>
         </table>
+        </div>
         {usersFiltres.length===0 && (
           <div style={{ textAlign:"center", padding:"32px", color:"#6B9A7A", fontSize:"13px" }}>
             Aucun utilisateur correspondant à ce filtre
@@ -953,23 +1062,18 @@ export default function Admin() {
           <div style={{ padding:"18px", color:"#CC3333" }}>{activitesErreur}</div>
         ) : activites.length===0 ? (
           <div style={{ padding:"18px", color:"#6B9A7A" }}>Aucune activité récente.</div>
-        ) : (
-          activites.map((a, i) => (
-            <div key={a.id} style={{ display:"flex", gap:"14px", padding:"14px 0",
-              borderBottom:i<activites.length-1?"1px solid #E2EDE6":"none" }}>
-              <div style={{ width:"40px", height:"40px", borderRadius:"10px", background:"#F0F8F3",
-                display:"flex", alignItems:"center", justifyContent:"center", fontSize:"18px", flexShrink:0 }}>
-                
+        ) : activites.map((a, i) => (
+          <div key={a.id} style={{ display:"flex", gap:"14px", padding:"14px 0",
+            borderBottom:i<activites.length-1?"1px solid #E2EDE6":"none" }}>
+            
+            <div style={{ flex:1 }}>
+              <div style={{ fontSize:"14px", color:"#0A3D1F", lineHeight:1.5, fontWeight:500 }}>
+                {a.texte}
               </div>
-              <div style={{ flex:1 }}>
-                <div style={{ fontSize:"14px", color:"#0A3D1F", lineHeight:1.5, fontWeight:500 }}>
-                  {a.texte}
-                </div>
-                <div style={{ fontSize:"12px", color:"#6B9A7A", marginTop:"3px" }}>{a.heure}</div>
-              </div>
+              <div style={{ fontSize:"12px", color:"#6B9A7A", marginTop:"3px" }}>{a.heure}</div>
             </div>
-          ))
-        )}
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -985,7 +1089,6 @@ export default function Admin() {
 
   return (
     <div style={S.wrap}>
-
       {suspModal && (
         <ModalSuspension
           userId={suspModal.userId}
@@ -995,7 +1098,7 @@ export default function Admin() {
         />
       )}
 
-      {/* ── SIDEBAR ── */}
+      {/* SIDEBAR */}
       <aside style={S.side}>
         <div style={{ padding:sidebarOpen?"20px 20px 16px":"20px 12px 16px",
           borderBottom:"1px solid #E2EDE6",
@@ -1025,7 +1128,7 @@ export default function Admin() {
                 background:section===item.id?"rgba(0,144,76,0.1)":"transparent",
                 color:section===item.id?"#00904C":"#0b0b0b",
                 fontWeight:section===item.id?700:500,
-                fontSize:"13px", fontFamily:"inherit", marginBottom:"4px", transition:"all 0.15s" }}>
+                fontSize:"13px", fontFamily:"inherit", marginBottom:"4px" }}>
               {sidebarOpen && <span style={{ flex:1, textAlign:"left" }}>{item.label}</span>}
             </button>
           ))}
@@ -1046,12 +1149,12 @@ export default function Admin() {
               padding:sidebarOpen?"10px 12px":"10px", borderRadius:"10px", border:"none",
               cursor:"pointer", background:"#E6F4EC", color:"#00904C",
               fontWeight:600, fontSize:"13px", fontFamily:"inherit" }}>
-            {sidebarOpen && <span> Voir le site</span>}
+            {sidebarOpen && <span> Retourner à l'accueil</span>}
           </button>
         </div>
       </aside>
 
-      {/* ── MAIN ── */}
+      {/* MAIN */}
       <main style={S.main}>
         <div style={S.topbar}>
           <div style={{ fontWeight:700, fontSize:"15px", color:"#00904C" }}>

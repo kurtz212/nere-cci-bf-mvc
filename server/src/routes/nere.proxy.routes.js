@@ -3,6 +3,7 @@ const express      = require('express');
 const router       = express.Router();
 const { proteger } = require('../middlewares/auth.middleware');
 const Abonnement   = require('../models/Abonnement.model');
+const User         = require('../models/User.model');
 
 /* ── URL de base de l'API NERE ── */
 // ✅ CORRECTION : déclaration AVANT le console.log
@@ -82,11 +83,23 @@ async function appelNere(path) {
 }
 
 /* ── Déduire le solde via la méthode .deduire() du modèle ── */
-async function deduireSolde(userId, typeRequete, quantite = 1) {
+async function deduireSolde(userId, typeRequete, quantite = 1, role = null) {
   const cout = (COUTS[typeRequete] || 250) * Math.max(1, parseInt(quantite) || 1);
 
+  if (!role) {
+    const user = await User.findById(userId).select('role');
+    role = user?.role || 'abonne';
+  }
+
   console.log(' userId  :', userId);
+  console.log(' role    :', role);
   console.log(' cout    :', cout, 'FCFA');
+
+  /* ── Admin : accès libre, pas de solde requis ── */
+  if (role === 'admin') {
+    console.log(' ⚡ Admin bypass — aucune déduction.');
+    return { ok:true, cout:0, solde_restant:null, bypasse:true };
+  }
 
   /* Chercher abonnement actif */
   let abo = await Abonnement.findOne({ userId, actif: true }).sort('-createdAt');

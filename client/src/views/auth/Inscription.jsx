@@ -240,13 +240,13 @@ export default function Inscription() {
 
                   <div className="form-field">
                     <label className="form-label">Nom *</label>
-                    <input className="form-input" name="nom" placeholder="Traoré"
+                    <input className="form-input" name="nom" placeholder="VOTRE NOM"
                       value={form.nom} onChange={handleChange} required/>
                   </div>
 
                   <div className="form-field">
                     <label className="form-label">Prénom *</label>
-                    <input className="form-input" name="prenom" placeholder="Ibrahim"
+                    <input className="form-input" name="prenom" placeholder="VOTRE PRÉNOM"
                       value={form.prenom} onChange={handleChange} required/>
                   </div>
 
@@ -268,12 +268,12 @@ export default function Inscription() {
                     <label className="form-label">
                       Email{" "}
                       <span style={{ fontSize:"11px", opacity:0.45, fontWeight:400 }}>
-                        (facultatif)
+                        (obligatoire)
                       </span>
                     </label>
                     <input className="form-input" name="email" type="email"
                       placeholder="i.traore@exemple.bf"
-                      value={form.email} onChange={handleChange}/>
+                      value={form.email} onChange={handleChange} required/>
                   </div>
 
                   <div className="form-field full">

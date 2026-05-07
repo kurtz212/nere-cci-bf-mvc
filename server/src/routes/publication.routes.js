@@ -28,22 +28,19 @@ async function chargerSolde(req, res, next) {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.userIdFromToken = decoded.id;
 
-    // Charger l'utilisateur pour vérifier le rôle
     const User = require('../models/User.model');
     const user = await User.findById(decoded.id).select('role');
 
     if (user && (user.role === 'admin' || user.role === 'manager')) {
       req.isAdminOrManager   = true;
-      req.niveauPublications = 99; // accès total
+      req.niveauPublications = 99;
       return next();
     }
 
-    // Utilisateur normal → vérifier l'abonnement
     const abo = await Abonnement.findOne({ userId: decoded.id, actif: true }).sort('-createdAt');
 
     if (abo && abo.solde > 0) {
       req.soldeUtilisateur = abo.solde;
-      // Calculer le niveau selon le solde
       if (abo.solde >= 15000)      req.niveauPublications = 2;
       else if (abo.solde >= 5001)  req.niveauPublications = 1;
       else if (abo.solde >= 1)     req.niveauPublications = 0;
@@ -62,19 +59,16 @@ router.get('/', chargerSolde, async (req, res) => {
     const { categorie, page=1, limit=20, all } = req.query;
     const filtre = {};
 
-    // Admin/Manager avec all=true → tout voir sans filtre
     if (all === 'true' && req.isAdminOrManager) {
-      // Pas de filtre statut
+      // Admin/Manager avec all=true → tout voir sans filtre statut
     } else {
       filtre.statut = { $in: ['publie', 'published'] };
 
       const niveau = req.niveauPublications;
 
-      // Admin/Manager → tout voir
       if (niveau === 99) {
         if (categorie) filtre.categorie = categorie;
       } else if (niveau === -1) {
-        // Visiteur non connecté ou solde épuisé → aucune publication
         return res.json({ success:true, count:0, total:0, data:[], niveauAcces:-1 });
       } else {
         const categoriesAutorisees = CATEGORIES_PAR_NIVEAU[niveau] || CATEGORIES_PAR_NIVEAU[0];
@@ -103,6 +97,22 @@ router.get('/', chargerSolde, async (req, res) => {
   }
 });
 
+// ── POST /api/publications/:id/vue ──
+// ⚠️ DOIT être AVANT /:id pour ne pas être capturée par cette route
+router.post('/:id/vue', async (req, res) => {
+  try {
+    const pub = await Publication.findByIdAndUpdate(
+      req.params.id,
+      { $inc: { vues: 1 } },
+      { new: true }
+    );
+    if (!pub) return res.status(404).json({ success: false, message: 'Introuvable.' });
+    return res.json({ success: true, vues: pub.vues });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: 'Erreur serveur.' });
+  }
+});
+
 // ── GET /api/publications/:id ──
 router.get('/:id', chargerSolde, async (req, res) => {
   try {
@@ -119,6 +129,7 @@ router.get('/:id', chargerSolde, async (req, res) => {
       }
     }
 
+    // Incrémenter les vues à l'ouverture individuelle aussi
     pub.vues = (pub.vues || 0) + 1;
     await pub.save();
 

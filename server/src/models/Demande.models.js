@@ -22,7 +22,7 @@ const DemandeSchema = new mongoose.Schema({
     enum:     ['liste','detail','statistique','fiche','autre'],
     required: true,
   },
-  sousType: { type: String, default: '' },
+  sousType: [{ type: String, default: '' }],
 
   // ── Critères de sélection ──
   quantite:         { type: Number, default: null },

@@ -139,6 +139,29 @@ router.put('/:id/activate', proteger, autoriser('admin','manager'), async (req, 
   } catch(err) { res.status(500).json({ success:false, message:err.message }); }
 });
 
+// PUT /api/users/:id/search-permission — autoriser/refuser recherche multicritère (admin)
+router.put('/:id/search-permission', proteger, autoriser('admin'), async (req, res) => {
+  try {
+    const { canSearchMultiCriteria } = req.body;
+    if (canSearchMultiCriteria === undefined) {
+      return res.status(400).json({ success:false, message:'Paramètre canSearchMultiCriteria manquant' });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { canSearchMultiCriteria: canSearchMultiCriteria === true },
+      { new:true }
+    ).select('-password');
+
+    if (!user) return res.status(404).json({ success:false, message:'Utilisateur non trouvé' });
+    res.json({
+      success: true,
+      message: `Permission de recherche ${canSearchMultiCriteria ? 'accordée' : 'refusée'}`,
+      data: user
+    });
+  } catch(err) { res.status(500).json({ success:false, message:err.message }); }
+});
+
 // PUT /api/users/:id  — mise à jour générale (admin)
 router.put('/:id', proteger, autoriser('admin'), async (req, res) => {
   try {

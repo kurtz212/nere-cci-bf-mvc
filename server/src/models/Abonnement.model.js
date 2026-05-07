@@ -21,11 +21,11 @@ const AbonnementSchema = new mongoose.Schema({
 }, { timestamps:true });
 
 /* ══ deduire ══
-   roleUtilisateur : 'admin' | 'manager' → bypass total, rien n'est enregistré
+   roleUtilisateur : 'admin' → bypass total, rien n'est enregistré
 */
 AbonnementSchema.methods.deduire = async function(montant, typeRequete, description, roleUtilisateur = 'abonne') {
 
-  if (roleUtilisateur === 'admin' || roleUtilisateur === 'manager') {
+  if (roleUtilisateur === 'admin') {
     return { solde: this.solde, bypasse: true };
   }
 

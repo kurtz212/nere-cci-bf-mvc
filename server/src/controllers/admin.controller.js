@@ -20,6 +20,29 @@ exports.getUsers = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
+exports.updateSearchPermission = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+    const { canSearchMultiCriteria } = req.body;
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { canSearchMultiCriteria: canSearchMultiCriteria === true },
+      { new: true }
+    ).select('-password');
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'Utilisateur non trouvé' });
+    }
+
+    res.json({
+      success: true,
+      message: `Permission de recherche ${canSearchMultiCriteria ? 'accordée' : 'refusée'}`,
+      data: user
+    });
+  } catch (err) { next(err); }
+};
+
 exports.creerPublication = async (req, res, next) => {
   try {
     const pub = await Publication.create({ ...req.body, auteur: req.user.id });

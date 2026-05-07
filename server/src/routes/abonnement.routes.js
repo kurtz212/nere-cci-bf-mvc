@@ -4,7 +4,7 @@ const router       = express.Router();
 const { proteger } = require('../middlewares/auth.middleware');
 const Abonnement   = require('../models/Abonnement.model');
 
-const ROLES_PRIVILEGES = ['admin', 'manager'];
+const ROLES_PRIVILEGES = ['admin'];
 
 const TARIFS = {
   liste:        250,
@@ -21,7 +21,7 @@ router.post('/deduire', proteger, async (req, res) => {
     const { typeRequete, quantite = 1, description } = req.body;
     const role = req.user?.role || 'abonne';
 
-    /* ── Bypass immédiat pour admin / manager ── */
+    /* ── Bypass immédiat pour admin uniquement ── */
     if (ROLES_PRIVILEGES.includes(role)) {
       return res.json({
         success:  true,

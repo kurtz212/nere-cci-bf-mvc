@@ -78,6 +78,12 @@ const userSchema = new mongoose.Schema({
     default: null,
   },
 
+  // ── Permissions de recherche (pour les gestionnaires) ──
+  canSearchMultiCriteria: {
+    type:    Boolean,
+    default: false,  // Les gestionnaires n'ont pas accès par défaut
+  },
+
 }, { timestamps: true });
 
 // ── Hash du mot de passe avant sauvegarde ──

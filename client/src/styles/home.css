@@ -628,6 +628,7 @@ body {
   .navbar { padding:0 20px; }
   .nav-links { display:none; }
   .hero { padding:48px 20px;min-height:auto; }
+  .hero-wrap { grid-template-columns:1fr; gap:48px; padding:48px 20px; }
   .hero-title { font-size:30px; }
   .stats-row { gap:20px;flex-wrap:wrap; }
   .publications-section { padding:48px 20px; }
