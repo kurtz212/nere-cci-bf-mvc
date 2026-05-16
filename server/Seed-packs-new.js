@@ -64,17 +64,17 @@ async function seed() {
   try {
     const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/nere-cci-bf';
     await mongoose.connect(MONGO_URI);
-    console.log('✅ MongoDB connecté');
+    console.log(' MongoDB connecté');
 
     const Pack = mongoose.model('Pack', PackSchema);
 
     // Supprimer les anciens packs
     await Pack.deleteMany({});
-    console.log('🗑️  Anciens packs supprimés');
+    console.log('Anciens packs supprimés');
 
     // Insérer les nouveaux
     const inserted = await Pack.insertMany(PACKS);
-    console.log(`✅ ${inserted.length} pack(s) inséré(s) :`);
+    console.log(` ${inserted.length} pack(s) inséré(s) :`);
     inserted.forEach(p => {
       console.log(`   - ${p.nom}`);
       p.options.forEach(opt => {
@@ -83,10 +83,10 @@ async function seed() {
     });
 
     await mongoose.disconnect();
-    console.log('✅ Terminé !');
+    console.log(' Terminé !');
     process.exit(0);
   } catch(err) {
-    console.error('❌ Erreur:', err.message);
+    console.error(' Erreur:', err.message);
     process.exit(1);
   }
 }

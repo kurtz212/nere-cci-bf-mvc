@@ -6,7 +6,7 @@ const Abonnement   = require('../models/Abonnement.model');
 const User         = require('../models/User.model');
 
 /* ── URL de base de l'API NERE ── */
-// ✅ CORRECTION : déclaration AVANT le console.log
+//  CORRECTION : déclaration AVANT le console.log
 const NERE_BASE_URL = process.env.NERE_API_URL || 'http://localhost:5001';
 console.log('>>> NERE_BASE_URL =', NERE_BASE_URL);
 
@@ -26,10 +26,10 @@ console.log('>>> NERE_BASE_URL =', NERE_BASE_URL);
 */
 const NERE_PATHS = {
   entreprises:      '/api/entreprises',
-  associations:     '/api/entreprises/nere/associations',   // ✅ confirmé
-  associationFiche: '/api/entreprises/associations',        // ✅ confirmé /:code
-  importations:     '/api/entreprises/nere/importations',   // ✅ ajouté au controller
-  exportations:     '/api/entreprises/nere/exportations',   // ✅ ajouté au controller
+  associations:     '/api/entreprises/nere/associations',   //  confirmé
+  associationFiche: '/api/entreprises/associations',        //  confirmé /:code
+  importations:     '/api/entreprises/nere/importations',   //  ajouté au controller
+  exportations:     '/api/entreprises/nere/exportations',   //  ajouté au controller
   stats:            '/api/entreprises/stats',
   multicritere:     '/api/entreprises/multicritere',
   rechercheGlobale: '/api/entreprises/recherche-globale',
@@ -97,7 +97,7 @@ async function deduireSolde(userId, typeRequete, quantite = 1, role = null) {
 
   /* ── Admin : accès libre, pas de solde requis ── */
   if (role === 'admin') {
-    console.log(' ⚡ Admin bypass — aucune déduction.');
+    console.log('  Admin bypass — aucune déduction.');
     return { ok:true, cout:0, solde_restant:null, bypasse:true };
   }
 
@@ -220,7 +220,7 @@ router.get('/multicritere', proteger, async (req, res) => {
 /* ──────────────────────────────────────
    GET /api/nere/associations — 250 FCFA
    Recherche associations par nom, région, catégorie...
-   ✅ CORRECTION : suppression du préfixe /nere/ en double
+    CORRECTION : suppression du préfixe /nere/ en double
 ────────────────────────────────────── */
 router.get('/associations', proteger, async (req, res) => {
   try {
@@ -248,7 +248,7 @@ router.get('/associations', proteger, async (req, res) => {
 /* ──────────────────────────────────────
    GET /api/nere/associations/:code — 1 000 FCFA
    Fiche complète association avec dirigeants
-   ✅ CORRECTION : suppression du préfixe /nere/ en double
+    CORRECTION : suppression du préfixe /nere/ en double
 ────────────────────────────────────── */
 router.get('/associations/:code', proteger, async (req, res) => {
   try {

@@ -163,7 +163,7 @@ function Navbar({ user, menuOpen, setMenuOpen, navigate, handleLogout, activeKey
                     {user.role==="admin" && (
                       <div className="dd-item"
                         onClick={() => { navigate("/admin"); setMenuOpen(false); }}>
-                        🛡 Tableau de bord
+                         Tableau de bord
                       </div>
                     )}
                     {user.role==="manager" && (
@@ -482,7 +482,7 @@ export default function Chat() {
             <div ref={endRef}/>
           </div>
 
-          {/* ── Zone saisie avec textarea ── */}
+          {/* ── Zone saisie des texts ── */}
           <div style={{ padding:"16px 24px", background:"#fff",
             borderTop:"1px solid #E2EDE6", display:"flex",
             gap:"10px", flexShrink:0, alignItems:"flex-end" }}>

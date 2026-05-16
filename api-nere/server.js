@@ -23,12 +23,12 @@ app.get('/health', (req, res) => res.json({
 // Gestion erreur port occupé
 const startServer = (port) => {
   const server = app.listen(port, () => {
-    console.log(`✅ API NERE démarrée sur http://localhost:${port}`);
+    console.log(` API NERE démarrée sur http://localhost:${port}`);
   });
 
   server.on('error', (err) => {
     if (err.code === 'EADDRINUSE') {
-      console.log(`⚠️  Port ${port} occupé, essai sur ${port + 1}...`);
+      console.log(`️  Port ${port} occupé, essai sur ${port + 1}...`);
       startServer(port + 1);
     } else {
       throw err;
@@ -40,7 +40,7 @@ const startServer = (port) => {
 connecterSQLServer()
   .then(() => startServer(PORT))
   .catch(err => {
-    console.error('❌ SQL Server échoué :', err.message);
-    console.log('⚠️  Démarrage sans SQL Server...');
+    console.error(' SQL Server échoué :', err.message);
+    console.log('️  Démarrage sans SQL Server...');
     startServer(PORT);
   });

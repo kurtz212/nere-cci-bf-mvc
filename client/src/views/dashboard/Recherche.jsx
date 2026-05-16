@@ -183,15 +183,15 @@ export default function Recherche() {
                         <div className="dd-name">{user.prenom} {user.nom}</div>
                         <div className="dd-email">{user.email||"—"}</div>
                         <div className="dd-role">
-                          {user.role==="admin"   ? "⚙️ Admin" :
-                           user.role==="manager" ? "🛠️ Gestionnaire" : "👤 Abonné"}
+                          {user.role==="admin"   ? "️ Admin" :
+                           user.role==="manager" ? "️ Gestionnaire" : " Abonné"}
                         </div>
                       </div>
                       <div style={{ padding:"6px 0" }}>
                         {[
-                          { label:"👤 Mon Profil",     path:"/profil"   },
-                          { label:"💳 Mon Abonnement", path:"/paiement" },
-                          { label:"📋 Historique",     path:"/profil"   },
+                          { label:" Mon Profil",     path:"/profil"   },
+                          { label:" Mon Abonnement", path:"/paiement" },
+                          { label:" Historique",     path:"/profil"   },
                         ].map(item => (
                           <div key={item.label} className="dd-item"
                             onClick={() => { navigate(item.path); setMenuOpen(false); }}>
@@ -201,18 +201,18 @@ export default function Recherche() {
                         {user.role==="admin" && (
                           <div className="dd-item"
                             onClick={() => { navigate("/admin"); setMenuOpen(false); }}>
-                            ⚙️ Tableau de bord
+                            ️ Tableau de bord
                           </div>
                         )}
                         {user.role==="manager" && (
                           <div className="dd-item"
                             onClick={() => { navigate("/gestionnaire"); setMenuOpen(false); }}>
-                            🛠️ Tableau de bord
+                            ️ Tableau de bord
                           </div>
                         )}
                         <div className="dd-sep"/>
                         <div className="dd-item dd-danger" onClick={handleLogout}>
-                          🚪 Déconnexion
+                           Déconnexion
                         </div>
                       </div>
                     </div>

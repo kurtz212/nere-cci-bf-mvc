@@ -97,7 +97,7 @@ export default function Publications() {
           setPubs(pubsFormatees);
         }
       } catch(e) {
-        console.warn("⚠️ API indisponible, utilisation des données mock");
+        console.warn("️ API indisponible, utilisation des données mock");
         // Garder les mock si API indisponible
       } finally {
         setLoading(false);
@@ -159,7 +159,7 @@ export default function Publications() {
             flexWrap: "wrap", gap: "12px",
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <span style={{ fontSize: "20px" }}>🔒</span>
+              <span style={{ fontSize: "20px" }}>LOCK</span>
               <span style={{ color: "#fff", fontSize: "14px", fontWeight: 600 }}>
                 Contenu masqué — inscrivez-vous pour accéder aux informations complètes
               </span>
@@ -193,7 +193,7 @@ export default function Publications() {
             Rapports, classements et analyses sur l'économie du Burkina Faso
           </p>
           <div className="pub-search-bar">
-            <span className="pub-search-icon">🔍</span>
+            <span className="pub-search-icon">SEARCH</span>
             <input
               className="pub-search-input"
               placeholder="Rechercher par titre, catégorie, mot-clé..."
@@ -201,7 +201,7 @@ export default function Publications() {
               onChange={e => setRecherche(e.target.value)}
             />
             {recherche && (
-              <span className="pub-search-clear" onClick={() => setRecherche("")}>✕</span>
+              <span className="pub-search-clear" onClick={() => setRecherche("")}></span>
             )}
           </div>
         </div>
@@ -237,7 +237,7 @@ export default function Publications() {
                 {/* Badge accès */}
                 <div className="pub-access-badge"
                   style={{ background: access.bg, color: access.color, border: `1px solid ${access.color}44` }}>
-                  {locked || isVisiteur ? "🔒 " : "✓ "}{access.label}
+                  {locked || isVisiteur ? "LOCK " : "CHECK "}{access.label}
                 </div>
 
                 <div className="pub-card-cat">{pub.categorie}</div>
@@ -285,14 +285,14 @@ export default function Publications() {
                       style={{ marginTop: "14px", width: "100%", padding: "10px" }}
                       onClick={e => { e.stopPropagation(); navigate("/inscription"); }}
                     >
-                      🔓 S'inscrire pour lire
+                      S'inscrire pour lire
                     </button>
                   </>
 
                 ) : locked ? (
                   /* ─── CONNECTÉ MAIS PACK INSUFFISANT ─── */
                   <div className="pub-card-locked-msg">
-                    <div className="lock-icon">🔒</div>
+                    <div className="lock-icon">LOCK</div>
                     <div>Réservé aux abonnés <strong>{access.label}</strong></div>
                     <button className="btn-upgrade"
                       onClick={e => { e.stopPropagation(); navigate("/inscription"); }}>
@@ -321,7 +321,7 @@ export default function Publications() {
         {selected && !isVisiteur && (
           <div className="modal-overlay" onClick={() => setSelected(null)}>
             <div className="modal-content" onClick={e => e.stopPropagation()}>
-              <button className="modal-close" onClick={() => setSelected(null)}>✕</button>
+              <button className="modal-close" onClick={() => setSelected(null)}></button>
               <div className="modal-cat">{selected.categorie} · {selected.date}</div>
               <h2 className="modal-title">{selected.titre}</h2>
               <div className="modal-tags">

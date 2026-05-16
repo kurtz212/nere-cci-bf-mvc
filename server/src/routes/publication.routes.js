@@ -98,7 +98,7 @@ router.get('/', chargerSolde, async (req, res) => {
 });
 
 // ── POST /api/publications/:id/vue ──
-// ⚠️ DOIT être AVANT /:id pour ne pas être capturée par cette route
+// ️ DOIT être AVANT /:id pour ne pas être capturée par cette route
 router.post('/:id/vue', async (req, res) => {
   try {
     const pub = await Publication.findByIdAndUpdate(

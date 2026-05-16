@@ -592,7 +592,7 @@ margin-right: 16px;
             display:"flex", alignItems:"center", justifyContent:"center",
             transition:"all 0.3s",
             animation:!adminPanel?"adminBounce 2s ease-in-out infinite":"none" }}>
-          {adminPanel ? "✕" : "⚙️"}
+          {adminPanel ? "" : "️"}
         </button>
       )}
 
@@ -634,7 +634,7 @@ margin-right: 16px;
                   style={{ width:"32px", height:"32px", borderRadius:"8px",
                     background:"rgba(255,255,255,0.1)", border:"none",
                     color:"#fff", cursor:"pointer", fontSize:"16px" }}>
-                  ✕
+                  
                 </button>
               </div>
             </div>
@@ -720,7 +720,7 @@ function AdminPanelStats({ navigate }) {
         Vue d'ensemble
       </div>
       {!stats ? (
-        <div style={{ textAlign:"center", padding:"24px", color:"#6B9A7A" }}>⏳ Chargement...</div>
+        <div style={{ textAlign:"center", padding:"24px", color:"#6B9A7A" }}> Chargement...</div>
       ) : (
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr",
           gap:"12px", marginBottom:"20px" }}>

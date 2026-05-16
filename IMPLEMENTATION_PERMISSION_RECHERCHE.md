@@ -74,8 +74,8 @@ const mettreAJourPermissionRecherche = async (id, permission) => {
 #### c) Nouveau bouton dans le tableau des utilisateurs
 - **Visible pour** : Les gestionnaires uniquement
 - **Label** : 
-  - `🔓 Autoriser recherche` (si non autorisé)
-  - `🔒 Refuser recherche` (si autorisé)
+  - ` Autoriser recherche` (si non autorisé)
+  - ` Refuser recherche` (si autorisé)
 - **Couleurs** :
   - Vert (#00904C) si autorisé
   - Orange (#CC6600) si refusé
@@ -100,35 +100,35 @@ La fonction `rechercherEntreprise` vérifie maintenant la permission avant d'env
 
 ---
 
-## 🎯 Comportement attendu
+##  Comportement attendu
 
 ### Pour l'Administrateur
 
 1. Accès au tableau "Utilisateurs" dans le panel admin
 2. Pour chaque gestionnaire :
-   - Voir le bouton "🔓 Autoriser recherche" ou "🔒 Refuser recherche"
+   - Voir le bouton " Autoriser recherche" ou " Refuser recherche"
    - Un clic change immédiatement la permission
    - Un message de confirmation s'affiche
 
 ### Pour le Gestionnaire
 
-1. **Avec autorisation** ✅
+1. **Avec autorisation** 
    - Peut accéder à la page de recherche multicritère
    - Peut utiliser tous les filtres sans restriction
 
-2. **Sans autorisation** ❌
+2. **Sans autorisation** 
    - Peut accéder à la page de recherche
    - Voit tous les formulaires de recherche
    - Quand il essaie de chercher avec 2 critères ou plus, reçoit le message :
    ```
-   🔒 Vous n'êtes pas autorisé à effectuer des recherches multicritères. 
+    Vous n'êtes pas autorisé à effectuer des recherches multicritères. 
    Veuillez contacter l'administrateur pour demander l'autorisation.
    ```
    - Peut toujours faire des recherches avec **1 seul critère** (RCCM OU IFU OU Raison sociale)
 
 ---
 
-## 📊 Cas d'usage
+##  Cas d'usage
 
 ### Cas 1 : Créer un nouveau gestionnaire sans permission
 1. Admin clique "Nouveau gestionnaire"
@@ -138,28 +138,28 @@ La fonction `rechercherEntreprise` vérifie maintenant la permission avant d'env
 
 ### Cas 2 : Accorder la permission après
 1. Admin voit le gestionnaire dans la table
-2. Clique le bouton "🔓 Autoriser recherche"
-3. Le bouton devient "🔒 Refuser recherche" (vert → orange)
+2. Clique le bouton " Autoriser recherche"
+3. Le bouton devient " Refuser recherche" (vert → orange)
 4. Le gestionnaire peut maintenant faire des recherches multicritères
 
 ### Cas 3 : Retirer la permission
-1. Admin clique "🔒 Refuser recherche"
-2. Le bouton redevient "🔓 Autoriser recherche"
+1. Admin clique " Refuser recherche"
+2. Le bouton redevient " Autoriser recherche"
 3. Le gestionnaire reçoit le message d'erreur à la prochaine recherche
 
 ---
 
-## 🔐 Sécurité
+##  Sécurité
 
-- ✅ Vérification côté serveur (backend)
-- ✅ Les gestionnaires ne peuvent pas contourner la permission
-- ✅ Les requêtes API sont validées
-- ✅ Les administrateurs seuls peuvent modifier les permissions
-- ✅ Les utilisateurs normaux (subscriber, visitor) ne sont pas affectés
+-  Vérification côté serveur (backend)
+-  Les gestionnaires ne peuvent pas contourner la permission
+-  Les requêtes API sont validées
+-  Les administrateurs seuls peuvent modifier les permissions
+-  Les utilisateurs normaux (subscriber, visitor) ne sont pas affectés
 
 ---
 
-## 📝 Points importants
+##  Points importants
 
 1. **Les recherches simples (1 critère) sont toujours autorisées** pour les gestionnaires
 2. **Seules les recherches multicritères (2+ critères) sont restreintes**
@@ -169,7 +169,7 @@ La fonction `rechercherEntreprise` vérifie maintenant la permission avant d'env
 
 ---
 
-## 🧪 Test recommandé
+##  Test recommandé
 
 1. **Test 1 - Créer un gestionnaire**
    - Créer un nouveau gestionnaire

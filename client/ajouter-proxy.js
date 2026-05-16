@@ -12,6 +12,6 @@ if (pkg.proxy) {
 } else {
   pkg.proxy = 'http://localhost:5000';
   fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2));
-  console.log('✅ Proxy ajouté : http://localhost:5000');
+  console.log(' Proxy ajouté : http://localhost:5000');
   console.log('   Redémarrez React (Ctrl+C puis npm start)');
 }

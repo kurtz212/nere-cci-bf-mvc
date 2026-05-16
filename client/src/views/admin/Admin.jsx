@@ -27,7 +27,7 @@ function ModalSuspension({ userId, userName, onConfirm, onClose }) {
       <div style={{ background:"#fff", borderRadius:"16px", padding:"32px", maxWidth:"440px",
         width:"100%", boxShadow:"0 24px 60px rgba(0,0,0,0.2)" }}
         onClick={e => e.stopPropagation()}>
-        <div style={{ fontSize:"32px", marginBottom:"12px", textAlign:"center" }}>⏸️</div>
+        <div style={{ fontSize:"32px", marginBottom:"12px", textAlign:"center" }}>️</div>
         <h3 style={{ fontSize:"20px", color:"#0A2410", margin:"0 0 6px", textAlign:"center" }}>
           Suspendre l'accès
         </h3>
@@ -69,7 +69,7 @@ function ModalSuspension({ userId, userName, onConfirm, onClose }) {
             style={{ flex:1, padding:"12px", borderRadius:"10px", background:"#CC6600",
               border:"none", color:"#fff", fontWeight:700, fontSize:"14px",
               cursor:"pointer", fontFamily:"inherit" }}>
-            ✅ Confirmer la suspension
+             Confirmer la suspension
           </button>
           <button onClick={onClose}
             style={{ flex:1, padding:"12px", borderRadius:"10px", background:"#fff",
@@ -156,7 +156,7 @@ function AdminLogin({ onSuccess }) {
                 style={{ position:"absolute", right:"12px", top:"50%", transform:"translateY(-50%)",
                   background:"none", border:"none", cursor:"pointer", fontSize:"16px",
                   color:"rgba(255,255,255,0.6)" }}>
-                {showPwd?"🙈":"👁️"}
+                {showPwd?"":"️"}
               </button>
             </div>
           </div>
@@ -164,7 +164,7 @@ function AdminLogin({ onSuccess }) {
             <div style={{ background:"rgba(232,85,85,0.1)", border:"1px solid rgba(232,85,85,0.3)",
               borderRadius:"8px", padding:"10px 14px", color:"#FF8080",
               fontSize:"13px", marginBottom:"16px" }}>
-              ❌ {error}
+               {error}
             </div>
           )}
           <button type="submit" disabled={loading}
@@ -487,7 +487,7 @@ export default function Admin() {
       const data = await res.json();
       if (data.success) {
         setUsers(us => us.map(u => u.id===id ? { ...u, canSearchMultiCriteria:permission } : u));
-        afficherAction(id, permission ? " Recherche multicritère autorisée" : "❌ Recherche multicritère refusée", "succes");
+        afficherAction(id, permission ? " Recherche multicritère autorisée" : " Recherche multicritère refusée", "succes");
       }
     } catch {
       afficherAction(id, " Erreur lors de la mise à jour", "erreur");
@@ -679,7 +679,7 @@ export default function Admin() {
               {/* Checklist de diagnostic */}
               <div style={{ background:"#fff", borderRadius:"8px", padding:"12px 14px",
                 border:"1px solid #E8D88A", fontSize:"12px", color:"#555", marginBottom:"10px" }}>
-                <div style={{ fontWeight:700, marginBottom:"6px", color:"#333" }}>🔍 Vérifications à faire :</div>
+                <div style={{ fontWeight:700, marginBottom:"6px", color:"#333" }}>Vérifications à faire :</div>
                 {[
                   "Le serveur backend tourne-t-il ? (node server.js ou npm start)",
                   "Le proxy /api est-il configuré dans vite.config.js ou package.json ?",
@@ -746,7 +746,7 @@ export default function Admin() {
             </div>
             {pubError && (
               <div style={{ padding:"10px", background:"#FFF0F0", borderRadius:"8px",
-                color:"#CC3333", fontSize:"13px" }}>❌ {pubError}</div>
+                color:"#CC3333", fontSize:"13px" }}> {pubError}</div>
             )}
             <div style={{ display:"flex", gap:"10px" }}>
               <button style={S.btn} onClick={sauvegarderPub} disabled={pubLoading}>
@@ -889,7 +889,7 @@ export default function Admin() {
           <div style={{ display:"flex", justifyContent:"space-between",
             alignItems:"center", marginBottom:"18px" }}>
             <div>
-              <div style={{ fontWeight:700, fontSize:"16px", color:"#0A3D1F" }}>👤 Création d'un gestionnaire</div>
+              <div style={{ fontWeight:700, fontSize:"16px", color:"#0A3D1F" }}>Création d'un gestionnaire</div>
               <div style={{ fontSize:"13px", color:"#6B9A7A", marginTop:"6px" }}>Ce compte aura accès au tableau de bord gestionnaire.</div>
             </div>
             <button style={S.btnGhost} onClick={() => { setShowUserForm(false); setUserError(""); }}>Annuler</button>
@@ -914,7 +914,7 @@ export default function Admin() {
           </div>
           {userError && (
             <div style={{ marginTop:"14px", padding:"12px", background:"#FFF0F0",
-              color:"#CC3333", borderRadius:"10px", fontSize:"13px" }}>❌ {userError}</div>
+              color:"#CC3333", borderRadius:"10px", fontSize:"13px" }}> {userError}</div>
           )}
           <div style={{ display:"flex", gap:"10px", marginTop:"18px" }}>
             <button style={S.btn} onClick={sauvegarderUtilisateur} disabled={userLoading}>
@@ -998,7 +998,7 @@ export default function Admin() {
                             fontSize:"11px", fontWeight:700, cursor:"pointer",
                             background:u.canSearchMultiCriteria?"#E8F5EE":"#FFF4E6",
                             color:u.canSearchMultiCriteria?"#00904C":"#CC6600" }}>
-                          {u.canSearchMultiCriteria?"🔒 Refuser recherche":" 🔓 Autoriser recherche"}
+                          {u.canSearchMultiCriteria?"Refuser recherche":" Autoriser recherche"}
                         </button>
                       )}
                       {u.role !== "admin" && (

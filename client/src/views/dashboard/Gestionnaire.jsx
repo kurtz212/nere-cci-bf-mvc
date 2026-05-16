@@ -133,7 +133,7 @@ function ManagerLogin({ onSuccess }) {
                 style={{ position:"absolute", right:"14px", top:"50%", transform:"translateY(-50%)",
                   background:"none", border:"none", cursor:"pointer", fontSize:"16px",
                   color:"rgba(255,255,255,0.5)" }}>
-                {showPwd?"🙈":"👁️"}
+                {showPwd?"":"️"}
               </button>
             </div>
           </div>
@@ -141,7 +141,7 @@ function ManagerLogin({ onSuccess }) {
           {error && (
             <div style={{ background:"rgba(232,85,85,0.1)", border:"1px solid rgba(232,85,85,0.2)",
               borderRadius:"10px", padding:"11px 14px", color:"#FF8080",
-              fontSize:"13px", marginBottom:"14px" }}>❌ {error}</div>
+              fontSize:"13px", marginBottom:"14px" }}> {error}</div>
           )}
 
           <button type="submit" disabled={loading}
@@ -523,7 +523,7 @@ export default function Gestionnaire() {
           })}
         </div>
 
-        {demandesErreur && <div style={{background:"#FFF0F0",border:"1px solid #FFB3B3",borderRadius:"12px",padding:"14px",color:"#CC3333",fontSize:"13px",marginBottom:"16px"}}>❌ {demandesErreur}</div>}
+        {demandesErreur && <div style={{background:"#FFF0F0",border:"1px solid #FFB3B3",borderRadius:"12px",padding:"14px",color:"#CC3333",fontSize:"13px",marginBottom:"16px"}}> {demandesErreur}</div>}
         {demandesLoading && <div style={{...S.card,textAlign:"center",padding:"60px",color:"#6B9A7A"}}> Chargement...</div>}
         {!demandesLoading && demandesFiltrees.length===0 && (
           <div style={{...S.card,textAlign:"center",padding:"60px",color:"#6B9A7A"}}>
@@ -584,7 +584,7 @@ export default function Gestionnaire() {
                       {d.statut!=="rejete"&&d.statut!=="annule"&&(
                         <button onClick={e=>{e.stopPropagation();changerStatut(d._id,"rejete");}} disabled={statutLoading===d._id}
                           style={{padding:"7px 14px",borderRadius:"8px",background:"#FFF0F0",color:"#CC3333",border:"none",fontSize:"12px",fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>
-                          ❌ Rejeter
+                           Rejeter
                         </button>
                       )}
                       <button onClick={e=>{e.stopPropagation();setNoteModal({open:true,id:d._id,texte:""}); }}
@@ -611,7 +611,7 @@ export default function Gestionnaire() {
         <div style={{...S.card,position:"sticky",top:"20px",height:"fit-content",border:"2px solid #4DC97A",maxHeight:"90vh",overflowY:"auto"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"20px"}}>
             <div style={{fontFamily:"'Playfair Display',serif",fontSize:"16px",fontWeight:700,color:"#0A3D1F"}}>Détail</div>
-            <button onClick={()=>setDemandeSelectee(null)} style={{background:"none",border:"none",cursor:"pointer",fontSize:"20px",color:"#aaa"}}>✕</button>
+            <button onClick={()=>setDemandeSelectee(null)} style={{background:"none",border:"none",cursor:"pointer",fontSize:"20px",color:"#aaa"}}></button>
           </div>
           <div style={{display:"flex",flexDirection:"column",gap:"10px"}}>
             {[
@@ -695,7 +695,7 @@ export default function Gestionnaire() {
             </div>
             <div><label style={S.label}>Contenu</label>
               <textarea style={S.textarea} value={formPub.contenu} onChange={e=>setFormPub(f=>({...f,contenu:e.target.value}))} placeholder="Contenu..."/></div>
-            {pubError&&<div style={{padding:"10px 14px",background:"#FFF0F0",color:"#CC3333",borderRadius:"10px",fontSize:"13px"}}>❌ {pubError}</div>}
+            {pubError&&<div style={{padding:"10px 14px",background:"#FFF0F0",color:"#CC3333",borderRadius:"10px",fontSize:"13px"}}> {pubError}</div>}
             <div style={{display:"flex",gap:"10px"}}>
               <button style={S.btn} onClick={sauvegarderPub} disabled={pubLoading}>{pubLoading?" Sauvegarde...":editPub?"Enregistrer":"Créer"}</button>
               <button style={S.btnGhost} onClick={()=>{setShowFormPub(false);setEditPub(null);setPubError("");}}>Annuler</button>

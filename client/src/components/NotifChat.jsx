@@ -73,7 +73,7 @@ export default function NotifChat() {
     const toast = {
       id,
       texte:    msg.texte,
-      de:       msg.diffusion ? "📢 Annonce CCI-BF" : (msg.expediteurNom || "CCI-BF"),
+      de:       msg.diffusion ? "Annonce CCI-BF" : (msg.expediteurNom || "CCI-BF"),
       diffusion:!!msg.diffusion,
     };
     setToasts(t => [...t, toast]);
@@ -129,7 +129,7 @@ export default function NotifChat() {
             justifyContent:"center", fontSize:"22px",
             animation:"notifPulse 1.5s ease-in-out infinite",
           }}>
-          💬
+          CHAT
           <div style={{
             position:"absolute", top:"-4px", right:"-4px",
             background:"#FF6B6B", color:"#fff",
@@ -168,7 +168,7 @@ export default function NotifChat() {
               display:"flex", alignItems:"center", justifyContent:"center",
               fontSize:"18px", flexShrink:0,
             }}>
-              {toast.diffusion ? "📢" : "💬"}
+              {toast.diffusion ? "" : ""}
             </div>
             {/* Contenu */}
             <div style={{flex:1,minWidth:0}}>
@@ -196,7 +196,7 @@ export default function NotifChat() {
               onClick={e=>{e.stopPropagation();supprimerToast(toast.id);}}
               style={{background:"none",border:"none",color:"#6B9A7A",cursor:"pointer",
                 fontSize:"14px",padding:"0",flexShrink:0,lineHeight:1}}>
-              ✕
+              
             </button>
           </div>
         ))}

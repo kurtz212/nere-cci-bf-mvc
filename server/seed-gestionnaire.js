@@ -10,7 +10,7 @@ const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/nere-cci-b
 
 async function main() {
   await mongoose.connect(MONGO_URI);
-  console.log('✅ MongoDB connecté');
+  console.log(' MongoDB connecté');
 
   // Charger le modèle User
   const User = require('./src/models/User.model');
@@ -27,7 +27,7 @@ async function main() {
       suspendJusquau: null,
       raisonSuspension: '',
     });
-    console.log('✅ Compte gestionnaire existant réactivé et vérifié');
+    console.log(' Compte gestionnaire existant réactivé et vérifié');
   } else {
     // Créer un gestionnaire de test
     const hash = await bcrypt.hash('Gestionnaire1234', 12);
@@ -41,7 +41,7 @@ async function main() {
       emailVerified: true,
       typeCompte:    'administration',
     });
-    console.log(`✅ Gestionnaire créé : ${user.email}`);
+    console.log(` Gestionnaire créé : ${user.email}`);
     console.log('   Email    : gestionnaire@nere.bf');
     console.log('   Password : Gestionnaire1234');
   }
@@ -59,6 +59,6 @@ async function main() {
 }
 
 main().catch(err => {
-  console.error('❌ Erreur:', err.message);
+  console.error(' Erreur:', err.message);
   process.exit(1);
 });

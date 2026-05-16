@@ -7,7 +7,7 @@ let ctrl;
 try {
   ctrl = require('../controllers/demandeDocument.controller');
 } catch(e) {
-  console.warn('⚠️  demandeDocument.controller manquant:', e.message);
+  console.warn('️  demandeDocument.controller manquant:', e.message);
   module.exports = router;
   return;
 }

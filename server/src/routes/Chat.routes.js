@@ -50,7 +50,7 @@ router.post('/alerte-blocage', proteger, async (req, res) => {
     }
     
     // Créer un message d'alerte pour chaque administrateur
-    const alerteMessage = `⚠️ ALERTE BLOCAGE - Gestionnaire refusé de recherche\n\n` +
+    const alerteMessage = `️ ALERTE BLOCAGE - Gestionnaire refusé de recherche\n\n` +
       `Gestionnaire: ${gestionnaire_nom}\n` +
       `Email: ${gestionnaire_email}\n` +
       `Téléphone: ${gestionnaire_telephone}\n` +

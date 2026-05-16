@@ -4,7 +4,7 @@ export default function NotFound() {
   return (
     <div style={{ minHeight: '100vh', background: '#0A3D1F', display: 'flex',
       alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '16px' }}>
-      <div style={{ fontSize: '64px' }}>🌿</div>
+      <div style={{ fontSize: '64px' }}></div>
       <h1 style={{ color: '#4DC97A', fontFamily: 'Playfair Display', fontSize: '48px' }}>404</h1>
       <p style={{ color: 'rgba(255,255,255,0.5)' }}>Page introuvable</p>
       <button onClick={() => navigate('/')}

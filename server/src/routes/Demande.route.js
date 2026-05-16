@@ -1,4 +1,4 @@
-// 📁 server/routes/demandes.routes.js
+//  server/routes/demandes.routes.js
 // Remplace ton fichier routes/demandes.routes.js actuel par celui-ci
 
 const express    = require('express');

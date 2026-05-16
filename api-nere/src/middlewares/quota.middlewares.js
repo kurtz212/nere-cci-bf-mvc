@@ -112,7 +112,7 @@ exports.loggerUsage = (typeRequete, quantiteField = 'quantite') =>
             quantite:     parseInt(quantite) || 1,
           });
         } catch (e) {
-          console.error('⚠️ Erreur log usage:', e.message);
+          console.error('️ Erreur log usage:', e.message);
         }
       }
     });

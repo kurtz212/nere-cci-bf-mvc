@@ -192,7 +192,7 @@ export default function Connexion() {
                 <p className="auth-subtitle">Accédez à votre espace NERE CCI-BF</p>
               </div>
 
-              {error && <div className="auth-error">❌ {error}</div>}
+              {error && <div className="auth-error"> {error}</div>}
 
               <form onSubmit={handleLogin} className="auth-form">
                 <div className="form-field">
@@ -214,7 +214,7 @@ export default function Connexion() {
                         transform:"translateY(-50%)", background:"none",
                         border:"none", cursor:"pointer", fontSize:"16px",
                         color:"rgba(255,255,255,0.5)" }}>
-                      {showPwd ? "🙈" : "👁️"}
+                      {showPwd ? "" : "️"}
                     </button>
                   </div>
                   <div className="field-hint"
@@ -273,7 +273,7 @@ export default function Connexion() {
                 </p>
               </div>
 
-              {error && <div className="auth-error">❌ {error}</div>}
+              {error && <div className="auth-error"> {error}</div>}
 
               <form onSubmit={handleForgot} className="auth-form">
                 <div className="form-field">
@@ -305,7 +305,7 @@ export default function Connexion() {
                 Un lien de réinitialisation a été envoyé à{" "}
                 <strong>{forgotEmail}</strong>.
               </p>
-              <div className="info-chip">⏱ Le lien expire dans 1h</div>
+              <div className="info-chip"> Le lien expire dans 1h</div>
               <button className="btn-auth-outline"
                 onClick={() => { setMode("login"); setError(""); }}>
                 Retour à la connexion

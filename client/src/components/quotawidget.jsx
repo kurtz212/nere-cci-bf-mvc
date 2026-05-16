@@ -9,7 +9,7 @@ export default function QuotaWidget({ pack, usage, dateFin }) {
   // Valeurs mock — à remplacer par données API
   const packMock = pack || {
     nom: "pro",
-    icon: "🚀",
+    icon: "",
     couleur: "#22A052",
     quotaListes: 2000,
     quotaFiches: 50,
@@ -28,21 +28,21 @@ export default function QuotaWidget({ pack, usage, dateFin }) {
   const quotas = [
     {
       label:   "Adresses (Listes)",
-      icon:    "📋",
+      icon:    "",
       consomme: usageMock.listes,
       max:      packMock.quotaListes,
       couleur:  "#4DC97A",
     },
     {
       label:   "Fiches",
-      icon:    "📄",
+      icon:    "",
       consomme: usageMock.fiches,
       max:      packMock.quotaFiches,
       couleur:  "#22A052",
     },
     {
       label:   "Statistiques",
-      icon:    "📊",
+      icon:    "",
       consomme: usageMock.stats,
       max:      packMock.quotaStats,
       couleur:  "#D4A830",
@@ -95,7 +95,7 @@ export default function QuotaWidget({ pack, usage, dateFin }) {
         {quotas.length === 0 && (
           <div style={{ textAlign:"center", padding:"8px",
             fontSize:"13px", color:"var(--text-muted)" }}>
-            💎 Accès illimité — aucun quota
+            Accès illimité — aucun quota
           </div>
         )}
 
@@ -153,7 +153,7 @@ export default function QuotaWidget({ pack, usage, dateFin }) {
                       border:"1px solid rgba(232,85,85,0.2)",
                       borderRadius:"8px", fontSize:"11px", color:"#E85555",
                       fontWeight:600, display:"flex", alignItems:"center", gap:"6px" }}>
-                      ⚠️ Quota presque épuisé — {q.max - q.consomme} restant(s)
+                      ️ Quota presque épuisé — {q.max - q.consomme} restant(s)
                     </div>
                   )}
                   {p >= 100 && (
@@ -162,7 +162,7 @@ export default function QuotaWidget({ pack, usage, dateFin }) {
                       border:"1px solid rgba(232,85,85,0.3)",
                       borderRadius:"8px", fontSize:"11px", color:"#E85555",
                       fontWeight:700, display:"flex", alignItems:"center", gap:"6px" }}>
-                      🔒 Quota épuisé — bloqué jusqu'au renouvellement ({dateFinMock})
+                      Quota épuisé — bloqué jusqu'au renouvellement ({dateFinMock})
                     </div>
                   )}
                 </>
@@ -179,7 +179,7 @@ export default function QuotaWidget({ pack, usage, dateFin }) {
               color:"var(--green-dark)", fontWeight:700, fontSize:"13px",
               cursor:"pointer", fontFamily:"inherit", transition:"all 0.2s" }}
               onClick={() => window.location.href = "/formules"}>
-              ⬆️ Passer au pack {packMock.nom === "basic" ? "Pro" : "Premium"}
+              ️ Passer au pack {packMock.nom === "basic" ? "Pro" : "Premium"}
             </button>
           </div>
         )}

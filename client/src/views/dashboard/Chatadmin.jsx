@@ -296,7 +296,7 @@ export default function ChatAdmin() {
                 {searchConv && (
                   <button onClick={()=>setSearchConv("")}
                     style={{ position:"absolute", right:"8px", top:"50%", transform:"translateY(-50%)",
-                      background:"none", border:"none", cursor:"pointer", fontSize:"12px", color:"#6B9A7A" }}>✕
+                      background:"none", border:"none", cursor:"pointer", fontSize:"12px", color:"#6B9A7A" }}>
                   </button>
                 )}
               </div>
@@ -463,7 +463,7 @@ export default function ChatAdmin() {
         {onglet==="diffusion" && (
           <div style={{ flex:1, overflowY:"auto", padding:"16px" }}>
             <div style={{ marginBottom:"14px" }}>
-              <div style={{ fontWeight:700, fontSize:"13px", color:"#0A2410", marginBottom:"10px" }}>📢 Envoyer une annonce</div>
+              <div style={{ fontWeight:700, fontSize:"13px", color:"#0A2410", marginBottom:"10px" }}>Envoyer une annonce</div>
 
               {/* Mode ciblage */}
               <div style={{ display:"flex", gap:"8px", marginBottom:"12px" }}>
@@ -496,7 +496,7 @@ export default function ChatAdmin() {
                     {searchCible && (
                       <button onClick={()=>setSearchCible("")}
                         style={{ position:"absolute", right:"8px", top:"50%", transform:"translateY(-50%)",
-                          background:"none", border:"none", cursor:"pointer", fontSize:"12px", color:"#6B9A7A" }}>✕
+                          background:"none", border:"none", cursor:"pointer", fontSize:"12px", color:"#6B9A7A" }}>
                       </button>
                     )}
                   </div>
@@ -516,7 +516,7 @@ export default function ChatAdmin() {
                           border:`2px solid ${usersSelect.has(u._id)?"#00904C":"#D0D0D0"}`,
                           background:usersSelect.has(u._id)?"#00904C":"transparent",
                           display:"flex", alignItems:"center", justifyContent:"center" }}>
-                          {usersSelect.has(u._id) && <span style={{ color:"#fff", fontSize:"11px", lineHeight:1 }}>✓</span>}
+                          {usersSelect.has(u._id) && <span style={{ color:"#fff", fontSize:"11px", lineHeight:1 }}></span>}
                         </div>
                         <div style={{ flex:1, minWidth:0 }}>
                           <div style={{ fontSize:"12px", color:"#0A2410", fontWeight:usersSelect.has(u._id)?700:400,
@@ -636,7 +636,7 @@ export default function ChatAdmin() {
                   })()}
                 </div>
                 <div style={{ fontSize:"11px", color:"#6B9A7A" }}>
-                  {usersEcrivent[userActif] ? " En train d'écrire..." : usersConnectes.has(userActif) ? "🟢 En ligne" : "⚫ Hors ligne"}
+                  {usersEcrivent[userActif] ? " En train d'écrire..." : usersConnectes.has(userActif) ? "EN LIGNE" : "HORS LIGNE"}
                 </div>
               </div>
             </div>
@@ -646,7 +646,7 @@ export default function ChatAdmin() {
             </div>
           )}
           <div style={{ fontSize:"12px", color:connecte?"#00904C":"#FF6B6B", fontWeight:600 }}>
-            {connecte ? "🟢 Connecté" : "🔴 Déconnecté"}
+            {connecte ? "CONNECTE" : "DECONNECTE"}
           </div>
         </div>
 
@@ -667,7 +667,7 @@ export default function ChatAdmin() {
             </div>
           ) : messagesActifs.length===0 ? (
             <div style={{ margin:"auto", textAlign:"center", color:"#6B9A7A" }}>
-              <div style={{ fontSize:"40px", marginBottom:"12px" }}>✉️</div>
+              <div style={{ fontSize:"40px", marginBottom:"12px" }}>️</div>
               <div style={{ fontWeight:600, fontSize:"14px", color:"#0A2410", marginBottom:"6px" }}>
                 Nouvelle conversation avec {conversations[userActif]?.nom}
               </div>
@@ -683,7 +683,7 @@ export default function ChatAdmin() {
                 <div style={S.bubble(moi)}>
                   <div style={{ fontSize:"14px", lineHeight:1.6 }}>{m.texte}</div>
                   <div style={{ fontSize:"10px", marginTop:"6px", color:moi?"rgba(255,255,255,0.6)":"#6B9A7A", textAlign:"right" }}>
-                    {m.heure} {m.lu&&!moi?"✓✓":""}
+                    {m.heure} {m.lu&&!moi?"":""}
                   </div>
                 </div>
               </div>

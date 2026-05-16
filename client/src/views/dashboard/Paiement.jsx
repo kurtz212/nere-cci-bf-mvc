@@ -1,475 +1,560 @@
-import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import "../../styles/dashboard.css";
+// client/src/views/dashboard/Paiement.jsx
+import { useState, useEffect, useRef } from "react";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
+import logoNERE from "../../assets/nere.png";
 
 const API = "/api";
 
-const MODES_PAIEMENT = [
-  {
-    id:          "cinetpay",
-    label:       "Ligdi-cash — Mobile Money",
-    description: "Orange Money, Moov Money, Coris Money. Activation immédiate.",
-    badge:       "Instantané",
-    badgeColor:  "#4DC97A",
-  },
-  {
-    id:          "agence",
-    label:       "Paiement en agence CCI-BF",
-    description: "Rendez-vous à l'agence CCI-BF avec votre référence. Activation sous 24h.",
-    badge:       "24h",
-    badgeColor:  "#D4A830",
-  },
+const NAV_LINKS = [
+  { label:"Accueil",      path:"/",            key:"accueil"      },
+  { label:"Publications", path:"/publications", key:"publications" },
+  { label:"Recherche",    path:"/rechercheacc", key:"recherche"    },
+  { label:"Contact",      path:"/contact",      key:"contact"      },
+  { label:"Messages",     path:"/chat",         key:"messages"     },
 ];
 
 export default function Paiement() {
-  const navigate  = useNavigate();
-  const location  = useLocation();
-  const user      = JSON.parse(localStorage.getItem("user") || "null");
+  const navigate       = useNavigate();
+  const location       = useLocation();
+  const [params]       = useSearchParams();
 
-  const packChoisi   = location.state?.pack;
-  const montantState = location.state?.montant; // ✅ montant custom passé depuis Formules.jsx
+  const [user, setUser]           = useState(null);
+  const [menuOpen, setMenuOpen]   = useState(false);
+  const [solde, setSolde]         = useState(null);
+  const [loading, setLoading]     = useState(false);
+  const [erreur, setErreur]       = useState("");
+  const [succes, setSucces]       = useState("");
+  const [verifLoading, setVerifLoading] = useState(false);
 
-  const [etape, setEtape]           = useState(1);
-  const [modePaiement, setMode]     = useState("");
-  const [loading, setLoading]       = useState(false);
-  const [reference, setReference]   = useState("");
-  const [success, setSuccess]       = useState(false);
-  const [erreur, setErreur]         = useState("");
+  // Onglet : "mobile" | "agence"
+  const [onglet, setOnglet]       = useState("mobile");
 
-  if (!user) { navigate("/connexion"); return null; }
+  // Agence — saisie numéro reçu
+  const [numRecu, setNumRecu]     = useState("");
+  const [photoRecu, setPhotoRecu] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
+  const [agenceLoading, setAgenceLoading] = useState(false);
+  const [agenceSucces, setAgenceSucces]   = useState("");
+  const [agenceErreur, setAgenceErreur]   = useState("");
+  const fileRef = useRef(null);
 
-  if (!packChoisi) {
+  // Pack et montant transmis depuis Formules.jsx
+  const packChoisi = location.state?.pack;
+  const montant    = location.state?.montant || packChoisi?.prix || 5000;
+  const nomPack    = packChoisi?.nom || "Recharge";
+
+  // Statut retour LigdiCash
+  const statusParam    = params.get("status");
+  const refTransaction = params.get("ref");
+  const isSucces       = statusParam === "success";
+  const isAnnule       = statusParam === "cancelled";
+
+  useEffect(() => {
+    const u = localStorage.getItem("user");
+    if (!u) { navigate("/connexion"); return; }
+    setUser(JSON.parse(u));
+    chargerSolde();
+    if (isSucces && refTransaction) verifierTransaction();
+  }, []);
+
+  const chargerSolde = async () => {
+    const token = localStorage.getItem("token");
+    try {
+      const r = await fetch(`${API}/abonnements/mon-solde`, { headers:{ Authorization:`Bearer ${token}` } });
+      const d = await r.json();
+      if (d.success && d.data) setSolde(d.data.solde);
+    } catch {}
+  };
+
+  const verifierTransaction = async () => {
+    setVerifLoading(true);
+    await new Promise(r => setTimeout(r, 2500));
+    await chargerSolde();
+    setVerifLoading(false);
+  };
+
+  // ── Paiement Mobile Money LigdiCash ──
+  const payerMobile = async () => {
+    setErreur(""); setLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const res   = await fetch(`${API}/paiements/initier`, {
+        method:  "POST",
+        headers: { "Content-Type":"application/json", Authorization:`Bearer ${token}` },
+        body: JSON.stringify({
+          packNom:      nomPack,
+          montant:      montant,
+          periode:      "recharge",
+          modePaiement: "ligdicash",
+        }),
+      });
+      const data = await res.json();
+
+      if (data.success && data.paymentUrl) {
+        window.location.href = data.paymentUrl;
+        return;
+      }
+      if (data.demo) {
+        setErreur(`Mode démo : ${data.message}`);
+        return;
+      }
+      setErreur(data.message || "Impossible d'initier le paiement.");
+    } catch {
+      setErreur("Serveur inaccessible. Réessayez.");
+    }
+    setLoading(false);
+  };
+
+  // ── Validation reçu agence ──
+  const handlePhoto = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setPhotoRecu(file);
+    setPhotoPreview(URL.createObjectURL(file));
+  };
+
+  const validerAgence = async () => {
+    if (!numRecu && !photoRecu) {
+      setAgenceErreur("Veuillez saisir le numéro de reçu ou joindre une photo.");
+      return;
+    }
+    setAgenceErreur(""); setAgenceLoading(true);
+
+    try {
+      const token = localStorage.getItem("token");
+
+      // Envoyer message automatique à l'admin avec le reçu
+      const messageTexte = photoRecu
+        ? `Validation paiement agence\n\nPack : ${nomPack}\nMontant : ${montant.toLocaleString("fr-FR")} FCFA\nNuméro de reçu : ${numRecu || "Non saisi"}\n Photo du reçu jointe.\n\nMerci de valider mon abonnement.`
+        : `Validation paiement agence\n\nPack : ${nomPack}\nMontant : ${montant.toLocaleString("fr-FR")} FCFA\nNuméro de reçu : ${numRecu}\n\nMerci de valider mon abonnement.`;
+
+      await fetch(`${API}/chat/envoyer-message`, {
+        method:  "POST",
+        headers: { "Content-Type":"application/json", Authorization:`Bearer ${token}` },
+        body: JSON.stringify({ message: messageTexte }),
+      });
+
+      setAgenceSucces(" Votre demande a été envoyée à l'administration CCI-BF. Votre abonnement sera activé sous 24h ouvrables.");
+    } catch {
+      setAgenceErreur("Erreur lors de l'envoi. Réessayez.");
+    }
+    setAgenceLoading(false);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token"); localStorage.removeItem("user"); navigate("/");
+  };
+
+  if (!user) return null;
+  const initiales = `${user.prenom?.[0]||""}${user.nom?.[0]||""}`.toUpperCase();
+
+  // ── Page retour succès LigdiCash ──
+  if (isSucces) {
     return (
-      <div style={{ minHeight:"100vh", background:"#F5FAF7", display:"flex",
-        alignItems:"center", justifyContent:"center",
-        fontFamily:"Arial, Helvetica, sans-serif" }}>
-        <div style={{ textAlign:"center" }}>
-          <div style={{ fontSize:"48px", marginBottom:"16px" }}></div>
-          <h2 style={{ color:"#0A3D1F" }}>Aucun pack sélectionné</h2>
-          <button className="btn-save" style={{ marginTop:"16px" }}
-            onClick={() => navigate("/formules")}>
-            Voir les formules
+      <div style={{ minHeight:"100vh", background:"#F5FAF7", fontFamily:"Arial, sans-serif",
+        display:"flex", alignItems:"center", justifyContent:"center" }}>
+        <div style={{ background:"#fff", borderRadius:"20px", border:"2px solid #00904C",
+          padding:"48px 40px", textAlign:"center", maxWidth:"480px", width:"90%" }}>
+          {verifLoading ? (
+            <>
+              <div style={{ fontSize:"48px", marginBottom:"16px" }}></div>
+              <div style={{ fontWeight:700, fontSize:"18px", color:"#0A2410" }}>Vérification du paiement...</div>
+              <div style={{ fontSize:"13px", color:"#6B9A7A", marginTop:"8px" }}>Patientez quelques secondes</div>
+            </>
+          ) : (
+            <>
+              <div style={{ fontSize:"64px", marginBottom:"16px" }}></div>
+              <div style={{ fontWeight:900, fontSize:"24px", color:"#00904C", marginBottom:"8px" }}>Paiement reçu !</div>
+              {solde !== null && (
+                <div style={{ fontSize:"32px", fontWeight:900, color:"#0A2410", marginBottom:"6px" }}>
+                  {solde.toLocaleString("fr-FR")} FCFA
+                  <div style={{ fontSize:"13px", fontWeight:500, color:"#6B9A7A" }}>Solde disponible</div>
+                </div>
+              )}
+              <div style={{ fontSize:"13px", color:"#6B9A7A", marginBottom:"28px", lineHeight:1.6 }}>
+                Votre compte a été rechargé avec succès.<br/>
+                Vous pouvez maintenant effectuer vos recherches.
+              </div>
+              <div style={{ display:"flex", gap:"12px", justifyContent:"center", flexWrap:"wrap" }}>
+                <button onClick={() => navigate("/demande")}
+                  style={{ padding:"12px 24px", background:"#00904C", color:"#fff", border:"none",
+                    borderRadius:"10px", fontWeight:700, cursor:"pointer", fontSize:"14px" }}>
+                   Faire une recherche
+                </button>
+                <button onClick={() => navigate("/formules")}
+                  style={{ padding:"12px 24px", background:"#F5FAF7", color:"#0A2410",
+                    border:"1px solid #E2EDE6", borderRadius:"10px", fontWeight:600,
+                    cursor:"pointer", fontSize:"14px" }}>
+                   Recharger encore
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ── Page retour annulé ──
+  if (isAnnule) {
+    return (
+      <div style={{ minHeight:"100vh", background:"#F5FAF7", fontFamily:"Arial, sans-serif",
+        display:"flex", alignItems:"center", justifyContent:"center" }}>
+        <div style={{ background:"#fff", borderRadius:"20px", border:"2px solid #D4A830",
+          padding:"48px 40px", textAlign:"center", maxWidth:"480px", width:"90%" }}>
+          <div style={{ fontSize:"64px", marginBottom:"16px" }}> </div>
+          <div style={{ fontWeight:900, fontSize:"22px", color:"#D4A830", marginBottom:"8px" }}>Paiement annulé</div>
+          <div style={{ fontSize:"13px", color:"#6B9A7A", marginBottom:"24px" }}>
+            Vous avez annulé le paiement. Aucun montant n'a été débité.
+          </div>
+          <button onClick={() => navigate("/formules")}
+            style={{ padding:"12px 24px", background:"#00904C", color:"#fff", border:"none",
+              borderRadius:"10px", fontWeight:700, cursor:"pointer", fontSize:"14px" }}>
+             Retour aux formules
           </button>
         </div>
       </div>
     );
   }
 
-  /* calcul du prix dans le bon ordre :
-     1. montantState  → montant custom saisi dans Formules.jsx (Pack Pro / Entreprise)
-     2. packChoisi.prix si c'est un Number direct
-     3. packChoisi.prix.mensuel si c'est un objet (ancien format)
-     4. 0 en fallback                                                          */
-  const prix =
-    parseInt(montantState)                                       ||
-    (typeof packChoisi.prix === "number" ? packChoisi.prix : 0) ||
-    (typeof packChoisi.prix === "object" ? (packChoisi.prix?.mensuel || 0) : 0);
-
-  const nomPack = packChoisi.nom || packChoisi.label || "Pack";
-  const packId  = packChoisi.id  || "pack1";
-
-  /* recharger additionne au solde existant
-     /souscrire remettait le solde à zéro → NE PLUS UTILISER pour les recharges */
-  const handlePayer = async () => {
-    if (prix <= 0) {
-      setErreur("Montant invalide. Retournez choisir une formule.");
-      return;
-    }
-    setLoading(true);
-    setErreur("");
-    const token = localStorage.getItem("token");
-
-    try {
-      const rechargeRes = await fetch(`${API}/abonnements/recharger`, {
-        method:  "POST",
-        headers: { "Content-Type":"application/json", Authorization:`Bearer ${token}` },
-        body: JSON.stringify({
-          montant:       prix,   //  montant exact saisi
-          montantCustom: prix,   //  aussi en custom pour les packs flexibles
-          nouveauPack:   packId,
-        }),
-      });
-
-      const rechargeData = await rechargeRes.json();
-
-      if (!rechargeData.success) {
-        setErreur(rechargeData.message || "Erreur lors de la mise à jour du solde.");
-        setLoading(false);
-        return;
-      }
-
-      /* Initier le paiement CinetPay / agence */
-      try {
-        const res  = await fetch(`${API}/paiements/initier`, {
-          method:  "POST",
-          headers: { "Content-Type":"application/json", Authorization:`Bearer ${token}` },
-          body: JSON.stringify({
-            packId, packNom:nomPack, montant:prix, modePaiement,
-          }),
-        });
-        const data = await res.json();
-        if (data.success && data.paymentUrl) {
-          window.location.href = data.paymentUrl;
-          return;
-        }
-        setReference(data.reference || `NERE-${Date.now().toString(36).toUpperCase()}`);
-      } catch {
-        setReference(`NERE-${Date.now().toString(36).toUpperCase()}`);
-      }
-
-      setSuccess(true);
-
-    } catch {
-      setErreur("Impossible de contacter le serveur. Vérifiez votre connexion.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // ── Page principale ──
   return (
-    <div style={{ minHeight:"100vh", fontFamily:"Arial, Helvetica, sans-serif" }}>
-      <style>{`* { font-family: Arial, Helvetica, sans-serif !important; }`}</style>
-      <div className="dash-bg"><div className="grid"/></div>
-      <div style={{ position:"relative", zIndex:1 }}>
+    <div style={{ minHeight:"100vh", fontFamily:"Arial, Helvetica, sans-serif", background:"#F5FAF7" }}>
+      <style>{`
+        * { font-family: Arial, Helvetica, sans-serif !important; }
+        .nav-p { position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 32px;height:120px;background:#00904C;box-shadow:0 2px 16px rgba(0,0,0,0.15); }
+        .npill { display:flex;align-items:center;gap:3px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:100px;padding:5px 8px;margin-left:auto;margin-right:20px; }
+        .nbtn { padding:7px 15px;border-radius:100px;font-size:13px;font-weight:600;color:rgba(255,255,255,0.78);cursor:pointer;white-space:nowrap;border:none;background:transparent; }
+        .nbtn:hover { color:#fff;background:rgba(255,255,255,0.12); }
+        .uchip { display:flex;align-items:center;gap:8px;padding:5px 12px 5px 5px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:100px;cursor:pointer;color:#fff;font-size:13px;font-weight:600;flex-shrink:0; }
+        .uavt { width:30px;height:30px;border-radius:50%;background:#4DC97A;color:#0A3D1F;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex-shrink:0; }
+        .dd-p { position:absolute;z-index:9999;top:calc(100%+10px);right:0;background:#fff;border-radius:16px;border:1px solid #E2EDE6;min-width:200px;overflow:hidden;box-shadow:0 16px 48px rgba(0,0,0,0.14); }
+        .dd-item { padding:10px 18px;font-size:13px;color:#0A3D1F;cursor:pointer; }
+        .dd-item:hover { background:#F5FAF7; }
+        .onglet-btn { padding:13px 28px;font-size:14px;font-weight:600;background:transparent;border:none;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all 0.2s; }
+        .onglet-btn.active { font-weight:800;color:#00904C;border-bottom-color:#00904C; }
+        .upload-zone { border:2px dashed #C0D8C8;border-radius:12px;padding:24px;text-align:center;cursor:pointer;transition:all 0.2s;background:#F9FCF9; }
+        .upload-zone:hover { border-color:#00904C;background:#F0FAF5; }
+      `}</style>
 
-        {/* ══ NAVBAR ══ */}
-        <nav className="dash-navbar">
-          <div className="dash-logo" onClick={() => navigate("/")}>NERE <span>CCI-BF</span></div>
-          <div className="dash-nav-links">
-            <span className="dash-nav-link" onClick={() => navigate("/formules")}>
-              ← Retour aux formules
-            </span>
+      {/* NAVBAR */}
+      <nav className="nav-p">
+        <div style={{ display:"flex", alignItems:"center", gap:"10px", flexShrink:0 }}>
+          <img src={logoNERE} alt="NERE" style={{ height:"80px", borderRadius:"6px", backgroundColor:"#fff", padding:"4px" }}/>
+          <div style={{ display:"flex", flexDirection:"column", lineHeight:1.35 }}>
+            <span style={{ fontSize:"18px", fontWeight:800, color:"#fff", letterSpacing:"0.08em", textTransform:"uppercase" }}>Fichier NERE</span>
+            <span style={{ fontSize:"10px", color:"rgba(255,255,255,0.65)" }}>Registre national des entreprises</span>
           </div>
-          <div className="dash-nav-actions">
-            <div className="user-chip" onClick={() => navigate("/profil")}>
-              <div className="user-avatar">{user.prenom?.[0]}{user.nom?.[0]}</div>
-              <span>{user.prenom} {user.nom}</span>
+        </div>
+        <div className="npill">
+          {NAV_LINKS.map(l => <button key={l.key} className="nbtn" onClick={() => navigate(l.path)}>{l.label}</button>)}
+        </div>
+        <div style={{ position:"relative" }}>
+          <div className="uchip" onClick={() => setMenuOpen(o => !o)}>
+            <div className="uavt">{initiales}</div>
+            <span style={{ maxWidth:"100px", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{user.prenom} {user.nom}</span>
+            <span style={{ fontSize:"9px", opacity:0.5 }}>▾</span>
+          </div>
+          {menuOpen && (
+            <>
+              <div style={{ position:"fixed", inset:0, zIndex:50 }} onClick={() => setMenuOpen(false)}/>
+              <div className="dd-p" onClick={e => e.stopPropagation()}>
+                <div style={{ padding:"14px 18px 10px", borderBottom:"1px solid #F0F4F1" }}>
+                  <div style={{ fontWeight:800, color:"#0A3D1F" }}>{user.prenom} {user.nom}</div>
+                  {solde !== null && <div style={{ fontWeight:700, color:"#00904C", marginTop:"4px" }}> {solde.toLocaleString("fr-FR")} FCFA</div>}
+                </div>
+                <div style={{ padding:"6px 0" }}>
+                  <div className="dd-item" onClick={() => { navigate("/profil"); setMenuOpen(false); }}> Mon Profil</div>
+                  <div style={{ height:"1px", background:"#F0F4F1", margin:"4px 0" }}/>
+                  <div className="dd-item" style={{ color:"#CC3333" }} onClick={handleLogout}> Déconnexion</div>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </nav>
+
+      {/* HERO */}
+      <div style={{ background:"linear-gradient(135deg,#006B38,#00904C)", padding:"32px 48px 24px", color:"#fff" }}>
+        <div style={{ maxWidth:"760px", margin:"0 auto" }}>
+          <button onClick={() => navigate("/formules")}
+            style={{ background:"rgba(255,255,255,0.15)", border:"1px solid rgba(255,255,255,0.25)",
+              color:"#fff", borderRadius:"8px", padding:"6px 14px", fontSize:"12px",
+              fontWeight:600, cursor:"pointer", marginBottom:"12px" }}>
+             Retour aux formules
+          </button>
+          <h1 style={{ fontSize:"26px", fontWeight:900, margin:"0 0 6px" }}>
+            Finaliser votre abonnement
+          </h1>
+          <div style={{ display:"flex", alignItems:"center", gap:"16px", flexWrap:"wrap" }}>
+            <div style={{ background:"rgba(255,255,255,0.15)", borderRadius:"10px",
+              padding:"8px 18px", border:"1px solid rgba(255,255,255,0.2)" }}>
+              <span style={{ fontSize:"12px", color:"rgba(255,255,255,0.65)" }}>Pack : </span>
+              <span style={{ fontWeight:800, fontSize:"15px" }}>{nomPack}</span>
             </div>
-          </div>
-        </nav>
-
-        <div style={{ padding:"40px 48px 80px", display:"flex",
-          gap:"32px", alignItems:"flex-start",
-          maxWidth:"1000px", margin:"0 auto" }}>
-
-          {/* ── COLONNE GAUCHE : récapitulatif ── */}
-          <div style={{ width:"320px", flexShrink:0 }}>
-            <div style={{ background:"var(--green-deep)", borderRadius:"16px",
-              padding:"24px", marginBottom:"16px",
-              boxShadow:"0 8px 32px rgba(10,61,31,0.2)" }}>
-
-              <div style={{ fontSize:"11px", fontWeight:700,
-                color:"rgba(255,255,255,0.4)", textTransform:"uppercase",
-                letterSpacing:"0.1em", marginBottom:"14px" }}>
-                Votre sélection
-              </div>
-
-              <div style={{ marginBottom:"20px" }}>
-                <div style={{ fontSize:"22px", fontWeight:800,
-                  color:"#fff", marginBottom:"4px" }}>
-                  {nomPack}
-                </div>
-                <div style={{ fontSize:"12px", color:"rgba(255,255,255,0.5)" }}>
-                  Crédit prépayé — déduction à chaque requête
-                </div>
-              </div>
-
-              <div style={{ background:"rgba(255,255,255,0.06)", borderRadius:"10px",
-                padding:"14px 16px", marginBottom:"20px" }}>
-                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-                  <span style={{ fontSize:"13px", color:"rgba(255,255,255,0.5)" }}>
-                    Crédit à ajouter
-                  </span>
-                  <span style={{ fontSize:"15px", fontWeight:700, color:"#4DC97A" }}>
-                    {prix > 0 ? prix.toLocaleString("fr-FR") : "—"} FCFA
-                  </span>
-                </div>
-              </div>
-
-              <div style={{ background:"rgba(77,201,122,0.08)", borderRadius:"10px",
-                padding:"12px 14px", marginBottom:"20px",
-                fontSize:"12px", color:"rgba(255,255,255,0.6)", lineHeight:1.6 }}>
-                 Ce montant sera <strong>ajouté à votre solde existant</strong>.
-                Chaque requête déduira le coût correspondant :
-                Liste (250 FCFA), Statistiques (5 000 FCFA), Fiche (1 000 FCFA).
-              </div>
-
-              <div style={{ borderTop:"1px solid rgba(255,255,255,0.1)", paddingTop:"16px" }}>
-                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-                  <span style={{ fontSize:"14px", color:"rgba(255,255,255,0.6)" }}>Total à payer</span>
-                  <div style={{ textAlign:"right" }}>
-                    <div style={{ fontSize:"26px", fontWeight:900, color:"#fff" }}>
-                      {prix > 0 ? prix.toLocaleString("fr-FR") : "—"}
-                    </div>
-                    <div style={{ fontSize:"12px", color:"rgba(255,255,255,0.4)" }}>FCFA</div>
-                  </div>
-                </div>
-              </div>
+            <div style={{ background:"rgba(255,255,255,0.15)", borderRadius:"10px",
+              padding:"8px 18px", border:"1px solid rgba(255,255,255,0.2)" }}>
+              <span style={{ fontSize:"12px", color:"rgba(255,255,255,0.65)" }}>Montant : </span>
+              <span style={{ fontWeight:900, fontSize:"18px", color:"#4DC97A" }}>
+                {montant.toLocaleString("fr-FR")} FCFA
+              </span>
             </div>
-
-           
-          </div>
-
-          {/* ── COLONNE DROITE : formulaire ── */}
-          <div style={{ flex:1 }}>
-
-            {/* SUCCÈS */}
-            {success ? (
-              <div style={{ background:"#fff", borderRadius:"16px",
-                border:"1px solid var(--border)", padding:"48px", textAlign:"center" }}>
-                <div style={{ fontSize:"56px", marginBottom:"16px" }}>
-                  {modePaiement === "cinetpay" ? "" : ""}
-                </div>
-                <h2 style={{ color:"var(--green-dark)", fontSize:"24px", marginBottom:"12px" }}>
-                  {modePaiement === "cinetpay"
-                    ? "Paiement en cours de traitement !"
-                    : "Demande enregistrée !"}
-                </h2>
-
-                <div style={{ background:"var(--green-pale)",
-                  border:"1px solid rgba(34,160,82,0.2)", borderRadius:"12px",
-                  padding:"16px 24px", marginBottom:"24px",
-                  display:"inline-block", minWidth:"260px" }}>
-                  <div style={{ fontSize:"11px", fontWeight:700, color:"var(--text-muted)",
-                    textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:"6px" }}>
-                    Référence de commande
-                  </div>
-                  <div style={{ fontFamily:"monospace", fontSize:"20px", fontWeight:900,
-                    color:"var(--green-dark)", letterSpacing:"0.1em" }}>
-                    {reference}
-                  </div>
-                </div>
-
-                <p style={{ color:"var(--text-muted)", lineHeight:1.7,
-                  marginBottom:"24px", fontSize:"14px" }}>
-                  {modePaiement === "cinetpay" ? (
-                    <>Votre paiement est en cours de vérification.<br/>
-                    <strong>{prix.toLocaleString("fr-FR")} FCFA</strong> seront
-                    ajoutés à votre solde dès confirmation.</>
-                  ) : (
-                    <>Présentez-vous à la <strong>CCI-BF</strong> avec la référence ci-dessus.<br/>
-                    Votre crédit sera activé sous <strong>24h</strong> après paiement.</>
-                  )}
-                </p>
-
-                {modePaiement === "agence" && (
-                  <div style={{ background:"rgba(212,168,48,0.08)",
-                    border:"1px solid rgba(212,168,48,0.2)", borderRadius:"10px",
-                    padding:"14px 18px", marginBottom:"24px", textAlign:"left" }}>
-                    <div style={{ fontWeight:700, fontSize:"13px", color:"#D4A830", marginBottom:"8px" }}>
-                       Adresse CCI-BF Ouagadougou
-                    </div>
-                    <div style={{ fontSize:"13px", color:"var(--text-muted)", lineHeight:1.7 }}>
-                      Avenue de Lyon, 01 BP 502<br/>
-                      Ouagadougou 01, Burkina Faso<br/>
-                      Lun–Ven : 8h00 – 17h00<br/>
-                      Tél : +226 25 30 61 22
-                    </div>
-                  </div>
-                )}
-
-                <div style={{ display:"flex", gap:"12px", justifyContent:"center" }}>
-                  <button className="btn-save" onClick={() => navigate("/profil")}>
-                    Voir mon solde
-                  </button>
-                  <button className="btn-cancel" onClick={() => navigate("/")}>
-                    Accueil
-                  </button>
-                </div>
-              </div>
-
-            ) : (
-              <div style={{ background:"#fff", borderRadius:"16px",
-                border:"1px solid var(--border)", overflow:"hidden" }}>
-
-                {/* Barre étapes */}
-                <div style={{ background:"var(--green-deep)", padding:"18px 28px",
-                  display:"flex", alignItems:"center" }}>
-                  {[{ n:1, label:"Mode de paiement" }, { n:2, label:"Confirmation" }]
-                    .map((s, i) => (
-                    <div key={s.n} style={{ display:"flex", alignItems:"center", flex:i<1?1:"none" }}>
-                      <div style={{ display:"flex", alignItems:"center", gap:"8px" }}>
-                        <div style={{ width:"26px", height:"26px", borderRadius:"50%",
-                          background: etape>s.n ? "var(--green-light)"
-                            : etape===s.n ? "rgba(77,201,122,0.3)" : "rgba(255,255,255,0.1)",
-                          border: etape===s.n ? "2px solid var(--green-light)" : "2px solid transparent",
-                          color:"#fff", display:"flex", alignItems:"center", justifyContent:"center",
-                          fontSize:"12px", fontWeight:800, flexShrink:0 }}>
-                          {etape > s.n ? "✓" : s.n}
-                        </div>
-                        <span style={{ fontSize:"12px", fontWeight:600,
-                          color: etape>=s.n ? "#fff" : "rgba(255,255,255,0.3)" }}>
-                          {s.label}
-                        </span>
-                      </div>
-                      {i < 1 && (
-                        <div style={{ flex:1, height:"2px",
-                          background:"rgba(255,255,255,0.1)", margin:"0 12px" }}/>
-                      )}
-                    </div>
-                  ))}
-                </div>
-
-                <div style={{ padding:"28px" }}>
-
-                  {/* Message erreur */}
-                  {erreur && (
-                    <div style={{ background:"#FFF0F0", border:"1px solid #FFB3B3",
-                      borderRadius:"10px", padding:"12px 16px", marginBottom:"20px",
-                      color:"#CC3333", fontSize:"13px", fontWeight:600 }}>
-                       {erreur}
-                    </div>
-                  )}
-
-                  {/* ÉTAPE 1 */}
-                  {etape === 1 && (
-                    <>
-                      <h3 style={{ fontSize:"20px", color:"var(--text-dark)", marginBottom:"8px" }}>
-                        Comment souhaitez-vous payer ?
-                      </h3>
-                      <p style={{ color:"var(--text-muted)", fontSize:"13px", marginBottom:"24px" }}>
-                        Choisissez votre mode de règlement pour{" "}
-                        <strong>{prix.toLocaleString("fr-FR")} FCFA</strong>.
-                      </p>
-
-                      <div style={{ display:"flex", flexDirection:"column",
-                        gap:"12px", marginBottom:"24px" }}>
-                        {MODES_PAIEMENT.map(mode => (
-                          <button key={mode.id} onClick={() => setMode(mode.id)}
-                            style={{ padding:"20px 24px", borderRadius:"14px", textAlign:"left",
-                              border: modePaiement===mode.id
-                                ? "2px solid var(--green-light)"
-                                : "1.5px solid var(--border)",
-                              background: modePaiement===mode.id ? "var(--green-pale)" : "#fff",
-                              cursor:"pointer", fontFamily:"inherit", transition:"all 0.2s",
-                              display:"flex", alignItems:"center", gap:"16px" }}>
-                            <span style={{ fontSize:"32px", flexShrink:0 }}>{mode.icon}</span>
-                            <div style={{ flex:1 }}>
-                              <div style={{ display:"flex", alignItems:"center",
-                                gap:"10px", marginBottom:"5px" }}>
-                                <span style={{ fontWeight:700, fontSize:"15px",
-                                  color: modePaiement===mode.id
-                                    ? "var(--green-dark)" : "var(--text-dark)" }}>
-                                  {mode.label}
-                                </span>
-                                <span style={{ background:`${mode.badgeColor}18`, color:mode.badgeColor,
-                                  border:`1px solid ${mode.badgeColor}40`, borderRadius:"100px",
-                                  padding:"2px 10px", fontSize:"10px", fontWeight:800 }}>
-                                  {mode.badge}
-                                </span>
-                              </div>
-                              <p style={{ fontSize:"12px", color:"var(--text-muted)",
-                                lineHeight:1.5, margin:0 }}>
-                                {mode.description}
-                              </p>
-                            </div>
-                            <div style={{ width:"20px", height:"20px", borderRadius:"50%",
-                              border: modePaiement===mode.id
-                                ? "2px solid var(--green-light)"
-                                : "2px solid var(--border)",
-                              background: modePaiement===mode.id ? "var(--green-light)" : "transparent",
-                              display:"flex", alignItems:"center", justifyContent:"center",
-                              flexShrink:0, fontSize:"11px", color:"#0A3D1F", fontWeight:900 }}>
-                              {modePaiement===mode.id ? "✓" : ""}
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-
-                      <button className="btn-save" style={{ padding:"13px 32px" }}
-                        disabled={!modePaiement} onClick={() => setEtape(2)}>
-                        Continuer 
-                      </button>
-                    </>
-                  )}
-
-                  {/* ÉTAPE 2 */}
-                  {etape === 2 && (
-                    <>
-                      <h3 style={{ fontSize:"20px", color:"var(--text-dark)", marginBottom:"20px" }}>
-                        Confirmation de commande
-                      </h3>
-
-                      <div style={{ background:"var(--off-white)", borderRadius:"12px",
-                        border:"1px solid var(--border)", padding:"18px", marginBottom:"20px" }}>
-                        {[
-                          { label:"Abonné",  value:`${user.prenom} ${user.nom}` },
-                          { label:"Email",   value:user.email || "—" },
-                          { label:"Pack",    value:nomPack },
-                          { label:"Crédit",  value:`${prix.toLocaleString("fr-FR")} FCFA à ajouter` },
-                          { label:"Mode",    value:MODES_PAIEMENT.find(m=>m.id===modePaiement)?.label },
-                        ].map(({ label, value }) => (
-                          <div key={label} style={{ display:"flex", gap:"16px",
-                            padding:"9px 0", borderBottom:"1px solid var(--border)" }}>
-                            <span style={{ width:"100px", fontSize:"12px", fontWeight:700,
-                              color:"var(--text-muted)", textTransform:"uppercase",
-                              letterSpacing:"0.06em", flexShrink:0 }}>
-                              {label}
-                            </span>
-                            <span style={{ fontSize:"14px", color:"var(--text-dark)", fontWeight:500 }}>
-                              {value}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-
-                      {modePaiement === "cinetpay" && (
-                        <div style={{ background:"rgba(77,201,122,0.06)",
-                          border:"1px solid rgba(77,201,122,0.2)", borderRadius:"10px",
-                          padding:"14px 16px", marginBottom:"20px",
-                          fontSize:"13px", color:"var(--text-mid)", lineHeight:1.7 }}>
-                           Vous allez être redirigé vers <strong>CinetPay</strong>.
-                          Votre crédit sera <strong>ajouté immédiatement</strong> après confirmation.
-                        </div>
-                      )}
-
-                      {modePaiement === "agence" && (
-                        <div style={{ background:"rgba(212,168,48,0.06)",
-                          border:"1px solid rgba(212,168,48,0.2)", borderRadius:"10px",
-                          padding:"14px 16px", marginBottom:"20px",
-                          fontSize:"13px", color:"var(--text-mid)", lineHeight:1.7 }}>
-                           Une référence sera générée. Présentez-la à la <strong>CCI-BF</strong>.
-                          Activation sous <strong>24h</strong> après paiement.
-                        </div>
-                      )}
-
-                      <div style={{ fontSize:"12px", color:"var(--text-muted)", marginBottom:"20px",
-                        lineHeight:1.6, padding:"12px 14px",
-                        background:"var(--off-white)", borderRadius:"8px",
-                        border:"1px solid var(--border)" }}>
-                        En validant, vous acceptez les{" "}
-                        <span style={{ color:"var(--green-bright)", cursor:"pointer", fontWeight:600 }}>
-                          Conditions Générales d'Utilisation
-                        </span>{" "}
-                        de la plateforme NERE CCI-BF.
-                      </div>
-
-                      <div style={{ display:"flex", gap:"10px" }}>
-                        <button className="btn-cancel" onClick={() => setEtape(1)}>
-                          ← Modifier
-                        </button>
-                        <button className="btn-save" style={{ padding:"13px 32px" }}
-                          disabled={loading} onClick={handlePayer}>
-                          {loading
-                            ? " Traitement..."
-                            : modePaiement === "cinetpay"
-                            ? `Payer ${prix.toLocaleString("fr-FR")} FCFA`
-                            : "Générer ma référence"}
-                        </button>
-                      </div>
-                    </>
-                  )}
-                </div>
+            {solde !== null && (
+              <div style={{ background:"rgba(255,255,255,0.1)", borderRadius:"10px",
+                padding:"8px 18px", border:"1px solid rgba(255,255,255,0.15)" }}>
+                <span style={{ fontSize:"12px", color:"rgba(255,255,255,0.65)" }}>Solde actuel : </span>
+                <span style={{ fontWeight:700, fontSize:"15px",
+                  color:solde>5000?"#4DC97A":solde>0?"#D4A830":"#FF8080" }}>
+                  {solde.toLocaleString("fr-FR")} FCFA
+                </span>
               </div>
             )}
           </div>
         </div>
-
-        <footer className="dash-footer">
-          <span> CCI-BF — Chambre de Commerce et d'Industrie du Burkina Faso</span>
-          <span>Paiement sécurisé · CinetPay · Agence CCI-BF</span>
-        </footer>
       </div>
+
+      <div style={{ maxWidth:"760px", margin:"0 auto", padding:"28px 24px 60px" }}>
+
+        {/* Onglets */}
+        <div style={{ display:"flex", borderBottom:"2px solid #E2EDE6", marginBottom:"28px" }}>
+          <button className={`onglet-btn ${onglet==="mobile"?"active":""}`}
+            onClick={() => setOnglet("mobile")}
+            style={{ color:onglet==="mobile"?"#00904C":"rgba(0,0,0,0.45)" }}>
+             Mobile Money
+          </button>
+          <button className={`onglet-btn ${onglet==="agence"?"active":""}`}
+            onClick={() => setOnglet("agence")}
+            style={{ color:onglet==="agence"?"#00904C":"rgba(0,0,0,0.45)" }}>
+             Paiement en agence
+          </button>
+        </div>
+
+        {/* ══ ONGLET MOBILE MONEY ══ */}
+        {onglet === "mobile" && (
+          <div>
+            {/* Info */}
+            <div style={{ background:"#E8F5EE", border:"1px solid rgba(0,144,76,0.2)",
+              borderRadius:"12px", padding:"16px 20px", marginBottom:"24px",
+              display:"flex", alignItems:"flex-start", gap:"12px" }}>
+              <span style={{ fontSize:"20px" }}></span>
+              <div style={{ fontSize:"13px", color:"#0A2410", lineHeight:1.7 }}>
+                <strong>Paiement instantané en 1 clic</strong><br/>
+                Vous serez redirigé vers la page sécurisée LigdiCash. Choisissez votre opérateur,
+                saisissez votre numéro et validez avec le code OTP reçu par SMS.
+                Votre compte est crédité <strong>immédiatement</strong> après confirmation.
+              </div>
+            </div>
+
+            {/* Erreur */}
+            {erreur && (
+              <div style={{ background:"#FFF0F0", border:"1px solid #FFB3B3", borderRadius:"12px",
+                padding:"12px 18px", marginBottom:"20px", color:"#CC3333", fontSize:"13px",
+                display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+                <span> {erreur}</span>
+                <button onClick={() => setErreur("")} style={{ background:"none", border:"none", cursor:"pointer", color:"#CC3333", fontSize:"16px" }}></button>
+              </div>
+            )}
+
+            {/* Card récap + bouton */}
+            <div style={{ background:"#fff", borderRadius:"16px", border:"2px solid #00904C",
+              padding:"28px", marginBottom:"20px" }}>
+              <div style={{ display:"flex", justifyContent:"space-between",
+                alignItems:"flex-start", marginBottom:"20px" }}>
+                <div>
+                  <div style={{ fontSize:"13px", color:"#6B9A7A", marginBottom:"4px" }}>Pack sélectionné</div>
+                  <div style={{ fontSize:"20px", fontWeight:900, color:"#0A2410" }}>{nomPack}</div>
+                </div>
+                <div style={{ textAlign:"right" }}>
+                  <div style={{ fontSize:"13px", color:"#6B9A7A", marginBottom:"4px" }}>Montant à payer</div>
+                  <div style={{ fontSize:"32px", fontWeight:900, color:"#00904C" }}>
+                    {montant.toLocaleString("fr-FR")}
+                    <span style={{ fontSize:"14px", fontWeight:500, color:"#6B9A7A" }}> FCFA</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Opérateurs */}
+              <div style={{ display:"flex", gap:"10px", marginBottom:"24px", flexWrap:"wrap" }}>
+                {[
+                  {  label:"Orange Money",     color:"#FF6600" },
+                  {  label:"Moov Money",       color:"#0066CC" },
+                  {  label:"Wallet LigdiCash", color:"#00904C" },
+                ].map(op => (
+                  <div key={op.label} style={{ display:"flex", alignItems:"center", gap:"6px",
+                    padding:"6px 14px", borderRadius:"8px",
+                    border:`1px solid ${op.color}33`, background:`${op.color}08`,
+                    fontSize:"12px", fontWeight:600, color:op.color }}>
+                    {op.emoji} {op.label}
+                  </div>
+                ))}
+              </div>
+
+              <button onClick={payerMobile} disabled={loading}
+                style={{ width:"100%", padding:"16px", background:loading?"#6B9A7A":"#00904C",
+                  color:"#fff", border:"none", borderRadius:"12px", fontWeight:800,
+                  fontSize:"16px", cursor:loading?"not-allowed":"pointer",
+                  display:"flex", alignItems:"center", justifyContent:"center", gap:"10px",
+                  transition:"all 0.2s" }}>
+                {loading
+                  ? <><span></span> Redirection vers LigdiCash...</>
+                  : <><span></span> Payer {montant.toLocaleString("fr-FR")} FCFA maintenant</>}
+              </button>
+
+              <div style={{ textAlign:"center", fontSize:"11px", color:"#9AB0A0", marginTop:"10px" }}>
+                 Paiement sécurisé par <strong>LigdiCash</strong> — certifié PCI/DSS · Burkina Faso
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ══ ONGLET PAIEMENT EN AGENCE ══ */}
+        {onglet === "agence" && (
+          <div>
+            {/* Info */}
+            <div style={{ background:"rgba(212,168,48,0.08)", border:"1px solid rgba(212,168,48,0.25)",
+              borderRadius:"12px", padding:"16px 20px", marginBottom:"24px",
+              display:"flex", alignItems:"flex-start", gap:"12px" }}>
+              <span style={{ fontSize:"20px" }}></span>
+              <div style={{ fontSize:"13px", color:"#0A2410", lineHeight:1.7 }}>
+                <strong>Vous avez payé au siège CCI-BF ?</strong><br/>
+                Saisissez le numéro de votre reçu ou joignez une photo. Un agent validera
+                votre abonnement sous <strong>24h ouvrables</strong>.
+              </div>
+            </div>
+
+            {/* Adresse CCI-BF */}
+            <div style={{ background:"#fff", borderRadius:"12px", border:"1px solid #E2EDE6",
+              padding:"16px 20px", marginBottom:"24px", fontSize:"13px", color:"#0A2410" }}>
+              <div style={{ fontWeight:700, color:"#00904C", marginBottom:"8px" }}> Adresse CCI-BF</div>
+              <div style={{ lineHeight:1.8, color:"#555" }}>
+                Avenue de Lyon, 01 BP 502<br/>
+                Ouagadougou 01, Burkina Faso<br/>
+                <strong>Lun – Ven :</strong> 8h00 – 17h00<br/>
+                <strong>Tél :</strong> +226 25 30 61 22
+              </div>
+            </div>
+
+            {agenceSucces ? (
+              <div style={{ background:"#E8F5EE", border:"2px solid #00904C", borderRadius:"16px",
+                padding:"32px", textAlign:"center" }}>
+                <div style={{ fontSize:"48px", marginBottom:"12px" }}></div>
+                <div style={{ fontWeight:800, fontSize:"18px", color:"#00904C", marginBottom:"8px" }}>
+                  Demande envoyée !
+                </div>
+                <p style={{ fontSize:"13px", color:"#6B9A7A", lineHeight:1.7, marginBottom:"20px" }}>
+                  {agenceSucces}
+                </p>
+                <button onClick={() => navigate("/chat")}
+                  style={{ padding:"11px 24px", background:"#00904C", color:"#fff",
+                    border:"none", borderRadius:"10px", fontWeight:700, cursor:"pointer", fontSize:"13px" }}>
+                   Voir la messagerie
+                </button>
+              </div>
+            ) : (
+              <div style={{ background:"#fff", borderRadius:"16px", border:"1px solid #E2EDE6", padding:"28px" }}>
+
+                {/* Récap */}
+                <div style={{ background:"#F5FAF7", borderRadius:"10px", padding:"14px 16px",
+                  marginBottom:"20px", display:"flex", justifyContent:"space-between" }}>
+                  <span style={{ fontSize:"13px", color:"#6B9A7A" }}>Pack</span>
+                  <span style={{ fontWeight:700, color:"#0A2410" }}>{nomPack}</span>
+                </div>
+                <div style={{ background:"#F5FAF7", borderRadius:"10px", padding:"14px 16px",
+                  marginBottom:"24px", display:"flex", justifyContent:"space-between" }}>
+                  <span style={{ fontSize:"13px", color:"#6B9A7A" }}>Montant payé</span>
+                  <span style={{ fontWeight:900, fontSize:"18px", color:"#00904C" }}>
+                    {montant.toLocaleString("fr-FR")} FCFA
+                  </span>
+                </div>
+
+                {/* Numéro de reçu */}
+                <div style={{ marginBottom:"20px" }}>
+                  <label style={{ display:"block", fontSize:"12px", fontWeight:700,
+                    color:"#6B9A7A", textTransform:"uppercase", letterSpacing:"0.06em",
+                    marginBottom:"8px" }}>
+                    Numéro de reçu <span style={{ color:"#9AB0A0", fontWeight:400 }}>(optionnel si photo jointe)</span>
+                  </label>
+                  <input type="text" value={numRecu}
+                    onChange={e => setNumRecu(e.target.value)}
+                    placeholder="Ex: REC-2025-12345"
+                    style={{ width:"100%", padding:"12px 14px", borderRadius:"10px",
+                      border:"1.5px solid #E2EDE6", fontSize:"14px", outline:"none",
+                      boxSizing:"border-box", color:"#0A2410" }}
+                    onFocus={e => e.target.style.borderColor="#00904C"}
+                    onBlur={e => e.target.style.borderColor="#E2EDE6"}/>
+                </div>
+
+                {/* Upload photo */}
+                <div style={{ marginBottom:"24px" }}>
+                  <label style={{ display:"block", fontSize:"12px", fontWeight:700,
+                    color:"#6B9A7A", textTransform:"uppercase", letterSpacing:"0.06em",
+                    marginBottom:"8px" }}>
+                    Photo du reçu <span style={{ color:"#9AB0A0", fontWeight:400 }}>(optionnel si numéro saisi)</span>
+                  </label>
+
+                  {photoPreview ? (
+                    <div style={{ position:"relative", borderRadius:"12px", overflow:"hidden",
+                      border:"2px solid #00904C" }}>
+                      <img src={photoPreview} alt="Reçu"
+                        style={{ width:"100%", maxHeight:"200px", objectFit:"cover" }}/>
+                      <button onClick={() => { setPhotoRecu(null); setPhotoPreview(null); }}
+                        style={{ position:"absolute", top:"8px", right:"8px",
+                          background:"rgba(0,0,0,0.6)", color:"#fff", border:"none",
+                          borderRadius:"50%", width:"28px", height:"28px",
+                          cursor:"pointer", fontSize:"14px", fontWeight:700 }}>
+                        
+                      </button>
+                      <div style={{ background:"rgba(0,144,76,0.9)", color:"#fff",
+                        padding:"6px 12px", fontSize:"12px", fontWeight:600 }}>
+                         Photo du reçu ajoutée
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="upload-zone" onClick={() => fileRef.current?.click()}>
+                      <input ref={fileRef} type="file" accept="image/*"
+                        style={{ display:"none" }} onChange={handlePhoto}/>
+                      <div style={{ fontSize:"32px", marginBottom:"8px" }}></div>
+                      <div style={{ fontWeight:600, fontSize:"13px", color:"#0A2410", marginBottom:"4px" }}>
+                        Cliquez pour joindre une photo
+                      </div>
+                      <div style={{ fontSize:"11px", color:"#9AB0A0" }}>
+                        JPG, PNG, WEBP — Max 5 Mo
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Erreur */}
+                {agenceErreur && (
+                  <div style={{ background:"#FFF0F0", border:"1px solid #FFB3B3", borderRadius:"10px",
+                    padding:"10px 14px", marginBottom:"16px", color:"#CC3333", fontSize:"13px" }}>
+                     {agenceErreur}
+                  </div>
+                )}
+
+                <button onClick={validerAgence} disabled={agenceLoading}
+                  style={{ width:"100%", padding:"14px", background:agenceLoading?"#6B9A7A":"#D4A830",
+                    color:"#fff", border:"none", borderRadius:"12px", fontWeight:800,
+                    fontSize:"15px", cursor:agenceLoading?"not-allowed":"pointer" }}>
+                  {agenceLoading ? " Envoi en cours..." : " Envoyer ma demande de validation"}
+                </button>
+
+                <div style={{ fontSize:"11px", color:"#9AB0A0", textAlign:"center", marginTop:"10px", lineHeight:1.6 }}>
+                  Un agent CCI-BF recevra votre demande et activera votre abonnement<br/>
+                  sous <strong>24h ouvrables</strong> après vérification du reçu.
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+      </div>
+
+      <footer style={{ background:"#fff", borderTop:"1px solid #E2EDE6", padding:"14px 48px",
+        display:"flex", justifyContent:"space-between", fontSize:"12px", color:"#6B9A7A" }}>
+        <span>CCI-BF — Chambre de Commerce et d'Industrie du Burkina Faso</span>
+        <span>+226 25 30 61 22</span>
+      </footer>
     </div>
   );
 }

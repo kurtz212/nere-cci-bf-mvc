@@ -7,7 +7,7 @@ module.exports = (io) => {
 
   io.on('connection', (socket) => {
     const { userId, role, prenom, nom } = socket.handshake.query;
-    console.log(`🔌 Connecté: ${prenom} ${nom} (${role}) — ${socket.id}`);
+    console.log(`Connecté: ${prenom} ${nom} (${role}) — ${socket.id}`);
 
     // Rejoindre room personnelle
     if (userId) {

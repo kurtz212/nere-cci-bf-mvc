@@ -80,7 +80,7 @@ router.post('/deduire', proteger, async (req, res) => {
     });
 
   } catch (err) {
-    console.error('✗ /abonnements/deduire :', err.message);
+    console.error(' /abonnements/deduire :', err.message);
     res.status(500).json({ success: false, message: 'Erreur serveur.' });
   }
 });

@@ -350,7 +350,7 @@ export default function Profil() {
       });
       const data = await res.json();
       if (data.success) {
-        setMdpMsg({ texte:"✅ Mot de passe modifié avec succès !", type:"succes" });
+        setMdpMsg({ texte:" Mot de passe modifié avec succès !", type:"succes" });
         setMdpForm({ ancien:"", nouveau:"", confirm:"" });
         setTimeout(()=>{ setShowMdpForm(false); setMdpMsg({ texte:"", type:"" }); }, 2500);
       } else { setMdpMsg({ texte:data.message||"Erreur lors du changement.", type:"erreur" }); }
@@ -405,7 +405,7 @@ export default function Profil() {
           style={{ paddingRight:"44px" }}/>
         <button type="button" onClick={()=>setShowMdpVis(v=>({...v,[name]:!v[name]}))}
           style={{ position:"absolute", right:"12px", top:"50%", transform:"translateY(-50%)", background:"none", border:"none", cursor:"pointer", fontSize:"16px", color:"#6B9A7A" }}>
-          {showMdpVis[name]?"🙈":"👁️"}
+          {showMdpVis[name]?"":"️"}
         </button>
       </div>
     </div>
@@ -451,7 +451,7 @@ export default function Profil() {
                       {onglets.map(item=>(
                         <div key={item.key} className="dd-item" onClick={()=>{ setActiveTab(item.key); setMenuOpen(false); }}>{item.label}</div>
                       ))}
-                      {user.role==="admin"&&<div className="dd-item" onClick={()=>{ navigate("/admin"); setMenuOpen(false); }}>🛡 Tableau de bord</div>}
+                      {user.role==="admin"&&<div className="dd-item" onClick={()=>{ navigate("/admin"); setMenuOpen(false); }}> Tableau de bord</div>}
                       {user.role==="manager"&&<div className="dd-item" onClick={()=>{ navigate("/gestionnaire"); setMenuOpen(false); }}> Tableau de bord</div>}
                       <div className="dd-sep"/>
                       <div className="dd-item dd-danger" onClick={handleLogout}> Déconnexion</div>
@@ -516,7 +516,7 @@ export default function Profil() {
                     <label className="profil-label">Email</label>
                     {editing
                       ? <input className="profil-input" name="email" type="email" value={form.email} onChange={e=>setForm(p=>({...p,email:e.target.value}))}/>
-                      : <div className="profil-value">{user.email}<span className="verified-chip">✓ Vérifié</span></div>}
+                      : <div className="profil-value">{user.email}<span className="verified-chip"> Vérifié</span></div>}
                   </div>
                   <div className="profil-field full">
                     <label className="profil-label">Organisation / Entreprise</label>
@@ -583,7 +583,7 @@ export default function Profil() {
                     <span style={{ fontSize:"20px", fontWeight:400 }}>FCFA</span>
                   </div>
                   <div style={{ fontSize:"13px", opacity:0.7 }}>
-                    {abonnement && abonnement.solde>0 ? "✓ Compte actif" : "✗ Veuillez recharger"}
+                    {abonnement && abonnement.solde>0 ? " Compte actif" : " Veuillez recharger"}
                   </div>
                 </div>
 
@@ -650,12 +650,12 @@ export default function Profil() {
                           &nbsp;&nbsp;res.json({"{"} success: true, data {"}"});<br/>
                           {"}"});
                         </div>
-                        <button onClick={chargerHistoAbo} style={{ marginTop:"12px", padding:"7px 14px", background:"#D4A830", color:"#fff", border:"none", borderRadius:"8px", cursor:"pointer", fontWeight:600, fontSize:"12px" }}>🔄 Réessayer</button>
+                        <button onClick={chargerHistoAbo} style={{ marginTop:"12px", padding:"7px 14px", background:"#D4A830", color:"#fff", border:"none", borderRadius:"8px", cursor:"pointer", fontWeight:600, fontSize:"12px" }}> Réessayer</button>
                       </div>
                     )}
                     {!histoAboLoading && !histoAboErreur && histoAbo.length===0 && (
                       <div style={{ textAlign:"center", padding:"32px", color:"#6B9A7A", background:"#F8FBF8", borderRadius:"12px", border:"1px solid #E2EDE6" }}>
-                        <div style={{ fontSize:"36px", marginBottom:"10px" }}>📭</div>
+                        <div style={{ fontSize:"36px", marginBottom:"10px" }}></div>
                         <p style={{ fontSize:"13px" }}>Aucune transaction enregistrée.</p>
                       </div>
                     )}
@@ -744,7 +744,7 @@ export default function Profil() {
                     <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"10px" }}>
                       <span style={{ fontWeight:700, fontSize:"14px", color:"var(--green-dark)" }}>Quota de recherches</span>
                       <span style={{ fontWeight:800, fontSize:"16px", color:quota.restant===0?"#FF6B6B":quota.restant<=5?"#D4A830":"var(--green-dark)" }}>
-                        {quota.illimite ? "♾️ Illimité" : `${quota.restant} / ${quota.quota} restantes`}
+                        {quota.illimite ? "️ Illimité" : `${quota.restant} / ${quota.quota} restantes`}
                       </span>
                     </div>
                     {!quota.illimite && (
@@ -806,7 +806,7 @@ export default function Profil() {
                   <div>
                     {histoDemandeLoading&&<div style={{ textAlign:"center", padding:"40px", color:"var(--text-muted)" }}> Chargement...</div>}
                     {!histoDemandeLoading&&histoDemandeErreur&&<div style={{ background:"#FFF0F0", border:"1px solid #FFB3B3", borderRadius:"12px", padding:"20px", textAlign:"center", color:"#CC3333" }}><p style={{ margin:0 }}>{histoDemandeErreur}</p><button className="btn-save" style={{ marginTop:"12px", fontSize:"12px" }} onClick={chargerHistoDemandes}>Réessayer</button></div>}
-                    {!histoDemandeLoading&&!histoDemandeErreur&&histoDemandes.length===0&&<div style={{ textAlign:"center", padding:"40px", color:"var(--text-muted)" }}><div style={{ fontSize:"40px", marginBottom:"12px" }}>📭</div><p style={{ marginBottom:"16px" }}>Aucune demande enregistrée.</p><button className="btn-save" onClick={()=>navigate("/demande-document")}>Faire une demande</button></div>}
+                    {!histoDemandeLoading&&!histoDemandeErreur&&histoDemandes.length===0&&<div style={{ textAlign:"center", padding:"40px", color:"var(--text-muted)" }}><div style={{ fontSize:"40px", marginBottom:"12px" }}></div><p style={{ marginBottom:"16px" }}>Aucune demande enregistrée.</p><button className="btn-save" onClick={()=>navigate("/demande-document")}>Faire une demande</button></div>}
                     {!histoDemandeLoading&&!histoDemandeErreur&&histoDemandes.length>0&&(
                       <div style={{ display:"flex", flexDirection:"column", gap:"12px" }}>
                         {histoDemandes.map((d,i)=>{
@@ -843,7 +843,7 @@ export default function Profil() {
                 </div>
                 <div className="security-item">
                   <div><div className="security-label"> Mot de passe</div><div className="security-hint">{showMdpForm?"Remplissez le formulaire ci-dessous":"Cliquez sur Modifier pour changer votre mot de passe"}</div></div>
-                  <button className="btn-edit" onClick={()=>{ setShowMdpForm(o=>!o); setMdpMsg({ texte:"", type:"" }); setShowMdpVis({ ancien:false, nouveau:false, confirm:false }); }}>{showMdpForm?"✕ Fermer":" Modifier"}</button>
+                  <button className="btn-edit" onClick={()=>{ setShowMdpForm(o=>!o); setMdpMsg({ texte:"", type:"" }); setShowMdpVis({ ancien:false, nouveau:false, confirm:false }); }}>{showMdpForm?" Fermer":" Modifier"}</button>
                 </div>
                 {showMdpForm&&(
                   <div style={{ background:"var(--off-white)", border:"1px solid var(--border)", borderRadius:"12px", padding:"20px", marginBottom:"16px" }}>
@@ -854,13 +854,13 @@ export default function Profil() {
                     </div>
                     {mdpMsg.texte&&<div style={{ marginTop:"12px", padding:"10px 14px", borderRadius:"8px", fontSize:"13px", background:mdpMsg.type==="succes"?"#E8F5EE":"#FFF0F0", color:mdpMsg.type==="succes"?"#1A7A40":"#CC3333" }}>{mdpMsg.texte}</div>}
                     <div style={{ display:"flex", gap:"10px", marginTop:"16px" }}>
-                      <button className="btn-save" onClick={changerMdp} disabled={mdpLoading}>{mdpLoading?"⏳":"✅ Enregistrer"}</button>
+                      <button className="btn-save" onClick={changerMdp} disabled={mdpLoading}>{mdpLoading?"":" Enregistrer"}</button>
                       <button className="btn-cancel" onClick={()=>{ setShowMdpForm(false); setMdpMsg({ texte:"", type:"" }); setMdpForm({ ancien:"", nouveau:"", confirm:"" }); }}>Annuler</button>
                     </div>
                   </div>
                 )}
                 <div className="security-item">
-                  <div><div className="security-label"> Email de vérification</div><div className="security-hint" style={{ color:"#3CC47A" }}>✅ {user.email} — Email vérifié</div></div>
+                  <div><div className="security-label"> Email de vérification</div><div className="security-hint" style={{ color:"#3CC47A" }}> {user.email} — Email vérifié</div></div>
                 </div>
                 <div className="security-item">
                   <div><div className="security-label"> Sessions actives</div><div className="security-hint">1 session active — Ce navigateur</div></div>
@@ -898,7 +898,7 @@ export default function Profil() {
                         <button onClick={()=>navigate("/formules")} style={{ padding:"6px 12px", borderRadius:"8px", background:"#E6F4EC", border:"none", color:"#00904C", fontWeight:700, fontSize:"12px", cursor:"pointer", flexShrink:0 }}>Recharger</button>
                       </div>
                     )}
-                    {rolePriv&&<div className="notif-item read"><div className="notif-icon">♾️</div><div style={{ flex:1 }}><div className="notif-msg">Accès illimité</div><div className="notif-date">Toutes les recherches et requêtes sont gratuites pour votre rôle.</div></div></div>}
+                    {rolePriv&&<div className="notif-item read"><div className="notif-icon">️</div><div style={{ flex:1 }}><div className="notif-msg">Accès illimité</div><div className="notif-date">Toutes les recherches et requêtes sont gratuites pour votre rôle.</div></div></div>}
                     {notifs.filter(n=>n.type==="diffusion").map(n=>(
                       <div key={n.id} className={`notif-item ${n.lu?"read":"unread"}`} style={{ borderLeft:!n.lu?"3px solid #00904C":"none" }}>
                         <div className="notif-icon"></div>

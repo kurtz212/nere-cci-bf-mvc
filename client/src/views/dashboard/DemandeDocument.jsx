@@ -305,7 +305,7 @@ function genererEtTelechargerPDF(resultats, total, mode, titre, periode) {
         <img src="${qrCodeUrl}" alt="QR Code"/>
         <div class="qr-label">Vérifier</div>
       </div>
-      <div class="auth-badge">✓ DOCUMENT OFFICIEL CCI-BF<br/>Généré automatiquement<br/>${now}</div>
+      <div class="auth-badge"> DOCUMENT OFFICIEL CCI-BF<br/>Généré automatiquement<br/>${now}</div>
     </div>
   </div>
   <script>window.onload=function(){window.print()};</script></body></html>`;
@@ -393,7 +393,7 @@ function genererStatsPDF(resultatNere, typeObj, getPeriodeLabel) {
         <img src="${qrCodeUrl}" alt="QR Code"/>
         <div class="qr-label">Vérifier</div>
       </div>
-      <div class="auth-badge">✓ DOCUMENT OFFICIEL CCI-BF<br/>Généré automatiquement<br/>${now}</div>
+      <div class="auth-badge"> DOCUMENT OFFICIEL CCI-BF<br/>Généré automatiquement<br/>${now}</div>
     </div>
   </div>
   <script>window.onload=function(){window.print()};</script></body></html>`;
@@ -985,7 +985,7 @@ export default function DemandeDocument() {
                                   {ent.rccm && <span style={{ fontSize:"10px", color:"#6B9A7A", background:"#F0F4F1", borderRadius:"4px", padding:"2px 8px" }}><strong>RCCM:</strong> {ent.rccm}</span>}
                                   {ent.ifu  && <span style={{ fontSize:"10px", color:"#6B9A7A", background:"#F0F4F1", borderRadius:"4px", padding:"2px 8px" }}><strong>IFU:</strong> {ent.ifu}</span>}
                                 </div>
-                                {(ent.adresse_siege||ent.adresse) && <div style={{ fontSize:"11px", color:"#6B9A7A", marginTop:"4px" }}>📍 {ent.adresse_siege||ent.adresse}</div>}
+                                {(ent.adresse_siege||ent.adresse) && <div style={{ fontSize:"11px", color:"#6B9A7A", marginTop:"4px" }}> {ent.adresse_siege||ent.adresse}</div>}
                               </div>
                             ))}
                           </div>
@@ -998,7 +998,7 @@ export default function DemandeDocument() {
                     </div>
                   )}
 
-                  {erreur && <div style={{ background:"#FFF0F0", border:"1px solid #FFB3B3", borderRadius:"10px", padding:"12px 16px", marginBottom:"16px", color:"#CC3333", fontSize:"13px" }}>❌ {erreur}</div>}
+                  {erreur && <div style={{ background:"#FFF0F0", border:"1px solid #FFB3B3", borderRadius:"10px", padding:"12px 16px", marginBottom:"16px", color:"#CC3333", fontSize:"13px" }}> {erreur}</div>}
 
                   <div style={{ display:"flex", gap:"12px", justifyContent:"center", flexWrap:"wrap" }}>
                     {resultatNere && (
@@ -1021,7 +1021,7 @@ export default function DemandeDocument() {
                     {[{n:1,label:"Type"},{n:2,label:"Critères"},{n:3,label:"Vérif"}].map((s,i)=>(
                       <div key={s.n} style={{ display:"flex", alignItems:"center", flex:i<2?1:"none" }}>
                         <div style={{ display:"flex", alignItems:"center", gap:"8px" }}>
-                          <div style={{ width:"32px", height:"32px", borderRadius:"50%", background:etape>s.n?"var(--green-light)":etape===s.n?"rgba(77,201,122,0.25)":"rgba(255,255,255,0.1)", border:etape===s.n?"3px solid var(--green-light)":"2px solid transparent", color:etape>=s.n?"#fff":"rgba(255,255,255,0.3)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"13px", fontWeight:800, flexShrink:0, transition:"all 0.3s ease" }}>{etape>s.n?"✓":s.n}</div>
+                          <div style={{ width:"32px", height:"32px", borderRadius:"50%", background:etape>s.n?"var(--green-light)":etape===s.n?"rgba(77,201,122,0.25)":"rgba(255,255,255,0.1)", border:etape===s.n?"3px solid var(--green-light)":"2px solid transparent", color:etape>=s.n?"#fff":"rgba(255,255,255,0.3)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"13px", fontWeight:800, flexShrink:0, transition:"all 0.3s ease" }}>{etape>s.n?"":s.n}</div>
                           <span style={{ fontSize:"13px", fontWeight:700, color:etape>=s.n?"#fff":"rgba(255,255,255,0.4)", transition:"color 0.3s ease" }}>{s.label}</span>
                         </div>
                         {i<2 && <div style={{ flex:1, height:"3px", background:etape>s.n?"var(--green-light)":"rgba(255,255,255,0.15)", margin:"0 16px", transition:"all 0.3s ease" }}/>}
@@ -1045,7 +1045,7 @@ export default function DemandeDocument() {
                           {TYPES_REQUETES.map(t=>(
                             <button key={t.id} onClick={()=>{setForm(f=>({...f,typeRequete:t.id,sousType:[],quantite:"",secteur:"",sousCategories:[]}));setSecteurOuvert(null);}}
                               style={{ padding:"18px 20px", borderRadius:"12px", textAlign:"left", border:form.typeRequete===t.id?`3px solid ${t.couleur}`:"1.5px solid var(--border)", background:form.typeRequete===t.id?"var(--green-pale)":"#fff", cursor:"pointer", position:"relative", transition:"all 0.3s ease" }}>
-                              {form.typeRequete===t.id && <div style={{ position:"absolute", top:"10px", right:"12px", width:"18px", height:"18px", borderRadius:"50%", background:t.couleur, color:"#fff", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"10px", fontWeight:800 }}>✓</div>}
+                              {form.typeRequete===t.id && <div style={{ position:"absolute", top:"10px", right:"12px", width:"18px", height:"18px", borderRadius:"50%", background:t.couleur, color:"#fff", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"10px", fontWeight:800 }}> </div>}
                               <div style={{ display:"flex", alignItems:"center", gap:"8px", marginBottom:"6px" }}>
                                 <span style={{ fontWeight:800, fontSize:"15px", color:form.typeRequete===t.id?t.couleur:"var(--text-dark)" }}>{t.label}</span>
                                 {t.prix ? <span style={{ marginLeft:"auto", fontSize:"11px", fontWeight:700, color:t.couleur }}>{t.id==="statistique"?`${t.prix.toLocaleString()} FCFA forfait`:`${t.prix.toLocaleString()} FCFA/${t.unite}`}</span>
@@ -1076,7 +1076,7 @@ export default function DemandeDocument() {
                                     if (estStat) setForm(f=>({...f,sousType:Array.isArray(f.sousType)?(f.sousType.includes(s.value)?f.sousType.filter(v=>v!==s.value):[...f.sousType,s.value]):[s.value]}));
                                     else setForm(f=>({...f,sousType:[s.value]}));
                                   }} style={{ padding:"10px 18px", borderRadius:estStat?"10px":"100px", border:selectionne?"2px solid var(--green-light)":"1.5px solid var(--border)", background:selectionne?"var(--green-pale)":"#fff", color:selectionne?"var(--green-dark)":"var(--text-mid)", fontWeight:selectionne?700:500, fontSize:"13px", cursor:"pointer", display:"flex", alignItems:"center", gap:"8px", transition:"all 0.3s ease" }}>
-                                    <div style={{ width:"16px", height:"16px", flexShrink:0, borderRadius:estStat?"3px":"50%", border:selectionne?"2px solid var(--green-light)":"2px solid #ccc", background:selectionne?"var(--green-light)":"transparent", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"10px", color:"#fff", fontWeight:800 }}>{selectionne?"✓":""}</div>
+                                    <div style={{ width:"16px", height:"16px", flexShrink:0, borderRadius:estStat?"3px":"50%", border:selectionne?"2px solid var(--green-light)":"2px solid #ccc", background:selectionne?"var(--green-light)":"transparent", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"10px", color:"#fff", fontWeight:800 }}>{selectionne?"":""}</div>
                                     {s.label}
                                   </button>
                                 );
@@ -1142,9 +1142,9 @@ export default function DemandeDocument() {
                         )}
 
                         <button className="btn-save" style={{ padding:"12px 28px", width:"100%", fontSize:"16px", fontWeight:700 }}
-                          disabled={loading||!form.typeRequete||(typeObj?.sousTypes.length>0&&form.sousType.length===0)||(isDirect&&!form.quantite)}
+                          disabled={loading||!form.typeRequete||(typeObj?.sousTypes.length>0&&form.sousType.length===0)||((isDirect && form.typeRequete!=='statistique')&&!form.quantite)}
                           onClick={async()=>{ if (isChat) await redirecterVersChat(); else setEtape(2); }}>
-                          {loading&&isChat?" Traitement...":<><span>✓ Valider l'étape 1</span><span style={{marginLeft:'8px'}}>→</span></>}
+                          {loading&&isChat?" Traitement...":<><span> Valider l'étape 1</span><span style={{marginLeft:'8px'}}>→</span></>}
                         </button>
                       </>
                     )}
@@ -1161,7 +1161,7 @@ export default function DemandeDocument() {
                               Sélection multiple autorisée.
                             </p>
                           </div>
-                          {nbCriteres>0 && <span style={{ background:"var(--green-pale)", color:"var(--green-dark)", border:"1px solid rgba(34,160,82,0.2)", borderRadius:"100px", padding:"8px 16px", fontSize:"14px", fontWeight:700, display:"flex", alignItems:"center", gap:"8px" }}>✓ {nbCriteres} critère{nbCriteres>1?"s":""}</span>}
+                          {nbCriteres>0 && <span style={{ background:"var(--green-pale)", color:"var(--green-dark)", border:"1px solid rgba(34,160,82,0.2)", borderRadius:"100px", padding:"8px 16px", fontSize:"14px", fontWeight:700, display:"flex", alignItems:"center", gap:"8px" }}> {nbCriteres} critère{nbCriteres>1?"s":""}</span>}
                         </div>
 
                         <div style={{ display:"flex", flexDirection:"column", gap:"20px" }}>
@@ -1189,7 +1189,7 @@ export default function DemandeDocument() {
                                         return (
                                           <button key={sc.code} onClick={()=>setForm(f=>({...f,sousCategories:sel?f.sousCategories.filter(c=>c!==sc.code):[...f.sousCategories,sc.code]}))}
                                             style={{ padding:"6px 12px", borderRadius:"100px", fontSize:"11px", border:sel?"2px solid var(--green-light)":"1.5px solid var(--border)", background:sel?"var(--green-pale)":"#fff", color:sel?"var(--green-dark)":"var(--text-mid)", fontWeight:sel?700:500, cursor:"pointer", display:"flex", alignItems:"center", gap:"5px", transition:"all 0.2s ease" }}>
-                                            <div style={{ width:"12px", height:"12px", borderRadius:"2px", flexShrink:0, border:sel?"2px solid var(--green-light)":"2px solid #ccc", background:sel?"var(--green-light)":"transparent", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"8px", color:"#fff", fontWeight:800 }}>{sel?"✓":""}</div>
+                                            <div style={{ width:"12px", height:"12px", borderRadius:"2px", flexShrink:0, border:sel?"2px solid var(--green-light)":"2px solid #ccc", background:sel?"var(--green-light)":"transparent", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"8px", color:"#fff", fontWeight:800 }}>{sel?"":""}</div>
                                             {sc.label}
                                           </button>
                                         );
@@ -1217,7 +1217,7 @@ export default function DemandeDocument() {
                                   {PROVINCES_DOUANE.map(p=>(
                                     <button key={p.value} onClick={()=>setForm(f=>({...f,provinceDouane:f.provinceDouane===p.value?"":p.value}))}
                                       style={{ padding:"10px 20px", borderRadius:"100px", fontSize:"13px", border:form.provinceDouane===p.value?"2px solid var(--green-light)":"1.5px solid var(--border)", background:form.provinceDouane===p.value?"var(--green-pale)":"#fff", color:form.provinceDouane===p.value?"var(--green-dark)":"var(--text-mid)", fontWeight:form.provinceDouane===p.value?700:500, cursor:"pointer", transition:"all 0.3s ease" }}>
-                                      {form.provinceDouane===p.value?"✓ ":""}{p.label}
+                                      {form.provinceDouane===p.value?" ":""}{p.label}
                                     </button>
                                   ))}
                                 </div>
@@ -1229,7 +1229,7 @@ export default function DemandeDocument() {
                                 {(estListeAssociation||estStatAssociation?REGIONS_GEO:REGIONS_VILLES).map(r=>(
                                   <button key={r.value} onClick={()=>toggleArr("regions",r.value)}
                                     style={{ padding:"8px 14px", borderRadius:"100px", fontSize:"12px", border:form.regions.includes(r.value)?"2px solid var(--green-light)":"1.5px solid var(--border)", background:form.regions.includes(r.value)?"var(--green-pale)":"#fff", color:form.regions.includes(r.value)?"var(--green-dark)":"var(--text-mid)", fontWeight:form.regions.includes(r.value)?700:500, cursor:"pointer", transition:"all 0.2s ease" }}>
-                                    {form.regions.includes(r.value)?"✓ ":""}{r.label}
+                                    {form.regions.includes(r.value)?" ":""}{r.label}
                                   </button>
                                 ))}
                               </div>
@@ -1252,7 +1252,7 @@ export default function DemandeDocument() {
                                 {FORMES_JURIDIQUES.map(fj=>(
                                   <button key={fj.value} onClick={()=>toggleArr("formesJuridiques",fj.value)}
                                     style={{ padding:"7px 14px", borderRadius:"100px", fontSize:"12px", border:form.formesJuridiques.includes(fj.value)?"2px solid var(--green-light)":"1.5px solid var(--border)", background:form.formesJuridiques.includes(fj.value)?"var(--green-pale)":"#fff", color:form.formesJuridiques.includes(fj.value)?"var(--green-dark)":"var(--text-mid)", fontWeight:form.formesJuridiques.includes(fj.value)?700:500, cursor:"pointer", display:"flex", alignItems:"center", gap:"6px", transition:"all 0.2s ease" }}>
-                                    <span style={{ width:"14px", height:"14px", borderRadius:"3px", flexShrink:0, border:form.formesJuridiques.includes(fj.value)?"2px solid var(--green-light)":"2px solid #ccc", background:form.formesJuridiques.includes(fj.value)?"var(--green-light)":"transparent", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"9px", color:"#fff", fontWeight:800 }}>{form.formesJuridiques.includes(fj.value)?"✓":""}</span>
+                                    <span style={{ width:"14px", height:"14px", borderRadius:"3px", flexShrink:0, border:form.formesJuridiques.includes(fj.value)?"2px solid var(--green-light)":"2px solid #ccc", background:form.formesJuridiques.includes(fj.value)?"var(--green-light)":"transparent", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"9px", color:"#fff", fontWeight:800 }}>{form.formesJuridiques.includes(fj.value)?"":""}</span>
                                     {fj.label} <span style={{ fontSize:"10px", color:"#aaa" }}>({fj.nb?.toLocaleString("fr-FR")})</span>
                                   </button>
                                 ))}
@@ -1266,7 +1266,7 @@ export default function DemandeDocument() {
                                 {TRANCHES_EFFECTIF.map(t=>(
                                   <button key={t.value} onClick={()=>toggleArr("tranches",t.value)}
                                     style={{ padding:"11px 16px", borderRadius:"10px", textAlign:"left", border:form.tranches.includes(t.value)?"2px solid var(--green-light)":"1.5px solid var(--border)", background:form.tranches.includes(t.value)?"var(--green-pale)":"#fff", color:form.tranches.includes(t.value)?"var(--green-dark)":"var(--text-mid)", fontWeight:form.tranches.includes(t.value)?700:500, fontSize:"13px", cursor:"pointer", display:"flex", alignItems:"center", gap:"10px", transition:"all 0.2s ease" }}>
-                                    <div style={{ width:"18px", height:"18px", borderRadius:"50%", flexShrink:0, border:form.tranches.includes(t.value)?"2px solid var(--green-light)":"2px solid var(--border)", background:form.tranches.includes(t.value)?"var(--green-light)":"transparent", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"10px", color:"#fff" }}>{form.tranches.includes(t.value)?"✓":""}</div>
+                                    <div style={{ width:"18px", height:"18px", borderRadius:"50%", flexShrink:0, border:form.tranches.includes(t.value)?"2px solid var(--green-light)":"2px solid var(--border)", background:form.tranches.includes(t.value)?"var(--green-light)":"transparent", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"10px", color:"#fff" }}>{form.tranches.includes(t.value)?"":""}</div>
                                     {t.label}
                                   </button>
                                 ))}
@@ -1284,10 +1284,10 @@ export default function DemandeDocument() {
                               </div>
                               <div style={{ display:"flex", gap:"10px", flexWrap:"wrap", marginBottom:"16px" }}>
                                 {[{val:"annee_courante",label:"Année en cours"},{val:"annee_specifique",label:"Année spécifique"},{val:"intervalle",label:"Intervalle"}].map(opt=>(
-                                  <button key={opt.val} onClick={()=>setPeriodeType(opt.val)} style={{ padding:"9px 18px", borderRadius:"100px", fontSize:"13px", border:periodeType===opt.val?"2px solid var(--green-light)":"1.5px solid var(--border)", background:periodeType===opt.val?"var(--green-pale)":"#fff", color:periodeType===opt.val?"var(--green-dark)":"var(--text-mid)", fontWeight:periodeType===opt.val?700:500, cursor:"pointer", transition:"all 0.2s ease" }}>{periodeType===opt.val?"✓ ":""}{opt.label}</button>
+                                  <button key={opt.val} onClick={()=>setPeriodeType(opt.val)} style={{ padding:"9px 18px", borderRadius:"100px", fontSize:"13px", border:periodeType===opt.val?"2px solid var(--green-light)":"1.5px solid var(--border)", background:periodeType===opt.val?"var(--green-pale)":"#fff", color:periodeType===opt.val?"var(--green-dark)":"var(--text-mid)", fontWeight:periodeType===opt.val?700:500, cursor:"pointer", transition:"all 0.2s ease" }}>{periodeType===opt.val?" ":""}{opt.label}</button>
                                 ))}
                               </div>
-                              {periodeType==="annee_courante" && <div style={{ background:"var(--green-pale)", borderRadius:"10px", padding:"12px 16px", fontSize:"14px", color:"var(--green-dark)", fontWeight:600 }}>✓ Année {ANNEE_COURANTE}</div>}
+                              {periodeType==="annee_courante" && <div style={{ background:"var(--green-pale)", borderRadius:"10px", padding:"12px 16px", fontSize:"14px", color:"var(--green-dark)", fontWeight:600 }}> Année {ANNEE_COURANTE}</div>}
                               {periodeType==="annee_specifique" && <input type="number" min="2000" max={ANNEE_COURANTE} className="profil-input" value={anneeSpecifique} onChange={e=>setAnneeSpecifique(e.target.value)} style={{ maxWidth:"200px" }}/>}
                               {periodeType==="intervalle" && (
                                 <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"14px" }}>
@@ -1326,9 +1326,9 @@ export default function DemandeDocument() {
                           )}
                         </div>
                         <div style={{ display:"flex", gap:"10px", marginTop:"32px" }}>
-                          <button className="btn-cancel" onClick={()=>setEtape(1)} style={{ padding:"12px 24px" }}> ← Retour</button>
+                          <button className="btn-cancel" onClick={()=>setEtape(1)} style={{ padding:"12px 24px" }}>  Retour</button>
                           <button className="btn-save" style={{ padding:"12px 28px", flex:1, fontSize:"15px", fontWeight:700 }} disabled={!form.contact} onClick={()=>setEtape(3)}>
-                            ✓ Vérifier ma demande <span style={{marginLeft:'8px'}}>→</span>
+                             Vérifier ma demande <span style={{marginLeft:'8px'}}>→</span>
                           </button>
                         </div>
                       </>
@@ -1338,7 +1338,7 @@ export default function DemandeDocument() {
                     {etape===3 && (
                       <>
                         <div style={{ display:"flex", alignItems:"center", gap:"8px", marginBottom:"24px" }}>
-                          <h3 style={{ fontSize:"20px", fontWeight:800, color:"var(--text-dark)", margin:0 }}>③ Vérification avant soumission</h3>
+                          <h3 style={{ fontSize:"20px", fontWeight:800, color:"var(--text-dark)", margin:0 }}> Vérification avant soumission</h3>
                           <span className="required-badge">dernière étape</span>
                         </div>
                         
@@ -1346,7 +1346,7 @@ export default function DemandeDocument() {
                           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", paddingBottom:"20px", borderBottom:"2px solid var(--border)", marginBottom:"20px" }}>
                             <div>
                               <div style={{ fontWeight:800, fontSize:"18px", color:"var(--green-dark)", display:"flex", alignItems:"center", gap:"8px", marginBottom:"6px" }}>
-                                <span>✓</span>
+                                <span></span>
                                 <span>{typeObj?.label}</span>
                               </div>
                               <div style={{ fontSize:"13px", color:"var(--text-muted)", marginTop:"4px" }}>
@@ -1376,7 +1376,7 @@ export default function DemandeDocument() {
                             {form.formesJuridiques.length>0 && (
                               <div style={{ background:"#fff", padding:"14px 16px", borderRadius:"10px", border:"1px solid rgba(0,144,76,0.15)" }}>
                                 <div style={{ fontSize:"10px", fontWeight:700, color:"var(--text-muted)", textTransform:"uppercase", marginBottom:"8px", display:"flex", alignItems:"center", gap:"4px" }}>
-                                  ⚖️ Formes <span style={{background:'var(--green-light)', color:'#fff', borderRadius:'100px', padding:'0 6px', fontSize:'9px'}}>
+                                   Formes <span style={{background:'var(--green-light)', color:'#fff', borderRadius:'100px', padding:'0 6px', fontSize:'9px'}}>
                                     {form.formesJuridiques.length}
                                   </span>
                                 </div>
@@ -1388,7 +1388,7 @@ export default function DemandeDocument() {
                             {form.sousCategories.length>0 && (
                               <div style={{ background:"#fff", padding:"14px 16px", borderRadius:"10px", border:"1px solid rgba(0,144,76,0.15)" }}>
                                 <div style={{ fontSize:"10px", fontWeight:700, color:"var(--text-muted)", textTransform:"uppercase", marginBottom:"8px", display:"flex", alignItems:"center", gap:"4px" }}>
-                                  🏢 Secteurs <span style={{background:'var(--green-light)', color:'#fff', borderRadius:'100px', padding:'0 6px', fontSize:'9px'}}>
+                                   Secteurs <span style={{background:'var(--green-light)', color:'#fff', borderRadius:'100px', padding:'0 6px', fontSize:'9px'}}>
                                     {form.sousCategories.length}
                                   </span>
                                 </div>
@@ -1400,7 +1400,7 @@ export default function DemandeDocument() {
                             {form.typeRequete==="statistique" && (
                               <div style={{ background:"#fff", padding:"14px 16px", borderRadius:"10px", border:"1px solid rgba(0,144,76,0.15)" }}>
                                 <div style={{ fontSize:"10px", fontWeight:700, color:"var(--text-muted)", textTransform:"uppercase", marginBottom:"8px", display:"flex", alignItems:"center", gap:"4px" }}>
-                                  📅 Période
+                                   Période
                                 </div>
                                 <div style={{ fontSize:"11px", fontWeight:700, color:'var(--green-dark)' }}>
                                   {getPeriodeLabel()}
@@ -1429,7 +1429,7 @@ export default function DemandeDocument() {
                         )}
 
                         {erreur && <div style={{ background:"#FFF0F0", border:"2px solid #FFB3B3", borderRadius:"10px", padding:"14px 16px", marginBottom:"20px", color:"#CC3333", fontSize:"13px", display:"flex", gap:"10px", alignItems:"flex-start" }}>
-                          <span style={{fontSize:'18px'}}>❌</span>
+                          <span style={{fontSize:'18px'}}> </span>
                           <div>{erreur}</div>
                         </div>}
 
@@ -1437,10 +1437,10 @@ export default function DemandeDocument() {
 
                         <div style={{ display:"flex", gap:"12px", justifyContent:"center" }}>
                           <button className="btn-cancel" onClick={()=>setEtape(2)} style={{ padding:"12px 24px", fontSize:"14px" }}>
-                            ← Modifier
+                             Modifier
                           </button>
                           <button className="btn-save" style={{ padding:"13px 36px", fontSize:"15px", fontWeight:800 }} disabled={loading} onClick={soumettre}>
-                            {loading?<><span style={{marginRight:'8px'}}>⏳</span>Traitement en cours...</>:<><span>✓ Obtenir les résultats</span><span style={{marginLeft:'10px'}}>→</span></>}
+                            {loading?<><span style={{marginRight:'8px'}}></span>Traitement en cours...</>:<><span> Obtenir les résultats</span><span style={{marginLeft:'10px'}}> </span></>}
                           </button>
                         </div>
                       </>

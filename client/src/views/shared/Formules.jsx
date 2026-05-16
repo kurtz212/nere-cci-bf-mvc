@@ -302,14 +302,14 @@ export default function Formules() {
                       <div className="dd-name">{user.prenom} {user.nom}</div>
                       <div className="dd-email">{user.email || "—"}</div>
                       <div className="dd-role">
-                        {user.role === "admin"   ? "🛡 Administrateur" :
-                         user.role === "manager" ? "⚙️ Gestionnaire"   : "👤 Abonné"}
+                        {user.role === "admin"   ? "Administrateur" :
+                         user.role === "manager" ? "Gestionnaire"   : "Abonné"}
                       </div>
                     </div>
                     <div style={{ padding:"6px 0" }}>
                       {[
-                        { label:"👤 Mon Profil",     path:"/profil"   },
-                        { label:"💳 Mon Abonnement", path:"/paiement" },
+                        { label:"Mon Profil",     path:"/profil"   },
+                        { label:"Mon Abonnement", path:"/paiement" },
                       ].map(item => (
                         <div key={item.label} className="dd-item"
                           onClick={() => { navigate(item.path); setMenuOpen(false); }}>
@@ -319,18 +319,18 @@ export default function Formules() {
                       {user.role === "admin" && (
                         <div className="dd-item"
                           onClick={() => { navigate("/admin"); setMenuOpen(false); }}>
-                          🛡 Tableau de bord
+                          Tableau de bord
                         </div>
                       )}
                       {user.role === "manager" && (
                         <div className="dd-item"
                           onClick={() => { navigate("/gestionnaire"); setMenuOpen(false); }}>
-                          ⚙️ Tableau de bord
+                          ️ Tableau de bord
                         </div>
                       )}
                       <div className="dd-sep"/>
                       <div className="dd-item dd-danger" onClick={handleLogout}>
-                        🚪 Déconnexion
+                        Déconnexion
                       </div>
                     </div>
                   </div>
@@ -369,7 +369,7 @@ export default function Formules() {
           Packs prépayés — déduction directe à chaque requête.
         </p>
         <p style={{ color:"#00904C", fontSize:"13px", fontWeight:700 }}>
-          ✓ Converser avec agents CCI-BF inclus dans tous les packs
+           Converser avec agents CCI-BF inclus dans tous les packs
         </p>
       </div>
 
@@ -405,17 +405,8 @@ export default function Formules() {
                 boxShadow: isHover ? "0 16px 40px rgba(0,0,0,0.09)" :
                   pack.populaire ? `0 4px 20px rgba(0,144,76,0.1)` : "none" }}>
 
-              {/* Badge populaire */}
-              {pack.populaire && (
-                <div style={{ position:"absolute", top:"-12px", left:"50%",
-                  transform:"translateX(-50%)",
-                  background:"#00904C", color:"#fff",
-                  fontSize:"10px", fontWeight:800, padding:"4px 14px",
-                  borderRadius:"100px", letterSpacing:"0.06em",
-                  textTransform:"uppercase", whiteSpace:"nowrap" }}>
-                  ⭐ Le plus populaire
-                </div>
-              )}
+           
+              
 
               <div style={{ marginBottom:"20px" }}>
                 <div style={{ display:"inline-flex", alignItems:"center",
@@ -459,7 +450,7 @@ export default function Formules() {
                     gap:"8px", fontSize:"12px", color:av.ok ? "#0A2410" : "#bbb" }}>
                     <span style={{ flexShrink:0, fontSize:"13px",
                       color:av.ok ? pack.couleur : "#ddd" }}>
-                      {av.ok ? "✓" : "✕"}
+                      {av.ok ? "" : ""}
                     </span>
                     {av.label}
                   </div>
@@ -487,7 +478,7 @@ export default function Formules() {
         <div style={{ background:"rgba(0,144,76,0.05)",
           border:"1px solid rgba(0,144,76,0.2)", borderRadius:"12px",
           padding:"14px 20px", display:"flex", alignItems:"center", gap:"12px" }}>
-          <span style={{ fontSize:"20px" }}>💬</span>
+          <span style={{ fontSize:"20px" }}> </span>
           <div>
             <div style={{ fontWeight:700, fontSize:"13px", color:"#00904C" }}>
               Converser avec les agents CCI-BF — inclus dans tous les packs
@@ -548,7 +539,7 @@ export default function Formules() {
                     <td key={p.id} style={{ padding:"12px 16px", textAlign:"center" }}>
                       <span style={{ fontSize:"16px",
                         color:p.avantages[i].ok ? p.couleur : "#ddd" }}>
-                        {p.avantages[i].ok ? "✓" : "✕"}
+                        {p.avantages[i].ok ? "" : ""}
                       </span>
                     </td>
                   ))}

@@ -323,7 +323,7 @@ export default function RechercheEntreprise() {
             ))}
           </div>
         )}
-        {adresse&&<div style={{ marginBottom:"10px", paddingBottom:"10px", borderBottom:"1px solid rgba(0,144,76,0.08)", fontSize:"12px", color:"#6B9A7A" }}>📍 {adresse}{ent.boite_postale&&` — BP ${ent.boite_postale}`}</div>}
+        {adresse&&<div style={{ marginBottom:"10px", paddingBottom:"10px", borderBottom:"1px solid rgba(0,144,76,0.08)", fontSize:"12px", color:"#6B9A7A" }}> {adresse}{ent.boite_postale&&` — BP ${ent.boite_postale}`}</div>}
         {(contacts.length>0||ent.site_web)&&(
           <div style={{ display:"flex", flexWrap:"wrap", gap:"12px", alignItems:"center", marginBottom:"8px" }}>
             {contacts.map(c=><span key={c.value} style={{ fontSize:"12px", color:"#6B9A7A" }}>{c.value}</span>)}
@@ -375,7 +375,7 @@ export default function RechercheEntreprise() {
             ))}
           </div>
         )}
-        {ass.adresse&&<div style={{ marginBottom:"10px", fontSize:"12px", color:"#6B9A7A", paddingBottom:"8px", borderBottom:"1px solid rgba(0,144,76,0.08)" }}>📍 {ass.adresse}</div>}
+        {ass.adresse&&<div style={{ marginBottom:"10px", fontSize:"12px", color:"#6B9A7A", paddingBottom:"8px", borderBottom:"1px solid rgba(0,144,76,0.08)" }}> {ass.adresse}</div>}
         {(contacts.length>0||ass.site_web)&&(
           <div style={{ display:"flex", flexWrap:"wrap", gap:"12px", alignItems:"center", marginBottom:"8px" }}>
             {contacts.map(c=><span key={c.value} style={{ fontSize:"12px", color:"#6B9A7A" }}>{c.value}</span>)}
@@ -657,7 +657,7 @@ export default function RechercheEntreprise() {
               </div>
 
               <div className="histo-body">
-                {histoLoading && <div style={{ textAlign:"center", padding:"20px", color:"#6B9A7A", fontSize:"13px" }}>⏳ Chargement...</div>}
+                {histoLoading && <div style={{ textAlign:"center", padding:"20px", color:"#6B9A7A", fontSize:"13px" }}> Chargement...</div>}
                 {!histoLoading && histoErreur && <div style={{ background:"#FFF0F0", borderRadius:"8px", padding:"12px", color:"#CC3333", fontSize:"12px", marginTop:"12px" }}>{histoErreur}</div>}
                 {!histoLoading && !histoErreur && historique.length===0 && (
                   <div style={{ textAlign:"center", padding:"28px 12px", color:"#6B9A7A" }}>

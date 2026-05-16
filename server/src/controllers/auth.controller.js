@@ -18,9 +18,9 @@ const envoyerEmail = async ({ to, subject, html }) => {
       from: `"NERE CCI-BF" <${process.env.SMTP_USER}>`,
       to, subject, html,
     });
-    console.log('📧 Email envoyé à:', to);
+    console.log(' Email envoyé à:', to);
   } catch(e) {
-    console.warn('⚠️  Email non envoyé (SMTP non configuré):', e.message);
+    console.warn('️  Email non envoyé (SMTP non configuré):', e.message);
     // Ne pas bloquer l'inscription si email échoue
   }
 };
@@ -61,7 +61,7 @@ exports.inscription = async (req, res, next) => {
       const lien = `${process.env.CLIENT_URL}/verifier-email/${verifyToken}`;
       await envoyerEmail({
         to: email,
-        subject: '✅ Activez votre compte NERE CCI-BF',
+        subject: ' Activez votre compte NERE CCI-BF',
         html: `
           <div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;">
             <div style="background:#0A3D1F;padding:28px;text-align:center;border-radius:12px 12px 0 0;">
@@ -75,7 +75,7 @@ exports.inscription = async (req, res, next) => {
               <div style="text-align:center;margin:32px 0;">
                 <a href="${lien}" style="background:#4DC97A;color:#0A3D1F;padding:14px 32px;
                   border-radius:10px;text-decoration:none;font-weight:700;font-size:15px;display:inline-block;">
-                  ✅ Activer mon compte
+                   Activer mon compte
                 </a>
               </div>
               <p style="color:#6B9A7A;font-size:12px;text-align:center;">Ce lien expire dans <strong>24h</strong>.</p>

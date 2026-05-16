@@ -53,7 +53,7 @@ async function deduireSolde(userId, typeRequete, quantite = 1, role = 'abonne', 
 
   /* ── Accès illimité pour admin ET manager autorisé ── */
   if (ROLES_PRIVILEGES.includes(role) || (role === 'manager' && isManagerAuthorized)) {
-    console.log(`⚡ Accès privilégié (${role}${isManagerAuthorized ? ' autorisé' : ''}) — aucune déduction`);
+    console.log(` Accès privilégié (${role}${isManagerAuthorized ? ' autorisé' : ''}) — aucune déduction`);
     return { ok: true, cout: 0, solde_restant: null, bypasse: true };
   }
 
@@ -133,7 +133,7 @@ router.get('/recherche', proteger, async (req, res) => {
       cout_requete:  deduction.cout,
     });
   } catch (err) {
-    console.error('✗ /recherche :', err.message);
+    console.error(' /recherche :', err.message);
     res.status(500).json({ success: false, message: err.message });
   }
 });
@@ -158,7 +158,7 @@ router.get('/multicritere', proteger, async (req, res) => {
       cout_requete:  deduction.cout,
     });
   } catch (err) {
-    console.error('✗ /multicritere :', err.message);
+    console.error(' /multicritere :', err.message);
     res.status(500).json({ success: false, message: err.message });
   }
 });
@@ -182,7 +182,7 @@ router.get('/associations', proteger, async (req, res) => {
       cout_requete:  deduction.cout,
     });
   } catch (err) {
-    console.error('✗ /associations :', err.message);
+    console.error(' /associations :', err.message);
     res.status(500).json({ success: false, message: err.message });
   }
 });
@@ -204,7 +204,7 @@ router.get('/associations/:code', proteger, async (req, res) => {
       cout_requete:  deduction.cout,
     });
   } catch (err) {
-    console.error('✗ /associations/:code :', err.message);
+    console.error(' /associations/:code :', err.message);
     res.status(500).json({ success: false, message: err.message });
   }
 });
@@ -228,7 +228,7 @@ router.get('/recherche-globale', proteger, async (req, res) => {
       cout_requete:  deduction.cout,
     });
   } catch (err) {
-    console.error('✗ /recherche-globale :', err.message);
+    console.error(' /recherche-globale :', err.message);
     res.status(500).json({ success: false, message: err.message });
   }
 });
@@ -248,7 +248,7 @@ router.get('/statistiques', proteger, async (req, res) => {
       cout_requete:  deduction.cout,
     });
   } catch (err) {
-    console.error('✗ /statistiques :', err.message);
+    console.error(' /statistiques :', err.message);
     res.status(500).json({ success: false, message: err.message });
   }
 });
@@ -268,7 +268,7 @@ router.get('/statistiques/associations', proteger, async (req, res) => {
       cout_requete:  deduction.cout,
     });
   } catch (err) {
-    console.error('✗ /statistiques/associations :', err.message);
+    console.error(' /statistiques/associations :', err.message);
     res.status(500).json({ success: false, message: err.message });
   }
 });
@@ -288,7 +288,7 @@ router.get('/statistiques/importations', proteger, async (req, res) => {
       cout_requete:  deduction.cout,
     });
   } catch (err) {
-    console.error('✗ /statistiques/importations :', err.message);
+    console.error(' /statistiques/importations :', err.message);
     res.status(500).json({ success: false, message: err.message });
   }
 });
@@ -308,7 +308,7 @@ router.get('/statistiques/exportations', proteger, async (req, res) => {
       cout_requete:  deduction.cout,
     });
   } catch (err) {
-    console.error('✗ /statistiques/exportations :', err.message);
+    console.error(' /statistiques/exportations :', err.message);
     res.status(500).json({ success: false, message: err.message });
   }
 });
@@ -330,7 +330,7 @@ router.get('/entreprise/:rccm', proteger, async (req, res) => {
       cout_requete:  deduction.cout,
     });
   } catch (err) {
-    console.error('✗ /entreprise/:rccm :', err.message);
+    console.error(' /entreprise/:rccm :', err.message);
     res.status(500).json({ success: false, message: err.message });
   }
 });

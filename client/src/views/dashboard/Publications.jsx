@@ -521,7 +521,7 @@ export default function Publications() {
               value={recherche} onChange={e => setRecherche(e.target.value)}/>
             {recherche && (
               <span style={{ cursor:"pointer", color:"#8FA898", fontSize:"13px", fontWeight:700 }}
-                onClick={() => setRecherche("")}>✕</span>
+                onClick={() => setRecherche("")}></span>
             )}
           </div>
         </div>
@@ -611,7 +611,7 @@ export default function Publications() {
                   <div className="pub-access-badge"
                     style={{ background:access.bg, color:access.color,
                       border:`1px solid ${access.color}44` }}>
-                    {locked||isVisiteur ? " " : "✓ "}{access.label}
+                    {locked||isVisiteur ? " " : " "}{access.label}
                   </div>
 
                   <div className="pub-card-cat">{pub.categorie}</div>
@@ -676,7 +676,7 @@ export default function Publications() {
         {selected && !isVisiteur && (
           <div className="modal-overlay" onClick={() => setSelected(null)}>
             <div className="modal-content" onClick={e => e.stopPropagation()}>
-              <button className="modal-close" onClick={() => setSelected(null)}>✕</button>
+              <button className="modal-close" onClick={() => setSelected(null)}></button>
               <div className="modal-cat">{selected.categorie} · {selected.date}</div>
               <h2 className="modal-title">{selected.titre}</h2>
               <div className="modal-tags">

@@ -41,7 +41,7 @@ app.use(morgan('dev'));
 app.get('/api/health', (req, res) => {
   res.json({
     success: true,
-    message: '✅ Serveur NERE CCI-BF opérationnel',
+    message: ' Serveur NERE CCI-BF opérationnel',
     date: new Date()
   });
 });
@@ -84,13 +84,13 @@ const PORT      = process.env.PORT || 5000;
 
 mongoose.connect(MONGO_URI)
   .then(() => {
-    console.log('✅ MongoDB connecté');
+    console.log(' MongoDB connecté');
     server.listen(PORT, () =>
       console.log(' Serveur sur http://localhost:' + PORT)
     );
   })
   .catch(err => {
-    console.error('❌ MongoDB:', err.message);
+    console.error(' MongoDB:', err.message);
     server.listen(PORT, () =>
       console.log(' Serveur sur http://localhost:' + PORT + ' (sans MongoDB)')
     );

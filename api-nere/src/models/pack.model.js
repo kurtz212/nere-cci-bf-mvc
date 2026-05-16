@@ -104,6 +104,6 @@ const packs = [
 ];
 
 Pack.insertMany(packs)
-  .then(() => console.log('✅ Packs insérés'))
-  .catch(err => console.error('❌ Seed packs:', err));
+  .then(() => console.log(' Packs insérés'))
+  .catch(err => console.error(' Seed packs:', err));
 */

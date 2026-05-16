@@ -13,14 +13,14 @@ const transporter = nodemailer.createTransport({
 // ── Fonction générique ──
 exports.envoyerEmail = async ({ to, subject, html, text }) => {
   if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    console.warn('⚠️ SMTP non configuré — email non envoyé');
+    console.warn('️ SMTP non configuré — email non envoyé');
     return;
   }
   await transporter.sendMail({
     from:    `"NERE CCI-BF" <${process.env.SMTP_USER}>`,
     to, subject, html, text,
   });
-  console.log(`📧 Email envoyé à: ${to}`);
+  console.log(`Email envoyé à: ${to}`);
 };
 
 // ── Email vérification compte ──
@@ -28,7 +28,7 @@ exports.envoyerEmailVerification = async (user, token) => {
   const url = `${process.env.CLIENT_URL}/verify-email?token=${token}`;
   await exports.envoyerEmail({
     to:      user.email,
-    subject: '✅ Vérifiez votre adresse email — NERE CCI-BF',
+    subject: ' Vérifiez votre adresse email — NERE CCI-BF',
     html: `
       <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
         <h2>Bonjour ${user.prenom},</h2>
@@ -50,7 +50,7 @@ exports.notifierNouvelleDemandeAdmin = async (demande) => {
   if (!process.env.SMTP_USER) return;
   await exports.envoyerEmail({
     to:      process.env.SMTP_USER,
-    subject: '📋 Nouvelle demande de document — NERE CCI-BF',
+    subject: 'Nouvelle demande de document — NERE CCI-BF',
     html: `
       <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
         <h2>Nouvelle demande reçue</h2>
@@ -67,7 +67,7 @@ exports.confirmerDemandeUtilisateur = async (user, demande) => {
   if (!user?.email) return;
   await exports.envoyerEmail({
     to:      user.email,
-    subject: '✅ Votre demande a été reçue — NERE CCI-BF',
+    subject: ' Votre demande a été reçue — NERE CCI-BF',
     html: `
       <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
         <h2>Bonjour ${user.prenom},</h2>

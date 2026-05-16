@@ -37,6 +37,7 @@ export default function App() {
           <Route path="/chatadmin"            element={<ChatAdmin />} />
               <Route path="/rechercheacc"          element={<RechercheAcc />} />
           <Route path="/paiement"             element={<Paiement />} />
+          <Route path="/paiement/retour"      element={<Paiement />} />
           <Route path="/dashboard"            element={<Dashboard />} />
           <Route path="/recherche-entreprise" element={<RechercheEntreprise />} />
           <Route path="/admin" element={
