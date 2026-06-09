@@ -15,13 +15,15 @@ const TARIFS = {
   recharge:     0,
 };
 
-/* POST /api/abonnements/deduire */
+// ════════════════════════════════════════════════
+// POST /api/abonnements/deduire
+// ════════════════════════════════════════════════
 router.post('/deduire', proteger, async (req, res) => {
   try {
     const { typeRequete, quantite = 1, description } = req.body;
     const role = req.user?.role || 'abonne';
 
-    /* ── Bypass immédiat pour admin uniquement ── */
+    // Bypass immédiat pour admin
     if (ROLES_PRIVILEGES.includes(role)) {
       return res.json({
         success:  true,
@@ -31,13 +33,13 @@ router.post('/deduire', proteger, async (req, res) => {
       });
     }
 
-    /* ── Abonné : vérifier et déduire ── */
+    // Abonné : vérifier et déduire
     const prixUnitaire = TARIFS[typeRequete] ?? 250;
     const montant      = prixUnitaire * Math.max(1, parseInt(quantite) || 1);
 
     let abo = await Abonnement.findOne({ userId: req.user._id, actif: true }).sort('-createdAt');
 
-    /* Fallback sans filtre actif */
+    // Fallback sans filtre actif
     if (!abo) {
       const aboAny = await Abonnement.findOne({ userId: req.user._id }).sort('-createdAt');
       if (aboAny && aboAny.solde > 0) {
@@ -80,16 +82,19 @@ router.post('/deduire', proteger, async (req, res) => {
     });
 
   } catch (err) {
-    console.error(' /abonnements/deduire :', err.message);
+    console.error('/abonnements/deduire :', err.message);
     res.status(500).json({ success: false, message: 'Erreur serveur.' });
   }
 });
 
-/* GET /api/abonnements/mon-solde */
+// ════════════════════════════════════════════════
+// GET /api/abonnements/mon-solde
+// ════════════════════════════════════════════════
 router.get('/mon-solde', proteger, async (req, res) => {
   try {
     const role = req.user?.role || 'abonne';
 
+    // Bypass admin
     if (ROLES_PRIVILEGES.includes(role)) {
       return res.json({
         success: true,
@@ -98,19 +103,27 @@ router.get('/mon-solde', proteger, async (req, res) => {
     }
 
     const abo = await Abonnement.findOne({ userId: req.user._id, actif: true }).sort('-createdAt');
-    if (!abo) return res.status(404).json({ success: false, message: 'Aucun abonnement.' });
+
+   
+    if (!abo) {
+      return res.status(200).json({
+        success: true,
+        data:    { solde: 0, pack: null, actif: false, illimite: false },
+      });
+    }
 
     return res.json({
       success: true,
       data:    {
-        solde:          abo.solde,
-        pack:           abo.pack,
-        packLabel:      abo.packLabel,
-        totalDepense:   abo.totalDepense,
-        nbRequetes:     abo.nbRequetes,
-        illimite:       false,
+        solde:        abo.solde,
+        pack:         abo.pack,
+        packLabel:    abo.packLabel,
+        totalDepense: abo.totalDepense,
+        nbRequetes:   abo.nbRequetes,
+        illimite:     false,
       },
     });
+
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

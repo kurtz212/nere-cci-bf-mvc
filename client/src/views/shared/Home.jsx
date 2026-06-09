@@ -47,42 +47,42 @@ const ETAPES_TUTORIEL = [
     id: 1,
     titre: "Bienvenue sur la plateforme NERE CCI-BF !",
     description: "Ce guide rapide va vous montrer comment tirer le meilleur parti de la plateforme en quelques étapes simples.",
-    action: null,
+    action: { path: "/", label: "Aller à l'accueil" },
     couleur: "#00904C",
   },
   {
     id: 2,
     titre: "Recherchez une entreprise ou association",
     description: "Utilisez la page Recherche pour trouver n'importe quelle entreprise ou association enregistrée au Burkina Faso. Recherchez par RCCM, IFU ou raison sociale. Coût : 250 FCFA par recherche.",
-    action: { label: "Essayer la recherche →", path: "/rechercheacc" },
+    action: { path: "/rechercheacc", label: "Aller à la Recherche" },
     couleur: "#1E60CC",
   },
   {
     id: 3,
     titre: "Faites une demande de données officielles",
     description: "Besoin d'une liste d'entreprises, de statistiques sectorielles ou d'une fiche complète ? Rendez-vous sur la page Demande pour obtenir des données officielles de la CCI-BF.",
-    action: { label: "Voir les demandes →", path: "/demande-document" },
+    action: { path: "/rechercheacc", label: "Aller à la Demande" },
     couleur: "#D4A830",
   },
   {
     id: 4,
     titre: "Rechargez votre solde",
     description: "Toutes les requêtes sont payantes au solde. Rechargez votre compte à partir de 5 000 FCFA pour accéder aux données. Plus votre solde est élevé, plus vous avez accès à des fonctionnalités avancées.",
-    action: { label: "Voir les formules →", path: "/formules" },
+    action: { path: "/formules", label: "Recharger mon solde" },
     couleur: "#00904C",
   },
   {
     id: 5,
     titre: "La messagerie intégrée",
     description: "Vous avez une question ou besoin d'un document spécial ? Contactez directement un agent CCI-BF via la messagerie. Les demandes de Fiche et de Répertoire Thématique sont traitées par ce canal.",
-    action: { label: "Ouvrir la messagerie →", path: "/chat" },
+    action: { path: "/chat", label: "Aller à la Messagerie" },
     couleur: "#7C3AED",
   },
   {
     id: 6,
     titre: "Vous êtes prêt !",
     description: "Vous connaissez maintenant l'essentiel de la plateforme. Rechargez votre solde pour commencer à accéder aux données économiques officielles du Burkina Faso.",
-    action: { label: "Recharger mon solde →", path: "/formules" },
+    action: { path: "/", label: "Retour à l'accueil" },
     couleur: "#00904C",
   },
 ];
@@ -90,16 +90,22 @@ const ETAPES_TUTORIEL = [
 /* ══════════════════════════════════════════════════
    COMPOSANT TUTORIEL
 ══════════════════════════════════════════════════ */
-function TutorielModal({ onFermer, navigate }) {
+function TutorielModal() {
+  const navigate = useNavigate();
   const [etapeActuelle, setEtapeActuelle] = useState(0);
   const [animer, setAnimer] = useState(false);
+  const [visible, setVisible] = useState(() => {
+    const tutorielVu = localStorage.getItem(TUTORIEL_KEY);
+    return !tutorielVu; // show by default if not seen
+  });
 
   const etape = ETAPES_TUTORIEL[etapeActuelle];
   const estDerniere = etapeActuelle === ETAPES_TUTORIEL.length - 1;
   const progression = ((etapeActuelle + 1) / ETAPES_TUTORIEL.length) * 100;
+  const isFloating = etapeActuelle > 0;
 
   const allerEtapeSuivante = () => {
-    if (estDerniere) { onFermer(); return; }
+    if (estDerniere) return;
     setAnimer(true);
     setTimeout(() => { setEtapeActuelle(e => e + 1); setAnimer(false); }, 200);
   };
@@ -110,12 +116,41 @@ function TutorielModal({ onFermer, navigate }) {
     setTimeout(() => { setEtapeActuelle(e => e - 1); setAnimer(false); }, 200);
   };
 
+  const fermerTutoriel = useCallback(() => {
+    setVisible(false);
+    localStorage.setItem(TUTORIEL_KEY, "true");
+  }, []);
+
+  // lorsque le tutoriel est visible et que l'étape change, si l'étape possède une route, on navigue
+  useEffect(() => {
+    if (!visible) return;
+    const actionPath = ETAPES_TUTORIEL[etapeActuelle]?.action?.path;
+    if (actionPath) {
+      navigate(actionPath);
+    }
+  }, [etapeActuelle, navigate, visible]);
+
+  // écouteur global pour relancer le tutoriel depuis d'autres composants
+  useEffect(() => {
+    const onOpen = () => {
+      setEtapeActuelle(0);
+      setVisible(true);
+    };
+    window.addEventListener('nere:openTutoriel', onOpen);
+    return () => window.removeEventListener('nere:openTutoriel', onOpen);
+  }, []);
+
+  if (!visible) return null;
+
   return (
     <div style={{
       position:"fixed", inset:0, zIndex:2000,
-      background:"rgba(5,30,10,0.75)", backdropFilter:"blur(4px)",
-      display:"flex", alignItems:"center", justifyContent:"center",
-      padding:"20px", animation:"fadeInOverlay 0.3s ease",
+      background:isFloating?"rgba(5,30,10,0.35)":"rgba(5,30,10,0.85)",
+      display:"flex", alignItems:isFloating?"flex-end":"center", justifyContent:isFloating?"flex-start":"center",
+      padding:isFloating?"20px 20px 24px 20px":"20px",
+      animation:"fadeInOverlay 0.3s ease",
+      // allow background interactions/scroll while keeping the card interactive
+      pointerEvents: "none",
     }}>
       <style>{`
         @keyframes fadeInOverlay { from{opacity:0} to{opacity:1} }
@@ -141,9 +176,11 @@ function TutorielModal({ onFermer, navigate }) {
       `}</style>
 
       <div className="tuto-card" style={{
-        background:"#fff", borderRadius:"24px", width:"100%", maxWidth:"520px",
+        background:"#fff", borderRadius:"24px", width:isFloating?"360px":"100%", maxWidth:isFloating?"360px":"520px",
         boxShadow:"0 32px 80px rgba(0,0,0,0.25), 0 4px 16px rgba(0,0,0,0.1)",
         overflow:"hidden", position:"relative",
+        pointerEvents: "auto",
+        transition:"width 0.3s ease, transform 0.3s ease",
       }}>
         {/* Barre de progression */}
         <div style={{ height:"4px", background:"#F0F4F1", position:"relative" }}>
@@ -215,39 +252,65 @@ function TutorielModal({ onFermer, navigate }) {
 
           {/* Boutons */}
           <div style={{ display:"flex", gap:"10px" }}>
-            {etapeActuelle > 0 && (
-              <button className="tuto-btn-ghost" onClick={allerEtapePrecedente}>
-                 Retour
-              </button>
-            )}
+            {estDerniere ? (
+              <>
+                {etapeActuelle > 0 && (
+                  <button className="tuto-btn-ghost" onClick={allerEtapePrecedente}>
+                    Retour
+                  </button>
+                )}
+                <button className="tuto-btn-primary"
+                  onClick={fermerTutoriel}
+                  style={{
+                    background:`linear-gradient(135deg, ${etape.couleur}, ${etape.couleur}CC)`,
+                    color:"#fff",
+                    flex: 1,
+                  }}>
+                  Quitter
+                </button>
+              </>
+            ) : (
+              <>
+                {etapeActuelle > 0 && (
+                  <button className="tuto-btn-ghost" onClick={allerEtapePrecedente}>
+                     Retour
+                  </button>
+                )}
 
-            {etape.action && (
-              <button className="tuto-btn-ghost"
-                onClick={() => { navigate(etape.action.path); onFermer(); }}
-                style={{ flex:1 }}>
-                {etape.action.label}
-              </button>
-            )}
+                {etape.action && (
+                  <button className="tuto-btn-ghost"
+                    onClick={() => { navigate(etape.action.path); }}
+                    style={{ flex:1 }}>
+                    {etape.action.label}
+                  </button>
+                )}
 
-            <button className="tuto-btn-primary"
-              onClick={allerEtapeSuivante}
-              style={{
-                background:`linear-gradient(135deg, ${etape.couleur}, ${etape.couleur}CC)`,
-                color:"#fff",
-                flex: etape.action ? "none" : 1,
-              }}>
-              {estDerniere ? " Commencer" : "Suivant "}
-            </button>
+                {/* N'afficher le bouton Suivant que si on n'est pas à la dernière étape */}
+                {!estDerniere && (
+                  <button className="tuto-btn-primary"
+                    onClick={allerEtapeSuivante}
+                    style={{
+                      background:`linear-gradient(135deg, ${etape.couleur}, ${etape.couleur}CC)`,
+                      color:"#fff",
+                      flex: etape.action ? "none" : 1,
+                    }}>
+                    Suivant
+                  </button>
+                )}
+              </>
+            )}
           </div>
 
-          {/* Lien ignorer */}
-          <div style={{ textAlign:"center", marginTop:"14px" }}>
-            <button onClick={onFermer}
-              style={{ background:"none", border:"none", fontSize:"12px",
-                color:"#9AB09A", cursor:"pointer", fontFamily:"'Sora',sans-serif" }}>
-              Ignorer le tutoriel
-            </button>
-          </div>
+          {/* Lien ignorer (caché à la dernière étape pour ne laisser que Retour) */}
+          {!estDerniere && (
+            <div style={{ textAlign:"center", marginTop:"14px" }}>
+              <button onClick={fermerTutoriel}
+                style={{ background:"none", border:"none", fontSize:"12px",
+                  color:"#9AB09A", cursor:"pointer", fontFamily:"'Sora',sans-serif" }}>
+                Ignorer le tutoriel
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -260,7 +323,7 @@ function TutorielModal({ onFermer, navigate }) {
 function BoutonTutoriel({ onClick }) {
   return (
     <button onClick={onClick}
-      title="Revoir le tutoriel"
+      title="Revoir le guide"
       style={{
         position:"fixed", bottom:"28px", left:"28px", zIndex:999,
         display:"flex", alignItems:"center", gap:"8px",
@@ -273,7 +336,7 @@ function BoutonTutoriel({ onClick }) {
       }}
       onMouseEnter={e => { e.currentTarget.style.transform="translateY(-2px)"; e.currentTarget.style.boxShadow="0 8px 24px rgba(0,144,76,0.4)"; }}
       onMouseLeave={e => { e.currentTarget.style.transform="translateY(0)"; e.currentTarget.style.boxShadow="0 4px 20px rgba(0,144,76,0.35)"; }}>
-       Guide
+       Revoir le guide
     </button>
   );
 }
@@ -288,7 +351,6 @@ export default function Home() {
   const [adminPanel, setAdminPanel]   = useState(false);
   const [adminTab, setAdminTab]       = useState("stats");
   const [activeNav, setActiveNav]     = useState("accueil");
-  const [showTutoriel, setShowTutoriel] = useState(false);
 
   useEffect(() => {
     const u = localStorage.getItem("user");
@@ -300,18 +362,9 @@ export default function Home() {
       const tutorielVu = localStorage.getItem(TUTORIEL_KEY);
       if (!tutorielVu) {
         /* Léger délai pour laisser la page se charger */
-        setTimeout(() => setShowTutoriel(true), 800);
+        setTimeout(() => window.dispatchEvent(new Event('nere:openTutoriel')), 800);
       }
     }
-  }, []);
-
-  const fermerTutoriel = useCallback(() => {
-    setShowTutoriel(false);
-    localStorage.setItem(TUTORIEL_KEY, "true");
-  }, []);
-
-  const relancerTutoriel = useCallback(() => {
-    setShowTutoriel(true);
   }, []);
 
   const handleLogout = () => {
@@ -488,14 +541,8 @@ export default function Home() {
       `}</style>
 
       {/* TUTORIEL MODAL */}
-      {showTutoriel && (
-        <TutorielModal onFermer={fermerTutoriel} navigate={navigate}/>
-      )}
-
-      {/* BOUTON GUIDE (visible quand connecté et tutoriel fermé) */}
-      {!showTutoriel && (
-        <BoutonTutoriel onClick={relancerTutoriel}/>
-      )}
+      {/* Le tutoriel est maintenant rendu globalement depuis App.js; conserver le bouton local qui déclenche l'événement */}
+      <BoutonTutoriel onClick={() => window.dispatchEvent(new Event('nere:openTutoriel'))} />
 
       {/* NAVBAR */}
       <nav className="h-navbar">
@@ -543,7 +590,7 @@ export default function Home() {
                       <div className="h-di" onClick={() => { navigate("/profil");       setMenuOpen(false); }}>Mon Profil</div>
                       <div className="h-di" onClick={() => { navigate("/profil");       setMenuOpen(false); }}>Historique</div>
                       <div className="h-di" onClick={() => { navigate("/profil");       setMenuOpen(false); }}>Sécurité</div>
-                      <div className="h-di" onClick={() => { relancerTutoriel(); setMenuOpen(false); }}> Revoir le guide</div>
+                      <div className="h-di" onClick={() => { window.dispatchEvent(new Event('nere:openTutoriel')); setMenuOpen(false); }}> Revoir le guide</div>
                       {user.role === "admin"   && <div className="h-di" onClick={() => { navigate("/admin");        setMenuOpen(false); }}>Tableau de bord</div>}
                       {user.role === "manager" && <div className="h-di" onClick={() => { navigate("/gestionnaire"); setMenuOpen(false); }}>Tableau de bord</div>}
                       <div className="h-dsep"/>
@@ -576,7 +623,7 @@ export default function Home() {
               </span>
             </div>
           </div>
-          <button onClick={() => setShowTutoriel(true)}
+          <button onClick={() => window.dispatchEvent(new Event('nere:openTutoriel'))}
             style={{ padding:"8px 20px", borderRadius:"100px",
               background:"rgba(255,255,255,0.15)", border:"1px solid rgba(255,255,255,0.3)",
               color:"#fff", fontSize:"13px", fontWeight:700, cursor:"pointer",
@@ -603,7 +650,7 @@ export default function Home() {
             </p>
             <div className="hero-actions">
               <button className="btn-primary" onClick={() => navigate("/formules")}>Voir les formules</button>
-                <button className="btn-ghost" onClick={() => setShowTutoriel(true)}>
+                 <button className="btn-ghost" onClick={() => window.dispatchEvent(new Event('nere:openTutoriel'))}>
                  Guide de démarrage
               </button>
             </div>
@@ -643,7 +690,7 @@ export default function Home() {
                 Suivez ces 6 étapes pour tirer le meilleur parti de la plateforme NERE.
               </p>
             </div>
-            <button onClick={() => setShowTutoriel(true)}
+            <button onClick={() => window.dispatchEvent(new Event('nere:openTutoriel'))}
               style={{ padding:"12px 24px", borderRadius:"10px", background:"#00904C",
                 border:"none", color:"#fff", fontSize:"14px", fontWeight:700,
                 cursor:"pointer", fontFamily:"'Sora',sans-serif", flexShrink:0 }}>
@@ -1000,3 +1047,5 @@ function AdminPanelChat({ navigate }) {
     </div>
   );
 }
+
+export { TutorielModal };

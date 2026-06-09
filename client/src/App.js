@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Home                from './views/shared/Home';
+import { TutorielModal }   from './views/shared/Home';
 import Inscription         from './views/auth/Inscription';
 import Connexion           from './views/auth/Connexion';
 import Publications        from './views/dashboard/Publications';
@@ -9,7 +10,6 @@ import Formules            from './views/shared/Formules';
 import Dashboard           from './views/dashboard/Dashboard';
 import NotFound            from './views/shared/NotFound';
 import Paiement            from './views/dashboard/Paiement';
-import Recherche           from './views/dashboard/Recherche';
 import DemandeDocument     from './views/dashboard/DemandeDocument';
 import Chat                from './views/dashboard/Chat';
 import Admin               from './views/admin/Admin';
@@ -24,6 +24,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <TutorielModal />
         <Routes>
           <Route path="/"                     element={<Home />} />
           <Route path="/inscription"          element={<Inscription />} />
@@ -31,11 +32,10 @@ export default function App() {
           <Route path="/formules"             element={<Formules />} />
           <Route path="/publications"         element={<Publications />} />
           <Route path="/profil"               element={<Profil />} />
-           <Route path="/rechercheacc" element={<Recherche />} />
+          <Route path="/rechercheacc"          element={<RechercheAcc />} />
           <Route path="/demande-document"     element={<DemandeDocument />} />
           <Route path="/chat"                 element={<Chat />} />
           <Route path="/chatadmin"            element={<ChatAdmin />} />
-              <Route path="/rechercheacc"          element={<RechercheAcc />} />
           <Route path="/paiement"             element={<Paiement />} />
           <Route path="/paiement/retour"      element={<Paiement />} />
           <Route path="/dashboard"            element={<Dashboard />} />
@@ -45,8 +45,8 @@ export default function App() {
           } />
       
           <Route path="/contact"              element={<Contact />} />
+          <Route path="/gestionnaire"         element={<Gestionnaire />} />
           <Route path="*"                     element={<NotFound />} />
-          <Route path="/gestionnaire" element={<Gestionnaire />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

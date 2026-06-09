@@ -670,7 +670,7 @@ export default function Gestionnaire() {
           </p>
         </div>
         <button style={S.btn} onClick={()=>{setEditPub(null);setFormPub({titre:"",cat:"Rapport",contenu:"",statut:"brouillon"});setShowFormPub(true);}}>
-          + Nouvelle publication
+           Nouvelle publication
         </button>
       </div>
 

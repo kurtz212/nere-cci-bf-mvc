@@ -1,0 +1,10 @@
+version: "2"
+authtoken: 3EDPqHI1po6InTqt8Med5lLzskC_45MiVY1KZ3jtg6LXFRs1B
+
+tunnels:
+  backend:
+    proto: http
+    addr: 5000
+  nere-api:
+    proto: http
+    addr: 5001

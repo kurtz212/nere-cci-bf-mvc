@@ -9,7 +9,16 @@ const { connecterSQLServer } = require('./src/config/sqlserver');
 const app  = express();
 const PORT = process.env.NERE_PORT || 5001;
 
-app.use(cors({ origin: '*' }));
+// CORS — accepte les appels du backend principal
+app.use(cors({
+  origin: [
+    'http://localhost:5000',
+    'http://localhost:3000',
+    process.env.SERVER_URL,       // https://stout-flattery-backboard.ngrok-free.dev
+    process.env.CLIENT_URL,       // https://localhost:3000
+  ].filter(Boolean),
+}));
+
 app.use(express.json());
 
 // Routes
@@ -17,18 +26,20 @@ app.use('/api/entreprises', require('./src/routes/entreprises.routes'));
 
 // Health check
 app.get('/health', (req, res) => res.json({
-  status: 'ok', service: 'api-nere', port: PORT
+  status:  'ok',
+  service: 'api-nere',
+  port:    PORT,
 }));
 
 // Gestion erreur port occupé
 const startServer = (port) => {
   const server = app.listen(port, () => {
-    console.log(` API NERE démarrée sur http://localhost:${port}`);
+    console.log(`✅ API NERE démarrée sur http://localhost:${port}`);
   });
 
   server.on('error', (err) => {
     if (err.code === 'EADDRINUSE') {
-      console.log(`️  Port ${port} occupé, essai sur ${port + 1}...`);
+      console.log(`⚠️ Port ${port} occupé, essai sur ${port + 1}...`);
       startServer(port + 1);
     } else {
       throw err;
@@ -40,7 +51,7 @@ const startServer = (port) => {
 connecterSQLServer()
   .then(() => startServer(PORT))
   .catch(err => {
-    console.error(' SQL Server échoué :', err.message);
-    console.log('️  Démarrage sans SQL Server...');
+    console.error('SQL Server échoué :', err.message);
+    console.log(' Démarrage sans SQL Server...');
     startServer(PORT);
   });

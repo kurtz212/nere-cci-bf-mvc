@@ -70,12 +70,19 @@ ROUTES.forEach(({ path, file }) => {
 });
 
 // ── Middleware erreurs ──
-app.use((err, req, res, next) => {
-  console.error(' Erreur:', err.message);
-  res.status(err.statusCode || 500).json({
-    success: false,
-    message: err.message || 'Erreur serveur',
-  });
+app.use((req, res, next) => {
+  console.log(`\n📥 ${req.method} ${req.url}`);
+  console.log('👤 User:', req.headers.authorization ? 'Token présent' : 'Pas de token');
+  console.log('📦 Body:', JSON.stringify(req.body));
+
+  // Log de la réponse
+  const oldJson = res.json.bind(res);
+  res.json = (data) => {
+    console.log(`📤 Réponse ${res.statusCode}:`, JSON.stringify(data));
+    return oldJson(data);
+  };
+
+  next();
 });
 
 // ── MongoDB + Démarrage ──
